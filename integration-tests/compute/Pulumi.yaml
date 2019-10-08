@@ -1,0 +1,3 @@
+name: awsguard-test-elasticsearch
+runtime: nodejs
+description: Tests for policy rules related to AWS Elasticsearch domains.

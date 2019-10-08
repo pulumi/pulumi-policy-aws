@@ -94,9 +94,9 @@ func runPolicyPackIntegrationTest(
 
 			if len(scenario.WantErrors) == 0 {
 				t.Log("No errors are expected.")
-				e.RunCommand("pulumi", "up", "--policy-pack", policyPackDir)
+				e.RunCommand("pulumi", "preview", "--policy-pack", policyPackDir)
 			} else {
-				stdout, stderr := e.RunCommandExpectError("pulumi", "up", "--policy-pack", policyPackDir)
+				stdout, stderr := e.RunCommandExpectError("pulumi", "preview", "--policy-pack", policyPackDir)
 
 				for _, wantErr := range scenario.WantErrors {
 					inSTDOUT := strings.Contains(stdout, wantErr)
@@ -169,5 +169,75 @@ func TestElasticSearch(t *testing.T) {
 					WantErrors: nil,
 				},
 			*/
+		})
+}
+
+func TestComputeEC2(t *testing.T) {
+	// Get the directory for the policy pack to run. (The parent of this /integration-tests directory.)
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Error getting working directory")
+	}
+	policyPackDir := path.Join(cwd, "..")
+
+	runPolicyPackIntegrationTest(
+		t, "compute", policyPackDir,
+		map[string]string{
+			"aws:region": "us-west-2",
+		},
+		[]policyTestScenario{
+			// Test scenario 1 - happy path.
+			{},
+			// Test scenario 2 - monitoring is undefined.
+			{
+				WantErrors: []string{
+					"aws:ec2:Instance (test-ec2-instance):",
+					"  mandatory: [ec2-instance-detailed-monitoring-enabled] Checks whether detailed monitoring is enabled for EC2 instances.",
+				},
+			},
+			// Test scenario 3 - monitoring is false.
+			{
+				WantErrors: []string{
+					"aws:ec2:Instance (test-ec2-instance):",
+					"  mandatory: [ec2-instance-detailed-monitoring-enabled] Checks whether detailed monitoring is enabled for EC2 instances.",
+				},
+			},
+			// Test scenario 4 - public IP is associated.
+			{
+				WantErrors: []string{
+					"aws:ec2:Instance (test-ec2-instance):",
+					"  mandatory: [ec2-instance-no-public-ip] Checks whether Amazon EC2 instances have a public IP association. This rule applies only to IPv4.",
+				},
+			},
+			// Test scenario 5 - load balancers do not have access logs enabled.
+			{
+				WantErrors: []string{
+					"aws:elasticloadbalancing:LoadBalancer (test-elb):",
+					"  mandatory: [elb-logging-enabled] Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
+					"aws:elasticloadbalancingv2:LoadBalancer (test-elb-v2):",
+					"aws:applicationloadbalancing:LoadBalancer (test-alb):",
+				},
+			},
+			// Test scenario 6 - no EBS volume attached.
+			{
+				WantErrors: []string{
+					"aws:ec2:Instance (test-ec2-instance):",
+					"  mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+				},
+			},
+			// Test scenario 7 - an EBS volume that is not marked for deletion on termination of the EC2.
+			{
+				WantErrors: []string{
+					"aws:ec2:Instance (test-ec2-instance):",
+					" mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+				},
+			},
+			// Test scenario 8 - an EBS volume that is not encrypted.
+			{
+				WantErrors: []string{
+					"aws:ec2:Instance (test-ec2-instance):",
+					" mandatory: [encrypted-volumes] Checks whether the EBS volumes that are in an attached state are encrypted. If you specify the ID of a KMS key for encryption using the kmsId parameter, the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
+				},
+			},
 		})
 }
