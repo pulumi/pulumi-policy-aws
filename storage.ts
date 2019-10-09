@@ -2,6 +2,21 @@ import * as aws from "@pulumi/aws";
 import { Policy, typedRule } from "@pulumi/policy";
 import * as assert from "assert";
 
+/**
+ ✓ ebs-snapshot-public-restorable-check
+ ✓ efs-encrypted-check
+ ✓ elb-deletion-protection-enabled
+ ✓ s3-blacklisted-actions-prohibited
+   s3-bucket-logging-enabled
+   s3-bucket-policy-grantee-check
+   s3-bucket-policy-not-more-permissive
+   s3-bucket-public-read-prohibited
+   s3-bucket-public-write-prohibited
+   s3-bucket-replication-enabled
+   s3-bucket-server-side-encryption-enabled
+   s3-bucket-ssl-requests-only
+   s3-bucket-versioning-enabled
+ */
 export const storage: Policy[] = [
     {
         name: "ebs-snapshot-public-restorable-check",
@@ -83,5 +98,3 @@ export const storage: Policy[] = [
         }),
     },
 ];
-
-new aws.s3.Bucket("asdf")
