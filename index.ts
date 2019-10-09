@@ -13,8 +13,9 @@
 // limitations under the License.
 
 import { PolicyPack, typedRule } from "@pulumi/policy";
+import * as database from "./database";
 
 // Create a new Policy Pack.
 new PolicyPack("pulumi-awsguard", {
-    policies: [],
+    policies: [...database.policies],
 });
