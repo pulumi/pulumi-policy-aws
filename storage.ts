@@ -3,11 +3,11 @@ import { Policy, typedRule } from "@pulumi/policy";
 import * as assert from "assert";
 
 /**
- ✓ ebs-snapshot-public-restorable-check
+   ebs-snapshot-public-restorable-check (Requires aws-sdk)
  ✓ efs-encrypted-check
  ✓ elb-deletion-protection-enabled
- ✓ s3-blacklisted-actions-prohibited
-   s3-bucket-logging-enabled
+   s3-blacklisted-actions-prohibited
+ ✓ s3-bucket-logging-enabled
    s3-bucket-policy-grantee-check
    s3-bucket-policy-not-more-permissive
    s3-bucket-public-read-prohibited
@@ -18,14 +18,6 @@ import * as assert from "assert";
    s3-bucket-versioning-enabled
  */
 export const storage: Policy[] = [
-    {
-        name: "ebs-snapshot-public-restorable-check",
-        description: "Checks whether Amazon Elastic Block Store snapshots are not publicly restorable.",
-        enforcementLevel: "advisory",
-        rules: typedRule(aws.ebs.Snapshot.isInstance, it =>
-            assert.ok(false, "Requires aws-sdk"),
-        ),
-    },
     {
         name: "efs-encrypted-check",
         description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
@@ -48,53 +40,12 @@ export const storage: Policy[] = [
         ]
     },
     {
-        name: "s3-blacklisted-actions-prohibited",
-        description: "Checks that the Amazon Simple Storage Service bucket policy does not allow blacklisted bucket-level and object-level actions on resources in the bucket for principals from other AWS accounts.",
+        name: "s3-bucket-logging-enabled",
+        description: "Checks whether logging is enabled for your S3 buckets.",
         enforcementLevel: "advisory",
-        rules: typedRule(aws.s3.Bucket.isInstance, it => {
-            if (it.policy === undefined) {
-                return;
-            }
-            /** 
-             * `does not allow another AWS account to perform any s3:GetBucket* actions`
-             * TODO: How to check for _another_ account?
-             */
-
-            // configurable value
-            const prohibitedActions = ["s3:GetBucket", "s3:DeleteObject"];
-
-            const policyDoc = JSON.parse(it.policy);
-            prohibitedActions.forEach(prohibitedAction => {
-                const foundAction = policyDoc["Statement"].find((actions: any) =>
-                    actions["Action"].find((action: string) =>
-                        action.startsWith(prohibitedAction))
-                );
-                // TODO: This will fail on the first occurence - find all?
-                assert.notEqual(foundAction, undefined, `${foundAction} is not an allowed action.`);
-            });
-        }),
-    },
-    {
-        name: "s3-bucket-policy-grantee-check",
-        description: "Checks that the access granted by the Amazon S3 bucket is restricted by any of the AWS principals, federated users, service principals, IP addresses, or VPCs that you provide.",
-        enforcementLevel: "advisory",
-        rules: typedRule(aws.s3.Bucket.isInstance, it => {
-            if (it.policy === undefined) {
-                return;
-            }
-            // configurable value
-            const allowedAwsPrincipals = ["arn:aws:iam::111122223333:user/Alice", "123456789012"];
-
-            // TODO compare all policy principals match allowedAwsPrincipals
-
-            /**
-             * TODO: Repeat for:
-             * - `servicePrincipals`
-             * - `federatedUsers`
-             * - `ipAddresses`
-             * - `vpcIds`
-             * ref: https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-policy-grantee-check.html
-             */
-        }),
+        rules: typedRule(aws.s3.Bucket.isInstance, it =>
+            // AWS will ensure the `targetBucket` exists and is WRITE-able.
+            assert.ok(it.loggings !== undefined && it.loggings.length > 0, "Bucket logging must be defined."),
+        ),
     },
 ];
