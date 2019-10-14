@@ -13,8 +13,11 @@
 // limitations under the License.
 
 import { PolicyPack, typedRule } from "@pulumi/policy";
+import { storage } from "./storage";
 
 // Create a new Policy Pack.
 new PolicyPack("pulumi-awsguard", {
-    policies: [],
+    policies: [
+        ...storage,
+    ],
 });
