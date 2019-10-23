@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { PolicyPack, typedRule } from "@pulumi/policy";
+import { PolicyPack } from "@pulumi/policy";
 import { storage } from "./storage";
 
 // Create a new Policy Pack.
-new PolicyPack("pulumi-awsguard", {
+export const policyPack = new PolicyPack("pulumi-awsguard", {
     policies: [
         ...storage,
     ],
