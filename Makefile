@@ -9,6 +9,9 @@ ensure::
 	$(call STEP_MESSAGE)
 	yarn install
 
+	# Golang dependencies for the integration tests.
+	go get -t -d ./integration-tests
+
 .PHONY: lint
 lint::
 	$(call STEP_MESSAGE)
