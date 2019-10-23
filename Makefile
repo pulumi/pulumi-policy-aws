@@ -22,7 +22,7 @@ build::
 .PHONY: test
 test::
 	$(call STEP_MESSAGE)
-	@echo -e "TODO: Add tests"
+	go test ./integration-tests/ -v -timeout 30m
 
 .PHONY: travis_push
 travis_push::
