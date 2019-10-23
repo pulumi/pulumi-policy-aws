@@ -1,6 +1,10 @@
 {
     "name": "policy-pack-typescript",
     "version": "0.0.1",
+    "scripts": {
+        "build": "tsc",
+        "lint": "tslint --project ."
+    },
     "dependencies": {
         "@pulumi/aws": "^1.0.0",
         "@pulumi/pulumi": "^1.0.0",
