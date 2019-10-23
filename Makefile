@@ -9,6 +9,9 @@ ensure::
 	$(call STEP_MESSAGE)
 	yarn install
 
+	# Golang dependencies for the integration tests.
+	go get -t -d ./integration-tests
+
 .PHONY: lint
 lint::
 	$(call STEP_MESSAGE)
@@ -22,7 +25,7 @@ build::
 .PHONY: test
 test::
 	$(call STEP_MESSAGE)
-	@echo -e "TODO: Add tests"
+	go test ./integration-tests/ -v -timeout 30m
 
 .PHONY: travis_push
 travis_push::
