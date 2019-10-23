@@ -9,15 +9,15 @@ ensure::
 	$(call STEP_MESSAGE)
 	yarn install
 
-.PHONY: build
-build::
-	$(call STEP_MESSAGE)
-	yarn build
-
 .PHONY: lint
 lint::
 	$(call STEP_MESSAGE)
 	yarn lint
+
+.PHONY: build
+build::
+	$(call STEP_MESSAGE)
+	yarn build
 
 .PHONY: test
 test::
@@ -27,12 +27,16 @@ test::
 .PHONY: travis_push
 travis_push::
 	$(call STEP_MESSAGE)
-	$(MAKE) build
 	$(MAKE) lint
+	$(MAKE) build
+	$(MAKE) test
 
-.PHONY: travis_pull
-travis_pull::
+.PHONY: travis_pull_request
+travis_pull_request::
 	$(call STEP_MESSAGE)
+	$(MAKE) lint
+	$(MAKE) build
+	$(MAKE) test
 
 .PHONY: travis_api
 travis_api::
