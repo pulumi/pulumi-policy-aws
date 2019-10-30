@@ -13,10 +13,13 @@
 // limitations under the License.
 
 import { PolicyPack } from "@pulumi/policy";
+<<<<<<< HEAD
 
 import { compute } from "./compute";
 import { elasticsearch } from "./elasticsearch";
 import { storage } from "./storage";
+=======
+>>>>>>> 3001d36a7ba1723d65e337ed142cb15ffe1f7fb2
 
 // Create a new Policy Pack.
 export const policyPack = new PolicyPack("pulumi-awsguard", {
