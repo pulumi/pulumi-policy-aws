@@ -8,7 +8,7 @@
     "dependencies": {
         "@pulumi/aws": "^1.0.0",
         "@pulumi/pulumi": "^1.0.0",
-        "@pulumi/policy": "latest"
+        "@pulumi/policy": "dev"
     },
     "devDependencies": {
         "@types/chai": "^4.2.3",

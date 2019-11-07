@@ -139,36 +139,35 @@ func TestElasticSearch(t *testing.T) {
 				WantErrors: []string{
 					// Diagnostics
 					"aws:elasticsearch:Domain (not-encrypted-at-rest):",
-					"  mandatory: [elasticsearch-encrypted-at-rest] Checks if the Elasticsearch Service domains have encryption at rest enabled.",
-					"  mandatory: [elasticsearch-in-vpc-only] Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
-
-					// A result of using `assert.ok`, leading to this unfortunate output. (And for every other policy violation, too.)
-					"expected value 'true' to == 'undefined'",
+					"  mandatory: Elasticsearch domain",
+					"must be encrypted at rest.",
+					"must run within a VPC.",
 				},
 			},
 			// Test scenario 2 changes the inputs, but we expect the same violations.
 			{
 				WantErrors: []string{
 					"aws:elasticsearch:Domain (not-encrypted-at-rest):",
-					"  mandatory: [elasticsearch-encrypted-at-rest] Checks if the Elasticsearch Service domains have encryption at rest enabled.",
-					"  mandatory: [elasticsearch-in-vpc-only] Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
+					"  mandatory: Elasticsearch domain",
+					"must be encrypted at rest.",
+					"must run within a VPC.",
 				},
 			},
 			// Test scenario 3 fixes one of the violations. (We aren't confirming the fixed violation is _not_ in the output though.)
 			{
 				WantErrors: []string{
 					"aws:elasticsearch:Domain (not-encrypted-at-rest):",
-					"  mandatory: [elasticsearch-in-vpc-only] Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
+					"  mandatory: Elasticsearch domain",
+					"must run within a VPC.",
 				},
 			},
 			// Test scenario 4 should not have any policy violations. And create the resources successfully.
-			// However, we disable this scenario because it takes 10+ minutes to create the Elastisearch instance,
-			// and just as long to tear it down.
-			/*
-				{
-					WantErrors: nil,
-				},
-			*/
+			// Since we are only running a preview, we can run this scenario without it taking 10+ minutes to
+			// create the Elasticsearch instance, however we do not want this to run if we end up using
+			// pulumi up for our tests.
+			{
+				WantErrors: nil,
+			},
 		})
 }
 
@@ -192,28 +191,28 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: [ec2-instance-detailed-monitoring-enabled] Checks whether detailed monitoring is enabled for EC2 instances.",
+					"  mandatory: EC2 instances must have detailed monitoring enabled.",
 				},
 			},
 			// Test scenario 3 - monitoring is false.
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: [ec2-instance-detailed-monitoring-enabled] Checks whether detailed monitoring is enabled for EC2 instances.",
+					"  mandatory: EC2 instances must have detailed monitoring enabled.",
 				},
 			},
 			// Test scenario 4 - public IP is associated.
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: [ec2-instance-no-public-ip] Checks whether Amazon EC2 instances have a public IP association. This rule applies only to IPv4.",
+					"  mandatory: EC2 instance must not have a public IP.",
 				},
 			},
 			// Test scenario 5 - load balancers do not have access logs enabled.
 			{
 				WantErrors: []string{
 					"aws:elasticloadbalancing:LoadBalancer (test-elb):",
-					"  mandatory: [elb-logging-enabled] Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
+					"  mandatory: Elastic Load Balancer must have access logs enabled.",
 					"aws:elasticloadbalancingv2:LoadBalancer (test-elb-v2):",
 					"aws:applicationloadbalancing:LoadBalancer (test-alb):",
 				},
@@ -222,21 +221,16 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+					"  mandatory: EC2 instance must have an EBS volume attached",
 				},
 			},
-			// Test scenario 7 - an EBS volume that is not marked for deletion on termination of the EC2.
+			// Test scenario 7 - an EBS volume that is not marked for deletion on termination of the EC2
+			// and is not encrypted.
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					" mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
-				},
-			},
-			// Test scenario 8 - an EBS volume that is not encrypted.
-			{
-				WantErrors: []string{
-					"aws:ec2:Instance (test-ec2-instance):",
-					" mandatory: [encrypted-volumes] Checks whether the EBS volumes that are in an attached state are encrypted. If you specify the ID of a KMS key for encryption using the kmsId parameter, the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
+					" mandatory: ECS instance's EBS volume ", "must be marked for termination on delete.",
+					" mandatory: EBS volume ", "must be encrypted.",
 				},
 			},
 		})

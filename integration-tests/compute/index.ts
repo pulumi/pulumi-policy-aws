@@ -39,7 +39,11 @@ let ec2InstanceArgs: aws.ec2.InstanceArgs = {
     }],
 };
 
-const elbBucket = new aws.s3.Bucket("test-bucket", {});
+const elbBucket = new aws.s3.Bucket("test-bucket", {
+    loggings: [{
+        targetBucket: "random-bucket",
+    }],
+});
 
 let elbArgs: aws.elasticloadbalancing.LoadBalancerArgs = {
     accessLogs: {
@@ -72,6 +76,10 @@ switch (testScenario) {
         ec2InstanceArgs = {
             ami: ami.id,
             instanceType: "t2.micro",
+            ebsBlockDevices: [{
+                deviceName: "/dev/test",
+                encrypted: true,
+            }],
         };
         break;
     case 3:
@@ -80,6 +88,10 @@ switch (testScenario) {
             ami: ami.id,
             monitoring: false,
             instanceType: "t2.micro",
+            ebsBlockDevices: [{
+                deviceName: "/dev/test",
+                encrypted: true,
+            }],
         };
         break;
     case 4:
@@ -89,6 +101,10 @@ switch (testScenario) {
             monitoring: true,
             instanceType: "t2.micro",
             associatePublicIpAddress: true,
+            ebsBlockDevices: [{
+                deviceName: "/dev/test",
+                encrypted: true,
+            }],
         };
         break;
     case 5:
@@ -106,28 +122,15 @@ switch (testScenario) {
         };
         break;
     case 7:
-        // EBS volume will not be deleted.
+        // EBS volume will not be deleted on termination and is not encrypted.
         ec2InstanceArgs = {
             ami: ami.id,
             monitoring: true,
             instanceType: "t2.micro",
             ebsBlockDevices: [{
                 deviceName: "/dev/test",
-                encrypted: true,
-                deleteOnTermination: false,
-            }],
-        };
-        break;
-    case 8:
-        // EBS volume not encrypted.
-        ec2InstanceArgs = {
-            ami: ami.id,
-            monitoring: true,
-            instanceType: "t2.micro",
-            ebsBlockDevices: [{
-                deviceName: "/dev/test",
-                deleteOnTermination: false,
                 encrypted: false,
+                deleteOnTermination: false,
             }],
         };
         break;

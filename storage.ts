@@ -13,8 +13,7 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { Policy, typedRule } from "@pulumi/policy";
-import * as assert from "assert";
+import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
 /**
    ebs-snapshot-public-restorable-check (Requires aws-sdk)
@@ -31,35 +30,43 @@ import * as assert from "assert";
    s3-bucket-ssl-requests-only
    s3-bucket-versioning-enabled
  */
-export const storage: Policy[] = [
+export const storage: ResourceValidationPolicy[] = [
     {
         name: "efs-encrypted-check",
         description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
         enforcementLevel: "advisory",
-        rules: typedRule(aws.efs.FileSystem.isInstance, it =>
-            assert.notEqual(it.kmsKeyId, undefined, "KMS Key must be defined."),
-        ),
+        validateResource: validateTypedResource(aws.efs.FileSystem.isInstance, (fileSystem, args, reportViolation) => {
+            if (!fileSystem.kmsKeyId) {
+                reportViolation("Amazon Elastic File System must have a KMS Key defined.");
+            }
+        }),
     },
     {
         name: "elb-deletion-protection-enabled",
         description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
         enforcementLevel: "advisory",
-        rules: [
-            typedRule(aws.applicationloadbalancing.LoadBalancer.isInstance, it =>
-                assert.notEqual(it.enableDeletionProtection, true, "Deletion Protection must be enabled."),
-            ),
-            typedRule(aws.elasticloadbalancingv2.LoadBalancer.isInstance, it =>
-                assert.notEqual(it.enableDeletionProtection, true, "Deletion Protection must be enabled."),
-            ),
+        validateResource: [
+            validateTypedResource(aws.applicationloadbalancing.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
+                    reportViolation("Deletion Protection must be enabled.");
+                }
+            }),
+            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
+                    reportViolation("Deletion Protection must be enabled.");
+                }
+            }),
         ],
     },
     {
         name: "s3-bucket-logging-enabled",
         description: "Checks whether logging is enabled for your S3 buckets.",
         enforcementLevel: "advisory",
-        rules: typedRule(aws.s3.Bucket.isInstance, it =>
+        validateResource: validateTypedResource(aws.s3.Bucket.isInstance, (bucket, args, reportViolation) => {
             // AWS will ensure the `targetBucket` exists and is WRITE-able.
-            assert.ok(it.loggings !== undefined && it.loggings.length > 0, "Bucket logging must be defined."),
-        ),
+            if (!bucket.loggings || bucket.loggings.length === 0) {
+                reportViolation("Bucket logging must be defined.");
+            }
+        }),
     },
 ];
