@@ -13,32 +13,30 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { Policy, typedRule } from "@pulumi/policy";
+import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-import * as assert from "assert";
-
-export const elasticsearch: Policy[] = [
+export const elasticsearch: ResourceValidationPolicy[] = [
     {
         name: "elasticsearch-encrypted-at-rest",
         description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
         enforcementLevel: "mandatory",
-        rules: [
-            typedRule(aws.elasticsearch.Domain.isInstance, (it) => {
-                assert.ok(it.encryptAtRest && it.encryptAtRest.enabled, `Elasticsearch domain ${it.domainName} must be encrypted at rest.`);
-            }),
-        ],
+        validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
+            if (domain.encryptAtRest === undefined || domain.encryptAtRest.enabled === false) {
+                reportViolation(`Elasticsearch domain ${domain.domainName} must be encrypted at rest.`);
+            }
+        }),
     },
     {
         name: "elasticsearch-in-vpc-only",
         description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
         enforcementLevel: "mandatory",
-        rules: [
-            typedRule(aws.elasticsearch.Domain.isInstance, (it: any) => {
-                assert.ok(it.vpcOptions, `Elasticsearch domain ${it.domainName} must run within a VPC.`);
-                // TODO: Do a more extensive check. We confirmed there is _any_ VPC associated with the ES Domain.
-                // But we could also add a separate rule to confirm that that VPC isn't internet addressable. Such
-                // as by checking if the subnets created have any rout table associations with an internet gateway.
-            }),
-        ],
+        validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
+            if (domain.vpcOptions === undefined) {
+                reportViolation(`Elasticsearch domain ${domain.domainName} must run within a VPC.`);
+            }
+            // TODO: Do a more extensive check. We confirmed there is _any_ VPC associated with the ES Domain.
+            // But we could also add a separate rule to confirm that that VPC isn't internet addressable. Such
+            // as by checking if the subnets created have any rout table associations with an internet gateway.
+        }),
     },
 ];
