@@ -1,2 +1,6 @@
 bin/
 node_modules/
+
+# We use yarn for our CI/CD pipeline, but for
+# local development using npm should just work too.
+/package-lock.json
