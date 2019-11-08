@@ -17,7 +17,7 @@ import "mocha";
 import * as aws from "@pulumi/aws";
 
 import * as elasticsearch from "../elasticsearch";
-import { assertHasViolation, assertNoViolations, fakeResource } from './util';
+import { assertHasViolation, assertNoViolations, fakeResource } from "./util";
 
 describe("#ElasticsearchEncryptedAtRest", () => {
     const policy = elasticsearch.ElasticsearchEncryptedAtRest("mandatory");
