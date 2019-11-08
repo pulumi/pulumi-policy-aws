@@ -13,24 +13,31 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-<<<<<<< HEAD
-import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
 export const elasticsearch: ResourceValidationPolicy[] = [
-    {
+    ElasticsearchEncryptedAtRest("mandatory"),
+    ElasticsearchInVpcOnly("mandatory"),
+];
+
+export function ElasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "elasticsearch-encrypted-at-rest",
         description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
-        enforcementLevel: "mandatory",
+        enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
             if (domain.encryptAtRest === undefined || domain.encryptAtRest.enabled === false) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must be encrypted at rest.`);
             }
         }),
-    },
-    {
+    };
+}
+
+export function ElasticsearchInVpcOnly(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "elasticsearch-in-vpc-only",
         description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
-        enforcementLevel: "mandatory",
+        enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
             if (domain.vpcOptions === undefined) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must run within a VPC.`);
@@ -39,44 +46,5 @@ export const elasticsearch: ResourceValidationPolicy[] = [
             // But we could also add a separate rule to confirm that that VPC isn't internet addressable. Such
             // as by checking if the subnets created have any rout table associations with an internet gateway.
         }),
-    },
-];
-=======
-import { EnforcementLevel, Policy, typedRule } from "@pulumi/policy";
-
-import * as assert from "assert";
-
-export const elasticsearch: Policy[] = [
-    ElasticsearchEncryptedAtRest("mandatory"),
-    ElasticsearchInVpcOnly("mandatory"),
-];
-
-export function ElasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel = "advisory"): Policy {
-    return {
-        name: "elasticsearch-encrypted-at-rest",
-        description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
-        enforcementLevel: enforcementLevel,
-        rules: [
-            typedRule(aws.elasticsearch.Domain.isInstance, (it) => {
-                assert.ok(it.encryptAtRest && it.encryptAtRest.enabled, `Elasticsearch domain ${it.domainName} must be encrypted at rest.`);
-            }),
-        ],
     };
 }
-
-export function ElasticsearchInVpcOnly(enforcementLevel: EnforcementLevel = "advisory"): Policy {
-    return {
-        name: "elasticsearch-in-vpc-only",
-        description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
-        enforcementLevel: enforcementLevel,
-        rules: [
-            typedRule(aws.elasticsearch.Domain.isInstance, (it: any) => {
-                assert.ok(it.vpcOptions, `Elasticsearch domain ${it.domainName} must run within a VPC.`);
-                // TODO: Do a more extensive check. We confirmed there is _any_ VPC associated with the ES Domain.
-                // But we could also add a separate rule to confirm that that VPC isn't internet addressable. Such
-                // as by checking if the subnets created have any rout table associations with an internet gateway.
-            }),
-        ],
-    };
-}
->>>>>>> Update Elasticsearch policies to use current idioms
