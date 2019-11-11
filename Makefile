@@ -22,9 +22,16 @@ build::
 	$(call STEP_MESSAGE)
 	yarn build
 
-.PHONY: test
-test::
+.PHONY: test_fast
+test_fast::
 	$(call STEP_MESSAGE)
+	npm run test
+
+.PHONY: test_all
+test_all::
+	$(MAKE) lint
+	$(call STEP_MESSAGE)
+	npm run test
 	go test ./integration-tests/ -v -timeout 30m
 
 .PHONY: travis_push
@@ -32,14 +39,14 @@ travis_push::
 	$(call STEP_MESSAGE)
 	$(MAKE) lint
 	$(MAKE) build
-	$(MAKE) test
+	$(MAKE) test_all
 
 .PHONY: travis_pull_request
 travis_pull_request::
 	$(call STEP_MESSAGE)
 	$(MAKE) lint
 	$(MAKE) build
-	$(MAKE) test
+	$(MAKE) test_all
 
 .PHONY: travis_api
 travis_api::

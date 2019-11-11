@@ -13,23 +13,31 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
 export const elasticsearch: ResourceValidationPolicy[] = [
-    {
+    ElasticsearchEncryptedAtRest("mandatory"),
+    ElasticsearchInVpcOnly("mandatory"),
+];
+
+export function ElasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "elasticsearch-encrypted-at-rest",
         description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
-        enforcementLevel: "mandatory",
+        enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
             if (domain.encryptAtRest === undefined || domain.encryptAtRest.enabled === false) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must be encrypted at rest.`);
             }
         }),
-    },
-    {
+    };
+}
+
+export function ElasticsearchInVpcOnly(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "elasticsearch-in-vpc-only",
         description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
-        enforcementLevel: "mandatory",
+        enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
             if (domain.vpcOptions === undefined) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must run within a VPC.`);
@@ -38,5 +46,5 @@ export const elasticsearch: ResourceValidationPolicy[] = [
             // But we could also add a separate rule to confirm that that VPC isn't internet addressable. Such
             // as by checking if the subnets created have any rout table associations with an internet gateway.
         }),
-    },
-];
+    };
+}
