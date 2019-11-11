@@ -31,6 +31,7 @@ test_fast::
 test_all::
 	$(MAKE) lint
 	$(call STEP_MESSAGE)
+	npm run test
 	go test ./integration-tests/ -v -timeout 30m
 
 .PHONY: travis_push
