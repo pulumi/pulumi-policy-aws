@@ -29,7 +29,7 @@ export function Ec2InstanceDetailedMonitoringEnabled(enforcementLevel: Enforceme
         name: "ec2-instance-detailed-monitoring-enabled",
         description: "Checks whether detailed monitoring is enabled for EC2 instances.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance.isInstance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
             if (!instance.monitoring) {
                 reportViolation("EC2 instances must have detailed monitoring enabled.");
             }
@@ -43,7 +43,7 @@ export function Ec2InstanceNoPublicIP(enforcementLevel: EnforcementLevel = "advi
         description: "Checks whether Amazon EC2 instances have a public IP association. " +
             "This rule applies only to IPv4.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance.isInstance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
             if (instance.associatePublicIpAddress) {
                 reportViolation("EC2 instance must not have a public IP.");
             }
@@ -57,7 +57,7 @@ function Ec2VolumeInUseCheck(enforcementLevel: EnforcementLevel = "advisory", ch
         description: "Checks whether EBS volumes are attached to EC2 instances. " +
             "Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance.isInstance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
             if (!instance.ebsBlockDevices || instance.ebsBlockDevices.length === 0) {
                 reportViolation("EC2 instance must have an EBS volume attached.");
             }
@@ -79,17 +79,17 @@ export function ElbAccessLoggingEnabled(enforcementLevel: EnforcementLevel = "ad
         description: "Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
         enforcementLevel: enforcementLevel,
         validateResource: [
-            validateTypedResource(aws.elasticloadbalancing.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.elasticloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                     reportViolation("Elastic Load Balancer must have access logs enabled.");
                 }
             }),
-            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                     reportViolation("Elastic Load Balancer must have access logs enabled.");
                 }
             }),
-            validateTypedResource(aws.applicationloadbalancing.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                     reportViolation("Application Load Balancer must have access logs enabled.");
                 }
@@ -105,7 +105,7 @@ export function EncryptedVolumes(enforcementLevel: EnforcementLevel = "advisory"
             "If you specify the ID of a KMS key for encryption using the kmsId parameter, " +
             "the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance.isInstance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
             if (instance.ebsBlockDevices && instance.ebsBlockDevices.length > 0) {
                 for (const ebs of instance.ebsBlockDevices) {
                     if (!ebs.encrypted) {
