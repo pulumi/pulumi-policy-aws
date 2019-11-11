@@ -17,69 +17,58 @@ import "mocha";
 import * as aws from "@pulumi/aws";
 
 import * as elasticsearch from "../elasticsearch";
-import { assertHasViolation, assertNoViolations, fakeResource } from "./util";
+import { assertHasViolation, assertNoViolations, createResourceValidationArgs } from "./util";
 
 describe("#ElasticsearchEncryptedAtRest", () => {
     const policy = elasticsearch.ElasticsearchEncryptedAtRest("mandatory");
-    const policyArgs = {
-        type: (<any>aws.elasticsearch.Domain).__pulumiType,
-        props: {},
-    };
-    it("Should fail if domain's encryptAtRest is undefined", async () => {
-        const domainUnderTest = fakeResource<aws.elasticsearch.Domain>({
-            domainName: "test-name",
-        });
-        policyArgs.props = domainUnderTest;
+    const domainName = "test-name";
 
-        const msg = `Elasticsearch domain ${domainUnderTest.domainName} must be encrypted at rest.`;
-        await assertHasViolation(policy, policyArgs, { message: msg });
+    it("Should fail if domain's encryptAtRest is undefined", async () => {
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+            domainName: domainName,
+        }));
+
+        const msg = `Elasticsearch domain ${domainName} must be encrypted at rest.`;
+        await assertHasViolation(policy, args, { message: msg });
     });
     it("Should fail if domain's encryptAtRest is disabled", async () => {
-        const domainUnderTest = fakeResource<aws.elasticsearch.Domain>({
-            domainName: "test-name",
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+            domainName: domainName,
             encryptAtRest: {
                 enabled: false,
             },
-        });
-        policyArgs.props = domainUnderTest;
+        }));
 
-        const msg = `Elasticsearch domain ${domainUnderTest.domainName} must be encrypted at rest.`;
-        await assertHasViolation(policy, policyArgs, { message: msg });
+        const msg = `Elasticsearch domain ${domainName} must be encrypted at rest.`;
+        await assertHasViolation(policy, args, { message: msg });
     });
 
     it("Should pass if encryptAtRest is enabled", async () => {
-        const domainUnderTest = fakeResource<aws.elasticsearch.Domain>({
-            domainName: "test-name",
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+            domainName: domainName,
             encryptAtRest: {
                 enabled: true,
             },
-        });
-        policyArgs.props = domainUnderTest;
+        }));
 
-        await assertNoViolations(policy, policyArgs);
+        await assertNoViolations(policy, args);
     });
 });
 
 describe("#ElasticsearchInVpcOnly", () => {
     const policy = elasticsearch.ElasticsearchInVpcOnly("mandatory");
-    const domainType = (<any>aws.elasticsearch.Domain).__pulumiType;
-    it("Should fail if no VPC options are available", async () => {
-        const noVpc = fakeResource<aws.elasticsearch.Domain>({});
-        const policyArgs = {
-            type: domainType,
-            props: noVpc,
-        };
 
-        await assertHasViolation(policy, policyArgs, { message: "must run within a VPC." });
+    it("Should fail if no VPC options are available", async () => {
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({}));
+
+        await assertHasViolation(policy, args, { message: "must run within a VPC." });
     });
 
     it("Should pass if VPC options are available", async () => {
-        const vpc = fakeResource<aws.elasticsearch.Domain>({ vpcOptions: {} });
-        const vpcPolicyArgs = {
-            type: domainType,
-            props: vpc,
-        };
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+            vpcOptions: {},
+        }));
 
-        await assertNoViolations(policy, vpcPolicyArgs);
+        await assertNoViolations(policy, args);
     });
 });

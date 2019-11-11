@@ -25,7 +25,7 @@ export function ElasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel)
         name: "elasticsearch-encrypted-at-rest",
         description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.elasticsearch.Domain, (domain, args, reportViolation) => {
             if (domain.encryptAtRest === undefined || domain.encryptAtRest.enabled === false) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must be encrypted at rest.`);
             }
@@ -38,7 +38,7 @@ export function ElasticsearchInVpcOnly(enforcementLevel: EnforcementLevel): Reso
         name: "elasticsearch-in-vpc-only",
         description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.elasticsearch.Domain.isInstance, (domain, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.elasticsearch.Domain, (domain, args, reportViolation) => {
             if (domain.vpcOptions === undefined) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must run within a VPC.`);
             }

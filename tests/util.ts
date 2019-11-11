@@ -14,16 +14,32 @@
 
 import * as policy from "@pulumi/policy";
 
-import { Resource } from "@pulumi/pulumi";
-import { ResolvedResource } from "@pulumi/pulumi/queryable";
+import { Resource, Unwrap } from "@pulumi/pulumi";
 
 import * as assert from "assert";
 
-// fakeResource will stub out a Pulumi resource's properties, so it can
-// be used for testing a policy.
-export function fakeResource<T extends Resource>(properties: any): ResolvedResource<T> {
-    const r: ResolvedResource<T> = {} as any;
-    return Object.assign(r, properties);
+// createResourceValidationArgs will create a ResourceValidationArgs using the `type` from
+// the specified `resourceClass` and `props` returned from the specified `argsFactory`.
+// The return type of the `argsFactory` is the unwrapped args bag for the resource, inferred
+// from the resource's constructor parameters.
+export function createResourceValidationArgs<TResource extends Resource, TArgs>(
+    resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
+    argsFactory: () => NonNullable<Unwrap<TArgs>>,
+): policy.ResourceValidationArgs {
+    const type = (<any>resourceClass).__pulumiType;
+    if (typeof type !== "string") {
+        assert.fail("Could not determine Pulumi type from resourceClass.");
+    }
+
+    const result = argsFactory();
+    if (!result) {
+        assert.fail("Result from argsFactory must not be undefined.");
+    }
+
+    return {
+        type: type as string,
+        props: result,
+    };
 }
 
 export interface PolicyViolation {

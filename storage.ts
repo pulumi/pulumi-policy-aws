@@ -35,7 +35,7 @@ export const storage: ResourceValidationPolicy[] = [
         name: "efs-encrypted-check",
         description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
         enforcementLevel: "advisory",
-        validateResource: validateTypedResource(aws.efs.FileSystem.isInstance, (fileSystem, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, args, reportViolation) => {
             if (!fileSystem.kmsKeyId) {
                 reportViolation("Amazon Elastic File System must have a KMS Key defined.");
             }
@@ -46,12 +46,12 @@ export const storage: ResourceValidationPolicy[] = [
         description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
         enforcementLevel: "advisory",
         validateResource: [
-            validateTypedResource(aws.applicationloadbalancing.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }
             }),
-            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer.isInstance, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }
@@ -62,7 +62,7 @@ export const storage: ResourceValidationPolicy[] = [
         name: "s3-bucket-logging-enabled",
         description: "Checks whether logging is enabled for your S3 buckets.",
         enforcementLevel: "advisory",
-        validateResource: validateTypedResource(aws.s3.Bucket.isInstance, (bucket, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.s3.Bucket, (bucket, args, reportViolation) => {
             // AWS will ensure the `targetBucket` exists and is WRITE-able.
             if (!bucket.loggings || bucket.loggings.length === 0) {
                 reportViolation("Bucket logging must be defined.");
