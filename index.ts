@@ -16,13 +16,15 @@ import { PolicyPack } from "@pulumi/policy";
 
 import { compute } from "./compute";
 import { elasticsearch } from "./elasticsearch";
+import { security } from "./security";
 import { storage } from "./storage";
 
 // Create a new Policy Pack.
 export const policyPack = new PolicyPack("pulumi-awsguard", {
     policies: [
-        ...storage,
-        ...elasticsearch,
         ...compute,
+        ...elasticsearch,
+        ...security,
+        ...storage,
     ],
 });

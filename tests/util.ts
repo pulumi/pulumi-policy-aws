@@ -65,7 +65,7 @@ export async function assertHasViolation(
     resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs, wantViolation: PolicyViolation) {
     const allViolations = await runPolicy(resPolicy, args);
     if (!allViolations || allViolations.length === 0) {
-        assert.fail("no violations reported");
+        assert.fail("no violations reported, but expected one");
     } else {
         for (const reportedViolation of allViolations) {
             // If we expect a specific URN, require that in the reported violation.
@@ -87,6 +87,17 @@ export async function assertHasViolation(
             }
         }
 
+        console.log("The expected violation was not found. Got the following instead:");
+        for (const reportedViolation of allViolations) {
+            console.log(`- ${reportedViolation.message} (urn="${reportedViolation.urn})`);
+        }
         assert.fail(`violation with substrings message:'${wantViolation.message}' urn:'${wantViolation.urn}' not found.`);
     }
+}
+
+// Returns "now", d days in the future or past.
+export function daysFromNow(days: number): Date {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date;
 }

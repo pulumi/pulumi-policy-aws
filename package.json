@@ -8,8 +8,10 @@
     },
     "dependencies": {
         "@pulumi/aws": "^1.0.0",
+        "@pulumi/policy": "dev",
         "@pulumi/pulumi": "^1.0.0",
-        "@pulumi/policy": "dev"
+        "aws-sdk": "^2.545.0",
+        "aws-sdk-mock": "^4.5.0"
     },
     "devDependencies": {
         "@types/chai": "^4.2.3",
