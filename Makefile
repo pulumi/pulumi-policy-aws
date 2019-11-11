@@ -29,29 +29,13 @@ test_fast::
 
 .PHONY: test_all
 test_all::
-	$(MAKE) lint
+	$(MAKE) test_fast
 	$(call STEP_MESSAGE)
-	npm run test
 	go test ./integration-tests/ -v -timeout 30m
 
-.PHONY: travis_push
-travis_push::
-	$(call STEP_MESSAGE)
-	$(MAKE) lint
-	$(MAKE) build
-	$(MAKE) test_all
-
-.PHONY: travis_pull_request
-travis_pull_request::
-	$(call STEP_MESSAGE)
-	$(MAKE) lint
-	$(MAKE) build
-	$(MAKE) test_all
-
-.PHONY: travis_api
-travis_api::
-	$(call STEP_MESSAGE)
-
-.PHONY: travis_cron
-travis_cron::
-	$(call STEP_MESSAGE)
+# The travis_* targets are entrypoints for CI.
+.PHONY: travis_cron travis_push travis_pull_request travis_api
+travis_cron: all
+travis_push: lint build test_all
+travis_pull_request: lint build test_all
+travis_api: all
