@@ -20,7 +20,6 @@ export const compute: ResourceValidationPolicy[] = [
     Ec2InstanceNoPublicIP("mandatory"),
     Ec2VolumeInUseCheck("mandatory", true),
     ElbAccessLoggingEnabled("mandatory"),
-    ElbAccessLoggingEnabled("mandatory"),
     EncryptedVolumes("mandatory"),
 ];
 
