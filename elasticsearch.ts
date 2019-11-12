@@ -16,11 +16,11 @@ import * as aws from "@pulumi/aws";
 import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
 export const elasticsearch: ResourceValidationPolicy[] = [
-    ElasticsearchEncryptedAtRest("mandatory"),
-    ElasticsearchInVpcOnly("mandatory"),
+    elasticsearchEncryptedAtRest("mandatory"),
+    elasticsearchInVpcOnly("mandatory"),
 ];
 
-export function ElasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+export function elasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "elasticsearch-encrypted-at-rest",
         description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
@@ -33,7 +33,7 @@ export function ElasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel)
     };
 }
 
-export function ElasticsearchInVpcOnly(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+export function elasticsearchInVpcOnly(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "elasticsearch-in-vpc-only",
         description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
