@@ -24,21 +24,16 @@ import * as assert from "assert";
 // from the resource's constructor parameters.
 export function createResourceValidationArgs<TResource extends Resource, TArgs>(
     resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
-    argsFactory: () => NonNullable<Unwrap<TArgs>>,
+    args: NonNullable<Unwrap<TArgs>>,
 ): policy.ResourceValidationArgs {
     const type = (<any>resourceClass).__pulumiType;
     if (typeof type !== "string") {
         assert.fail("Could not determine Pulumi type from resourceClass.");
     }
 
-    const result = argsFactory();
-    if (!result) {
-        assert.fail("Result from argsFactory must not be undefined.");
-    }
-
     return {
         type: type as string,
-        props: result,
+        props: args,
     };
 }
 

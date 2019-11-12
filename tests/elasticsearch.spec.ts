@@ -24,32 +24,32 @@ describe("#ElasticsearchEncryptedAtRest", () => {
     const domainName = "test-name";
 
     it("Should fail if domain's encryptAtRest is undefined", async () => {
-        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, {
             domainName: domainName,
-        }));
+        });
 
         const msg = `Elasticsearch domain ${domainName} must be encrypted at rest.`;
         await assertHasViolation(policy, args, { message: msg });
     });
     it("Should fail if domain's encryptAtRest is disabled", async () => {
-        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, {
             domainName: domainName,
             encryptAtRest: {
                 enabled: false,
             },
-        }));
+        });
 
         const msg = `Elasticsearch domain ${domainName} must be encrypted at rest.`;
         await assertHasViolation(policy, args, { message: msg });
     });
 
     it("Should pass if encryptAtRest is enabled", async () => {
-        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, {
             domainName: domainName,
             encryptAtRest: {
                 enabled: true,
             },
-        }));
+        });
 
         await assertNoViolations(policy, args);
     });
@@ -59,15 +59,15 @@ describe("#ElasticsearchInVpcOnly", () => {
     const policy = elasticsearch.ElasticsearchInVpcOnly("mandatory");
 
     it("Should fail if no VPC options are available", async () => {
-        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({}));
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, {});
 
         await assertHasViolation(policy, args, { message: "must run within a VPC." });
     });
 
     it("Should pass if VPC options are available", async () => {
-        const args = createResourceValidationArgs(aws.elasticsearch.Domain, () => ({
+        const args = createResourceValidationArgs(aws.elasticsearch.Domain, {
             vpcOptions: {},
-        }));
+        });
 
         await assertNoViolations(policy, args);
     });
