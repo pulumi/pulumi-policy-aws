@@ -22,7 +22,7 @@ export const database: ResourceValidationPolicy[] = [
 ];
 
 /**
- * 
+ *
  * @param enforcementLevel The enforcement level to enforce this policy with.
  * @param clusterDbEncrypted If true, database encryption is enabled.
  * @param nodeTypes Required node type.
@@ -39,28 +39,28 @@ export function redshiftClusterConfigurationCheck(
 
             // Check the cluster's encryption configuration.
             if (clusterDbEncrypted && (cluster.encrypted === undefined || cluster.encrypted === false)) {
-                reportViolation("Redshift cluster must be encrypted.")
+                reportViolation("Redshift cluster must be encrypted.");
             } else if (!clusterDbEncrypted && cluster.encrypted === true) {
-                reportViolation("Redshift cluster must not be encrypted.")
+                reportViolation("Redshift cluster must not be encrypted.");
             }
 
             // Check the cluster's node type.
             if (nodeTypes && !nodeTypes.includes(cluster.nodeType)) {
-                reportViolation(`Redshift cluster node type must be one of the following: ${nodeTypes.toString()}`)
+                reportViolation(`Redshift cluster node type must be one of the following: ${nodeTypes.toString()}`);
             }
 
             // Check the cluster's logging configuration.
             if (loggingEnabled && (cluster.logging === undefined || cluster.logging.enable === false)) {
-                reportViolation(`Redshift cluster must have logging enabled.`)
+                reportViolation(`Redshift cluster must have logging enabled.`);
             } else if (!loggingEnabled && cluster.logging && cluster.logging.enable === true) {
-                reportViolation(`Redshift cluster must not have logging enabled.`)
+                reportViolation(`Redshift cluster must not have logging enabled.`);
             }
         }),
     };
 }
 
 /**
- * 
+ *
  * @param enforcementLevel The enforcement level to enforce this policy with.
  * @param allowVersionUpgrade Allow version upgrade is enabled.
  * @param preferredMaintenanceWindow Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00).
@@ -89,9 +89,9 @@ export function redshiftClusterMaintenanceSettingsCheck(
             // Check the automatedSnapshotRetentionPeriod is configured properly. If undefined, the default is 1.
             if (automatedSnapshotRetentionPeriod) {
                 if (cluster.automatedSnapshotRetentionPeriod === undefined && automatedSnapshotRetentionPeriod !== 1) {
-                    reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${automatedSnapshotRetentionPeriod}.`)
+                    reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${automatedSnapshotRetentionPeriod}.`);
                 } else if (cluster.automatedSnapshotRetentionPeriod !== undefined && cluster.automatedSnapshotRetentionPeriod !== automatedSnapshotRetentionPeriod) {
-                    reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${automatedSnapshotRetentionPeriod}.`)
+                    reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${automatedSnapshotRetentionPeriod}.`);
                 }
             }
         }),
