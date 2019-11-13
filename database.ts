@@ -68,7 +68,7 @@ export function redshiftClusterConfigurationCheck(
  */
 export function redshiftClusterMaintenanceSettingsCheck(
     enforcementLevel: EnforcementLevel, allowVersionUpgrade: boolean,
-    preferredMaintenanceWindow: string | undefined, automatedSnapshotRetentionPeriod: number | undefined): ResourceValidationPolicy {
+    preferredMaintenanceWindow?: string, automatedSnapshotRetentionPeriod?: number): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-maintenance-settings-check",
         description: "Checks whether Amazon Redshift clusters have the specified maintenance settings.",
