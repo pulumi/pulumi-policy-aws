@@ -185,11 +185,12 @@
     upath "^1.1.0"
 
 "@pulumi/pulumi@^1.0.0":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-1.5.2.tgz#e721c086d9dc4de015bf63da1ea8cfe382771f52"
-  integrity sha512-bXndJF7pYqDdHHro3YngaEiYHGskJh1GUpmOxi9glTuMMsb/6YiclokxcTnsuZk91Tl+sopke6AHQutXrxjN+A==
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@pulumi/pulumi/-/pulumi-1.5.1.tgz#6450e55769f73e4f782b21bff30513705eadc6ce"
+  integrity sha512-8/X83ouslBuha36ZfxJFtv3VolIMYO/KM0ZLP1JRFDcDrUfGFRdLhiYmnIOYvu9NhmsxplJ5meP6wFvTQ/GygQ==
   dependencies:
     "@pulumi/query" "^0.3.0"
+    callback-to-async-iterator "^1.1.1"
     deasync "^0.1.15"
     google-protobuf "^3.5.0"
     grpc "1.21.1"
@@ -218,9 +219,9 @@
     "@types/node" "*"
 
 "@types/chai@^4.2.3":
-  version "4.2.5"
-  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.5.tgz#f8da153ebbe30babb0adc9a528b9ad32be3175a2"
-  integrity sha512-YvbLiIc0DbbhiANrfVObdkLEHJksQZVq0Uvfg550SRAKVYaEJy+V70j65BVe2WNp6E3HtKsUczeijHFCjba3og==
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.4.tgz#8936cffad3c96ec470a2dc26a38c3ba8b9b6f619"
+  integrity sha512-7qvf9F9tMTzo0akeswHPGqgUx/gIaJqrOEET/FCD8CFRkSUHlygQiM5yB6OvjrtdxBVLSyw7COJubsFYs0683g==
 
 "@types/long@*", "@types/long@^4.0.0":
   version "4.0.0"
@@ -335,9 +336,9 @@ assertion-error@^1.1.0:
   integrity sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==
 
 aws-sdk@^2.0.0:
-  version "2.571.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.571.0.tgz#cc3eb65c6ba0f7e535d2ead2ba205f4fd1c4a91c"
-  integrity sha512-u1wW6Ib0OIT2VlyDXMRp+xyH8viGu775Ctx08F8AKT3i06plB7kcf+WXmmvBnLeCXKdmE87GT/0WKb3wruzH6g==
+  version "2.569.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.569.0.tgz#a350583bd135d7106d2f92fb463df3239051361b"
+  integrity sha512-9i4n/8kR1cq+Ge1n9FzqEBE1kpF8uLEI24wssy0dQD1fks+eNoZ6b3bGMCR1OfYB0KVgIN7ZkUrng1Zu9M4fcA==
   dependencies:
     buffer "^4.9.1"
     events "^1.1.1"
@@ -412,6 +413,13 @@ caching-transform@^3.0.2:
     make-dir "^2.0.0"
     package-hash "^3.0.0"
     write-file-atomic "^2.4.2"
+
+callback-to-async-iterator@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/callback-to-async-iterator/-/callback-to-async-iterator-1.1.1.tgz#110adcde834589bee475415baf0123b6a541c398"
+  integrity sha512-w5uOapjkp/CEizuvBkLl7JyHlQNlxAT7LSr9g4vFjg5AEM5TJvaajjKkgs4kcFFm0fNqFX9D0zEIotllXvNC1Q==
+  dependencies:
+    iterall "^1.0.0"
 
 camelcase@^2.0.1:
   version "2.1.1"
@@ -833,9 +841,9 @@ grpc@^1.20.2:
     protobufjs "^5.0.3"
 
 handlebars@^4.1.2:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.5.2.tgz#5a4eb92ab5962ca3415ac188c86dc7f784f76a0f"
-  integrity sha512-29Zxv/cynYB7mkT1rVWQnV7mGX6v7H/miQ6dbEpYTKq5eJBN7PsRB+ViYJlcT6JINTSu4dVB9kOqEun78h6Exg==
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.5.1.tgz#8a01c382c180272260d07f2d1aa3ae745715c7ba"
+  integrity sha512-C29UoFzHe9yM61lOsIlCE5/mQVGrnIOrOq7maQl76L7tYPCgC1og0Ajt6uWnX4ZTxBPnjw+CUvawphwCfJgUnA==
   dependencies:
     neo-async "^2.6.0"
     optimist "^0.6.1"
@@ -1041,6 +1049,11 @@ istanbul-reports@^2.2.4:
   integrity sha512-SKi4rnMyLBKe0Jy2uUdx28h8oG7ph2PPuQPvIAh31d+Ci+lSiEu4C+h3oBPuJ9+mPKhOyW0M8gY4U5NM1WLeXA==
   dependencies:
     handlebars "^4.1.2"
+
+iterall@^1.0.0:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/iterall/-/iterall-1.2.2.tgz#92d70deb8028e0c39ff3164fdbf4d8b088130cd7"
+  integrity sha512-yynBb1g+RFUPY64fTrFv7nsjRrENBQJaX2UL+2Szc9REFrSNm1rpSXHGzhmAy7a9uv3vlvgBlXnf9RqmPH1/DA==
 
 jmespath@^0.15.0:
   version "0.15.0"
@@ -1997,9 +2010,9 @@ typescript@^3.0.0, typescript@^3.6.4:
   integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
 
 uglify-js@^3.1.4:
-  version "3.6.9"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.6.9.tgz#85d353edb6ddfb62a9d798f36e91792249320611"
-  integrity sha512-pcnnhaoG6RtrvHJ1dFncAe8Od6Nuy30oaJ82ts6//sGSXOP5UjBMEthiProjXmMNHOfd93sqlkztifFMcb+4yw==
+  version "3.6.8"
+  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.6.8.tgz#5edcbcf9d49cbb0403dc49f856fe81530d65145e"
+  integrity sha512-XhHJ3S3ZyMwP8kY1Gkugqx3CJh2C3O0y8NPiSxtm1tyD/pktLAkFZsFGpuNfTZddKDQ/bbDBLAd2YyA1pbi8HQ==
   dependencies:
     commander "~2.20.3"
     source-map "~0.6.1"
