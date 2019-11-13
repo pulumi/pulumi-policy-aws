@@ -154,10 +154,10 @@
     read-package-tree "^5.2.1"
     resolve "^1.7.1"
 
-"@pulumi/policy@^0.1.2-dev.1573595883":
-  version "0.1.2-dev.1573595883"
-  resolved "https://registry.yarnpkg.com/@pulumi/policy/-/policy-0.1.2-dev.1573595883.tgz#a3cc2d1286ca0d4e4e8986013ebcfd9c7a2c2e4f"
-  integrity sha512-l9wIfgIdtiF9Dt3xUWkHMhL93H+8Klb2N+4S6cuYJdV27fG1DR6gIpmYE+QQyqRSWiVr6mF0ayrBEoKBBXxNCw==
+"@pulumi/policy@dev":
+  version "0.1.2-dev.1573513627"
+  resolved "https://registry.yarnpkg.com/@pulumi/policy/-/policy-0.1.2-dev.1573513627.tgz#f2945ca0d60b2519faf13d492f87cbda68df18b0"
+  integrity sha512-gleL1kA8RlnSp2YFUqhQGJSDa3Gf/0TpOwddM/l2CUli80WJK9c0+Mb6jgJyvvdLrG7aAtO1CgJNbeM8ehfB+Q==
   dependencies:
     "@pulumi/pulumi" "1.4.1"
     google-protobuf "^3.5.0"

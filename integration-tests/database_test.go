@@ -39,12 +39,11 @@ func TestRedshiftCluster(t *testing.T) {
 			// Test scenario 2 - monitoring is undefined.
 			{
 				WantErrors: []string{
-					"ws:redshift:Cluster (test-cluster):",
-					"  mandatory: [redshift-cluster-configuration-check] Checks whether Amazon Redshift clusters have the specified settings.",
-					"  Redshift cluster must be encrypted.",
-					"  Redshift cluster must have logging enabled.",
-					"  Redshift cluster must allow version upgrades.",
-					"  Redshift cluster must not be publicly accessible.",
+					"aws:redshift:Cluster (test-cluster):",
+					"Redshift cluster must be encrypted.",
+					"Redshift cluster must have logging enabled.",
+					"Redshift cluster must allow version upgrades.",
+					"Redshift cluster must not be publicly accessible.",
 				},
 			},
 		})
