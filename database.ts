@@ -19,14 +19,18 @@ export const database: ResourceValidationPolicy[] = [
     redshiftClusterConfigurationCheck("mandatory", true /* clusterDbEncrypted */, true /* loggingEnabled */),
     redshiftClusterMaintenanceSettingsCheck("mandatory", true /* allowVersionUpgrade */),
     redshiftClusterPublicAccessCheck("mandatory"),
+    dynamodbTableEncryptionEnabled("mandatory"),
+    dbInstanceBackupEnabled("mandatory"),
+    rdsInstancePublicAccessCheck("mandatory"),
+    rdsStorageEncrypted("mandatory"),
 ];
 
 /**
  *
- * @param enforcementLevel The enforcement level to enforce this policy with.
- * @param clusterDbEncrypted If true, database encryption is enabled. Defaults to true.
- * @param loggingEnabled If true, audit logging must be enabled. Defaults to true.
- * @param nodeTypes Optional. List of allowed node types.
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
+ * @param [clusterDbEncrypted=true] If true, database encryption is enabled.
+ * @param [loggingEnabled=true] If true, audit logging must be enabled.
+ * @param [nodeTypes] List of allowed node types.
  */
 export function redshiftClusterConfigurationCheck(
     enforcementLevel: EnforcementLevel = "advisory", clusterDbEncrypted: boolean = true,
@@ -61,10 +65,10 @@ export function redshiftClusterConfigurationCheck(
 
 /**
  *
- * @param enforcementLevel The enforcement level to enforce this policy with.
- * @param allowVersionUpgrade Allow version upgrade is enabled. Defaults to true.
- * @param preferredMaintenanceWindow Optional. Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00).
- * @param automatedSnapshotRetentionPeriod Optional. Number of days to retain automated snapshots.
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
+ * @param [allowVersionUpgrade=true] Allow version upgrade is enabled. Defaults to true.
+ * @param [preferredMaintenanceWindow] Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00).
+ * @param [automatedSnapshotRetentionPeriod] Number of days to retain automated snapshots.
  */
 export function redshiftClusterMaintenanceSettingsCheck(
     enforcementLevel: EnforcementLevel = "advisory", allowVersionUpgrade: boolean = true,
@@ -98,7 +102,10 @@ export function redshiftClusterMaintenanceSettingsCheck(
     };
 }
 
-
+/**
+ *
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
+ */
 export function redshiftClusterPublicAccessCheck(
     enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
     return {
@@ -108,6 +115,113 @@ export function redshiftClusterPublicAccessCheck(
         validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, args, reportViolation) => {
             if (cluster.publiclyAccessible === undefined || cluster.publiclyAccessible) {
                 reportViolation("Redshift cluster must not be publicly accessible.");
+            }
+        }),
+    };
+}
+
+/**
+ * 
+ * @param enforcementLevel The enforcement level to enforce this policy with.
+ */
+export function dynamodbTableEncryptionEnabled(
+    enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+    return {
+        name: "dynamodb-table-encryption-enabled",
+        description: "Checks whether the Amazon DynamoDB tables are encrypted.",
+        enforcementLevel: enforcementLevel,
+        validateResource: validateTypedResource(aws.dynamodb.Table, (table, args, reportViolation) => {
+            if (table.serverSideEncryption && !table.serverSideEncryption.enabled) {
+                reportViolation("Dynamodb must have server side encryption enabled.");
+            }
+        }),
+    };
+}
+
+/**
+ *
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
+ * @param [backupRetentionPeriod] Retention period for backups.
+ * @param [preferredBackupWindow] Time range in which backups are created.
+ * @param [checkReadReplicas=true] Checks whether RDS DB instances have backups enabled for read replicas.
+ */
+export function dbInstanceBackupEnabled(
+    enforcementLevel: EnforcementLevel = "advisory",
+    backupRetentionPeriod?: number,
+    preferredBackupWindow?: string,
+    checkReadReplicas: boolean = true): ResourceValidationPolicy {
+    return {
+        name: "db-instance-backup-enabled",
+        description: "Checks whether RDS DB instances have backups enabled. " +
+            "Optionally, the rule checks the backup retention period and the backup window.",
+        enforcementLevel: enforcementLevel,
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
+            if (backupRetentionPeriod && backupRetentionPeriod === 0) {
+                console.log("A retention period of 0 means backups are disabled.");
+                process.exit(1);
+            }
+
+            // Run checks if the instance is not a read replica or if check read replicas is true.
+            if (!instance.replicateSourceDb || checkReadReplicas) {
+                if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
+                    reportViolation("RDS Instances must have backups enabled.");
+                }
+
+                // Check the backup retention period. The backupRetentionPeriod of an instance defaults to 7 days.
+                if (backupRetentionPeriod) {
+                    if ((!instance.backupRetentionPeriod && backupRetentionPeriod !== 7) ||
+                        (instance.backupRetentionPeriod && backupRetentionPeriod !== instance.backupRetentionPeriod)) {
+                        reportViolation(`RDS Instances must have a backup retention period of: ${backupRetentionPeriod}.`);
+                    }
+                }
+                // Check the preferred backup window.
+                if (preferredBackupWindow) {
+                    if (!instance.backupWindow || preferredBackupWindow !== instance.backupWindow) {
+                        reportViolation(`RDS Instances must have a backup preferred back up window of: ${preferredBackupWindow}.`);
+                    }
+                }
+            }
+        }),
+    };
+}
+
+/**
+ *
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
+ */
+export function rdsInstancePublicAccessCheck(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+    return {
+        name: "rds-instance-public-access-check",
+        description: "Check whether the Amazon Relational Database Service instances are not publicly accessible.",
+        enforcementLevel: enforcementLevel,
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
+            if (instance.publiclyAccessible) {
+                reportViolation("RDS Instance must not be publicly accessible.");
+            }
+        }),
+    };
+}
+
+/**
+ *
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
+ * @param [kmsKeyId] KMS key ID or ARN used to encrypt the storage.
+ */
+export function rdsStorageEncrypted(enforcementLevel: EnforcementLevel = "advisory", kmsKeyId?: string): ResourceValidationPolicy {
+    return {
+        name: "rds-storage-encrypted",
+        description: "Checks whether storage encryption is enabled for your RDS DB instances.",
+        enforcementLevel: enforcementLevel,
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
+            // Read replicas ignore this field and instead use the kmsId, so we will only check this
+            // if its not a read replica.
+            if (!instance.replicateSourceDb) {
+                if (instance.storageEncrypted === undefined || instance.storageEncrypted === false) {
+                    reportViolation("RDS Instance must have storage encryption enabled.");
+                }
+            }
+            if (kmsKeyId && (instance.kmsKeyId === undefined || instance.kmsKeyId !== kmsKeyId)) {
+                reportViolation(`RDS Instance must be encrypted with kms key id: ${kmsKeyId}.`);
             }
         }),
     };

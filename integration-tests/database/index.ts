@@ -19,11 +19,13 @@ const config = new pulumi.Config();
 const testScenario = config.getNumber("scenario");
 
 let redshiftClusterArgs: aws.redshift.ClusterArgs | undefined;
+let dynamodbArgs: aws.dynamodb.TableArgs | undefined;
+let rdsInstanceArgs: aws.rds.InstanceArgs | undefined;
 
 console.log(`Running test scenario #${testScenario}`);
 switch (testScenario) {
     case 1:
-        // Happy Path.
+        // Happy Path for redshift cluster.
         redshiftClusterArgs = {
             clusterIdentifier: "test",
             nodeType: "dc1.large",
@@ -38,19 +40,64 @@ switch (testScenario) {
         break;
     case 2:
         // Logging undefined, not encrypted, does not allow version upgrade
-        // and is publicly accessible.
+        // and is publicly accessible for redshift cluster.
         redshiftClusterArgs = {
             clusterIdentifier: "test",
             nodeType: "dc1.large",
             allowVersionUpgrade: false,
         };
         break;
+    case 3:
+        // Happy Path for dynamodb.
+        dynamodbArgs = {
+            hashKey: "test",
+            attributes: [],
+            serverSideEncryption: {
+                enabled: true,
+            },
+        };
+        break;
+    case 4:
+        // Dynamodb server side encryption disabled.
+        dynamodbArgs = {
+            hashKey: "test",
+            attributes: [],
+            serverSideEncryption: {
+                enabled: false,
+            },
+        };
+        break;
+    case 5:
+        // RDS Instance happy path.
+        rdsInstanceArgs = {
+            instanceClass: "db.m5.large",
+            storageEncrypted: true,
+        };
+        break;
+    case 6:
+        // RDS Instance - no backup.
+        rdsInstanceArgs = {
+            instanceClass: "db.m5.large",
+            backupRetentionPeriod: 0,
+            publiclyAccessible: true,
+        };
+        break;
     default:
         throw new Error(`Unexpected test scenario ${testScenario}`);
 }
 
-const redshiftCluster = `awsguard-${pulumi.getStack()}`;
-console.log("Creating redshift cluster: ", redshiftCluster);
-new aws.redshift.Cluster("test-cluster", redshiftClusterArgs)
+const name = `awsguard-${pulumi.getStack()}`
+if (redshiftClusterArgs) {
+    console.log("Creating redshift cluster: ", name);
+    new aws.redshift.Cluster("test-cluster", redshiftClusterArgs);
+}
 
+if (dynamodbArgs) {
+    console.log("Creating dynamodb table: ", name);
+    new aws.dynamodb.Table("test-table", dynamodbArgs);
+}
 
+if (rdsInstanceArgs) {
+    console.log("Creating rds instance: ", name);
+    new aws.rds.Instance("test-rds-instance", rdsInstanceArgs);
+}
