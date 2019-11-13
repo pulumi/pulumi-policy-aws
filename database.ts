@@ -29,7 +29,7 @@ export const database: ResourceValidationPolicy[] = [
  * @param nodeTypes Optional. List of allowed node types.
  */
 export function redshiftClusterConfigurationCheck(
-    enforcementLevel: EnforcementLevel = "mandatory", clusterDbEncrypted: boolean = true,
+    enforcementLevel: EnforcementLevel = "advisory", clusterDbEncrypted: boolean = true,
     loggingEnabled: boolean = true, nodeTypes?: string[]): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-configuration-check",
@@ -67,7 +67,7 @@ export function redshiftClusterConfigurationCheck(
  * @param automatedSnapshotRetentionPeriod Optional. Number of days to retain automated snapshots.
  */
 export function redshiftClusterMaintenanceSettingsCheck(
-    enforcementLevel: EnforcementLevel = "mandatory", allowVersionUpgrade: boolean = true,
+    enforcementLevel: EnforcementLevel = "advisory", allowVersionUpgrade: boolean = true,
     preferredMaintenanceWindow?: string, automatedSnapshotRetentionPeriod?: number): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-maintenance-settings-check",
@@ -100,7 +100,7 @@ export function redshiftClusterMaintenanceSettingsCheck(
 
 
 export function redshiftClusterPublicAccessCheck(
-    enforcementLevel: EnforcementLevel = "mandatory"): ResourceValidationPolicy {
+    enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-public-access-check",
         description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
