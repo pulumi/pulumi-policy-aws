@@ -62,11 +62,11 @@ async function runPolicy(resPolicy: policy.ResourceValidationPolicy, args: polic
 export async function assertNoViolations(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs) {
     const allViolations = await runPolicy(resPolicy, args);
     if (allViolations && allViolations.length > 0) {
-        assert.fail("got violations but wasn't expecting any.");
         for (const violation of allViolations) {
             const urnSuffix = violation.urn ? `(URN=${violation.urn})` : "";
             console.log(`VIOLATION: ${violation.message} ${urnSuffix}`);
         }
+        assert.fail("got violations but wasn't expecting any.");
     }
 }
 
@@ -98,6 +98,11 @@ export async function assertHasViolation(
             }
         }
 
-        assert.fail(`violation with substrings message:'${wantViolation.message}' urn:'${wantViolation.urn}' not found.`);
+        // Print all reported violations for easier debugging of failing tests.
+        console.log("Reported Violations:");
+        for (const reported of allViolations) {
+            console.log(`urn: ${reported.urn} - message: ${reported.message}`);
+        }
+        assert.fail(`violation with substrings message:'${wantViolation.message}' urn:'${wantViolation.urn}' not found.'`);
     }
 }

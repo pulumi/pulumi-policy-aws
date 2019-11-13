@@ -1,0 +1,3 @@
+name: awsguard-test-database
+runtime: nodejs
+description: Tests for policy rules related to AWS Databases.

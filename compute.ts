@@ -16,14 +16,14 @@ import * as aws from "@pulumi/aws";
 import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
 export const compute: ResourceValidationPolicy[] = [
-    Ec2InstanceDetailedMonitoringEnabled("mandatory"),
-    Ec2InstanceNoPublicIP("mandatory"),
-    Ec2VolumeInUseCheck("mandatory", true),
-    ElbAccessLoggingEnabled("mandatory"),
-    EncryptedVolumes("mandatory"),
+    ec2InstanceDetailedMonitoringEnabled("mandatory"),
+    ec2InstanceNoPublicIP("mandatory"),
+    ec2VolumeInUseCheck("mandatory", true),
+    elbAccessLoggingEnabled("mandatory"),
+    encryptedVolumes("mandatory"),
 ];
 
-export function Ec2InstanceDetailedMonitoringEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+export function ec2InstanceDetailedMonitoringEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
     return {
         name: "ec2-instance-detailed-monitoring-enabled",
         description: "Checks whether detailed monitoring is enabled for EC2 instances.",
@@ -36,7 +36,7 @@ export function Ec2InstanceDetailedMonitoringEnabled(enforcementLevel: Enforceme
     };
 }
 
-export function Ec2InstanceNoPublicIP(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+export function ec2InstanceNoPublicIP(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
     return {
         name: "ec2-instance-no-public-ip",
         description: "Checks whether Amazon EC2 instances have a public IP association. " +
@@ -50,7 +50,7 @@ export function Ec2InstanceNoPublicIP(enforcementLevel: EnforcementLevel = "advi
     };
 }
 
-function Ec2VolumeInUseCheck(enforcementLevel: EnforcementLevel = "advisory", checkDeletion: boolean): ResourceValidationPolicy {
+function ec2VolumeInUseCheck(enforcementLevel: EnforcementLevel = "advisory", checkDeletion: boolean): ResourceValidationPolicy {
     return {
         name: "ec2-volume-inuse-check",
         description: "Checks whether EBS volumes are attached to EC2 instances. " +
@@ -72,7 +72,7 @@ function Ec2VolumeInUseCheck(enforcementLevel: EnforcementLevel = "advisory", ch
     };
 }
 
-export function ElbAccessLoggingEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+export function elbAccessLoggingEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
     return {
         name: "elb-logging-enabled",
         description: "Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
@@ -97,7 +97,7 @@ export function ElbAccessLoggingEnabled(enforcementLevel: EnforcementLevel = "ad
     };
 }
 
-export function EncryptedVolumes(enforcementLevel: EnforcementLevel = "advisory", kmsId?: string): ResourceValidationPolicy {
+export function encryptedVolumes(enforcementLevel: EnforcementLevel = "advisory", kmsId?: string): ResourceValidationPolicy {
     return {
         name: "encrypted-volumes",
         description: "Checks whether the EBS volumes that are in an attached state are encrypted. " +

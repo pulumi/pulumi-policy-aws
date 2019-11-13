@@ -1,5 +1,5 @@
 {
-    "name": "awsguard-test-elastisearch",
+    "name": "awsguard-test-database",
     "main": "index.ts",
     "dependencies": {
         "@pulumi/pulumi": "^1.0.0",
