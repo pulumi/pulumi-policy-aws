@@ -22,9 +22,9 @@ import { storage } from "./storage";
 // Create a new Policy Pack.
 export const policyPack = new PolicyPack("pulumi-awsguard", {
     policies: [
-        ...database,
-        ...storage,
-        ...elasticsearch,
         ...compute,
+        ...database,
+        ...elasticsearch,
+        ...storage,
     ],
 });

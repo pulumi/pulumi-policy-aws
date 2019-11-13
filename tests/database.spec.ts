@@ -22,7 +22,7 @@ import { assertHasViolation, assertNoViolations, createResourceValidationArgs } 
 
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
-        const policy = database.redshiftClusterConfigurationCheck("mandatory", true, ["dc1.large", "test"], true);
+        const policy = database.redshiftClusterConfigurationCheck("mandatory", true, true, ["dc1.large", "test"]);
         function getHappyPathArgs(): policy.ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
@@ -83,7 +83,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
     })
 
     describe("encryption and logging must be disabled and no nodeTypes specified", () => {
-        const policy = database.redshiftClusterConfigurationCheck("mandatory", false, undefined, false);
+        const policy = database.redshiftClusterConfigurationCheck("mandatory", false, false);
 
         function getHappyPathArgs(): policy.ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
@@ -186,7 +186,7 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     })
 
     describe("preferred maintenance window and retention period not specified", async () => {
-        const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true, undefined, undefined);
+        const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true);
         function getHappyPathArgs(): policy.ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",

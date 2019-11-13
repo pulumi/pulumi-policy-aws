@@ -16,21 +16,21 @@ import * as aws from "@pulumi/aws";
 import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
 export const database: ResourceValidationPolicy[] = [
-    redshiftClusterConfigurationCheck("mandatory", true /* clusterDbEncrypted */, undefined /* nodeTypes */, true /* loggingEnabled */),
-    redshiftClusterMaintenanceSettingsCheck("mandatory", true, "", undefined),
+    redshiftClusterConfigurationCheck("mandatory", true /* clusterDbEncrypted */, true /* loggingEnabled */),
+    redshiftClusterMaintenanceSettingsCheck("mandatory", true /* allowVersionUpgrade */),
     redshiftClusterPublicAccessCheck("mandatory"),
 ];
 
 /**
  *
  * @param enforcementLevel The enforcement level to enforce this policy with.
- * @param clusterDbEncrypted If true, database encryption is enabled.
- * @param nodeTypes Required node type.
- * @param loggingEnabled If true, audit logging must be enabled.
+ * @param clusterDbEncrypted If true, database encryption is enabled. Defaults to true.
+ * @param loggingEnabled If true, audit logging must be enabled. Defaults to true.
+ * @param nodeTypes Optional. List of allowed node types.
  */
 export function redshiftClusterConfigurationCheck(
-    enforcementLevel: EnforcementLevel, clusterDbEncrypted: boolean,
-    nodeTypes: string[] | undefined, loggingEnabled: boolean): ResourceValidationPolicy {
+    enforcementLevel: EnforcementLevel = "mandatory", clusterDbEncrypted: boolean = true,
+    loggingEnabled: boolean = true, nodeTypes?: string[]): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-configuration-check",
         description: "Checks whether Amazon Redshift clusters have the specified settings.",
@@ -62,12 +62,12 @@ export function redshiftClusterConfigurationCheck(
 /**
  *
  * @param enforcementLevel The enforcement level to enforce this policy with.
- * @param allowVersionUpgrade Allow version upgrade is enabled.
- * @param preferredMaintenanceWindow Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00).
- * @param automatedSnapshotRetentionPeriod Number of days to retain automated snapshots.
+ * @param allowVersionUpgrade Allow version upgrade is enabled. Defaults to true.
+ * @param preferredMaintenanceWindow Optional. Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00).
+ * @param automatedSnapshotRetentionPeriod Optional. Number of days to retain automated snapshots.
  */
 export function redshiftClusterMaintenanceSettingsCheck(
-    enforcementLevel: EnforcementLevel, allowVersionUpgrade: boolean,
+    enforcementLevel: EnforcementLevel = "mandatory", allowVersionUpgrade: boolean = true,
     preferredMaintenanceWindow?: string, automatedSnapshotRetentionPeriod?: number): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-maintenance-settings-check",
@@ -100,7 +100,7 @@ export function redshiftClusterMaintenanceSettingsCheck(
 
 
 export function redshiftClusterPublicAccessCheck(
-    enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+    enforcementLevel: EnforcementLevel = "mandatory"): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-public-access-check",
         description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
