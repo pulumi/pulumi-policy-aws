@@ -25,7 +25,7 @@ build::
 .PHONY: test_fast
 test_fast::
 	$(call STEP_MESSAGE)
-	npm run test
+	yarn test
 
 .PHONY: test_all
 test_all::
