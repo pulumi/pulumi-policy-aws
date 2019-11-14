@@ -161,8 +161,6 @@ export async function assertNoStackViolations(stackPolicy: policy.StackValidatio
     assertNoViolations(allViolations);
 }
 
-
-// assertHasViolation runs the policy and confirms the expected violation is reported.
 export async function assertHasStackViolation(
     stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs, wantViolation: PolicyViolation) {
     const allViolations = await runStackPolicy(stackPolicy, args);
