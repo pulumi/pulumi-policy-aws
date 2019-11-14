@@ -13,11 +13,17 @@
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "forceConsistentCasingInFileNames": true,
-        "strictNullChecks": true,
+        "strictNullChecks": true
     },
     "files": [
         "index.ts",
+        "compute.ts",
+        "database.ts",
+        "security.ts",
+        "storage.ts",
+        "tests/database.spec.ts",
         "tests/elasticsearch.spec.ts",
+        "tests/security.spec.ts",
         "tests/util.ts"
     ]
 }

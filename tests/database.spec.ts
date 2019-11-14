@@ -15,15 +15,15 @@
 import "mocha";
 
 import * as aws from "@pulumi/aws";
-import * as policy from "@pulumi/policy";
+import { ResourceValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
-import { assertHasViolation, assertNoViolations, createResourceValidationArgs } from "./util";
+import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
         const policy = database.redshiftClusterConfigurationCheck("mandatory", true, true, ["dc1.large", "test"]);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -36,7 +36,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
 
         it("Should pass if cluster's configured properly", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
 
@@ -45,7 +45,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.encrypted = undefined;
 
             const msg = "Redshift cluster must be encrypted.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's if encrypted is false", async () => {
@@ -53,7 +53,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.encrypted = false;
 
             const msg = "Redshift cluster must be encrypted.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's node type is not allowed", async () => {
@@ -61,7 +61,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.nodeType = "not-allowed";
 
             const msg = "Redshift cluster node type must be one of the following: dc1.large,test";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's logging is undefined", async () => {
@@ -69,7 +69,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.logging = undefined;
 
             const msg = "Redshift cluster must have logging enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's logging is not enabled", async () => {
@@ -77,15 +77,14 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.logging.enable = false;
 
             const msg = "Redshift cluster must have logging enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
-
-    })
+    });
 
     describe("encryption and logging must be disabled and no nodeTypes specified", () => {
         const policy = database.redshiftClusterConfigurationCheck("mandatory", false, false);
 
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -101,12 +100,12 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.logging = undefined;
             args.props.encrypted = undefined;
 
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should pass if cluster's explicitly configured properly", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should fail if cluster has encryption enabled", async () => {
@@ -114,7 +113,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.encrypted = true;
 
             const msg = "Redshift cluster must not be encrypted.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster has logging enabled", async () => {
@@ -122,15 +121,15 @@ describe("#redshiftClusterConfigurationCheck", () => {
             args.props.logging.enable = true;
 
             const msg = "Redshift cluster must not have logging enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
-    })
+    });
 });
 
 describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     describe("allVersionUpgrade required, preferred maintenance window and automate retention of 1", async () => {
         const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true, "Mon:09:30-Mon:10:00", 1);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -142,14 +141,14 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
 
         it("Should pass if cluster's maintenance configured properly", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should pass if cluster's maintenance configured properly due to defaults", async () => {
             const args = getHappyPathArgs();
             args.props.allowVersionUpgrade = undefined;
             args.props.automatedSnapshotRetentionPeriod = undefined;
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should fail if cluster's maintenance does not allow version upgrade", async () => {
@@ -157,7 +156,7 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
             args.props.allowVersionUpgrade = false;
 
             const msg = "Redshift cluster must allow version upgrades.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's preferred maintenance window is undefined", async () => {
@@ -165,7 +164,7 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
             args.props.preferredMaintenanceWindow = undefined;
 
             const msg = "Redshift cluster must specify the preferred maintenance window:";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's preferred maintenance window is not the required one", async () => {
@@ -173,7 +172,7 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
             args.props.preferredMaintenanceWindow = "some other time";
 
             const msg = "Redshift cluster must specify the preferred maintenance window:";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if cluster's automated snapshot is not the required one", async () => {
@@ -181,13 +180,13 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
             args.props.automatedSnapshotRetentionPeriod = 10;
 
             const msg = "Redshift cluster must specify an automated snapshot retention period of ";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
-    })
+    });
 
     describe("preferred maintenance window and retention period not specified", async () => {
         const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -199,14 +198,14 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
 
         it("Should pass if cluster's maintenance configured properly", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
-    })
+    });
 });
 
 describe("#redshiftClusterPublicAccessCheck", () => {
     const policy = database.redshiftClusterPublicAccessCheck("mandatory");
-    function getHappyPathArgs(): policy.ResourceValidationArgs {
+    function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.redshift.Cluster, {
             clusterIdentifier: "test",
             nodeType: "dc1.large",
@@ -216,20 +215,20 @@ describe("#redshiftClusterPublicAccessCheck", () => {
 
     it("Should pass if cluster is not publicly accessible", async () => {
         const args = getHappyPathArgs();
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 
     it("Should fail if cluster's publiclyAccessible is set to default", async () => {
         const args = getHappyPathArgs();
         args.props.publiclyAccessible = undefined;
         const msg = "Redshift cluster must not be publicly accessible.";
-        await assertHasViolation(policy, args, { message: msg });
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 
     it("Should fail if cluster's publiclyAccessible is set to true", async () => {
         const args = getHappyPathArgs();
         args.props.publiclyAccessible = true;
         const msg = "Redshift cluster must not be publicly accessible.";
-        await assertHasViolation(policy, args, { message: msg });
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 });

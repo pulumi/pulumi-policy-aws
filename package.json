@@ -9,12 +9,14 @@
     "dependencies": {
         "@pulumi/aws": "^1.0.0",
         "@pulumi/policy": "dev",
-        "@pulumi/pulumi": "^1.0.0"
+        "@pulumi/pulumi": "^1.0.0",
+        "aws-sdk": "^2.545.0"
     },
     "devDependencies": {
         "@types/chai": "^4.2.3",
         "@types/mocha": "^5.2.7",
         "@types/node": "^12.7.12",
+        "aws-sdk-mock": "^4.5.0",
         "chai": "^4.2.0",
         "mocha": "^6.2.1",
         "nyc": "^14.1.1",

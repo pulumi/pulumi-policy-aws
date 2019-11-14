@@ -17,9 +17,9 @@ import "mocha";
 import * as aws from "@pulumi/aws";
 
 import * as elasticsearch from "../elasticsearch";
-import { assertHasViolation, assertNoViolations, createResourceValidationArgs } from "./util";
+import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
-describe("#ElasticsearchEncryptedAtRest", () => {
+describe("#elasticsearchEncryptedAtRest", () => {
     const policy = elasticsearch.elasticsearchEncryptedAtRest("mandatory");
     const domainName = "test-name";
 
@@ -29,7 +29,7 @@ describe("#ElasticsearchEncryptedAtRest", () => {
         });
 
         const msg = `Elasticsearch domain ${domainName} must be encrypted at rest.`;
-        await assertHasViolation(policy, args, { message: msg });
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
     it("Should fail if domain's encryptAtRest is disabled", async () => {
         const args = createResourceValidationArgs(aws.elasticsearch.Domain, {
@@ -40,7 +40,7 @@ describe("#ElasticsearchEncryptedAtRest", () => {
         });
 
         const msg = `Elasticsearch domain ${domainName} must be encrypted at rest.`;
-        await assertHasViolation(policy, args, { message: msg });
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 
     it("Should pass if encryptAtRest is enabled", async () => {
@@ -51,17 +51,17 @@ describe("#ElasticsearchEncryptedAtRest", () => {
             },
         });
 
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 });
 
-describe("#ElasticsearchInVpcOnly", () => {
+describe("#elasticsearchInVpcOnly", () => {
     const policy = elasticsearch.elasticsearchInVpcOnly("mandatory");
 
     it("Should fail if no VPC options are available", async () => {
         const args = createResourceValidationArgs(aws.elasticsearch.Domain, {});
 
-        await assertHasViolation(policy, args, { message: "must run within a VPC." });
+        await assertHasResourceViolation(policy, args, { message: "must run within a VPC." });
     });
 
     it("Should pass if VPC options are available", async () => {
@@ -69,6 +69,6 @@ describe("#ElasticsearchInVpcOnly", () => {
             vpcOptions: {},
         });
 
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 });
