@@ -41,9 +41,9 @@ export function acmCheckCertificateExpiration(enforcementLevel: EnforcementLevel
         description: "Checks whether an ACM certificate has expired. Certificates provided by ACM are automatically renewed. ACM does not automatically renew certificates that you import.",
         enforcementLevel: enforcementLevel,
         validateStack: validateTypedResources(aws.acm.Certificate.isInstance, async (acmCertificates, args, reportViolation) => {
+            const acm = new AWS.ACM();
             // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
             for (const certInStack of acmCertificates) {
-                const acm = new AWS.ACM();
                 const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id }).promise();
 
                 const certDescription = describeCertResp.Certificate;
@@ -83,13 +83,12 @@ export function iamAccessKeysRotated(enforcementLevel: EnforcementLevel = "advis
         description: "Checks whether an access key have been rotated within maxKeyAge days.",
         enforcementLevel: enforcementLevel,
         validateStack: validateTypedResources(aws.iam.AccessKey.isInstance, async (accessKeys, args, reportViolation) => {
+            const iam = new AWS.IAM();
             for (const instance of accessKeys) {
                 // Skip any access keys that haven't yet been provisioned or whose status is inactive.
                 if (!instance.id || instance.status !== "Active") {
-                    return;
+                    continue;
                 }
-
-                const iam = new AWS.IAM();
 
                 // Use the AWS SDK to list the access keys for the user, which will contain the key's creation date.
                 let paginationToken = undefined;

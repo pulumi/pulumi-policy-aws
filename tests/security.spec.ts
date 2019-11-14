@@ -32,7 +32,7 @@ import * as AWSMock from "aws-sdk-mock";
 
 import { ListAccessKeysRequest, ListMFADevicesRequest } from "aws-sdk/clients/iam";
 
-describe("#IamAccessKeysRotated", () => {
+describe("#iamAccessKeysRotated", () => {
     const maxKeyAge = 30;
     const policy = security.iamAccessKeysRotated("mandatory", maxKeyAge);
 

@@ -54,7 +54,7 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
 
     const testResource: policy.PolicyResource = {
         type: type as string,
-        props: createResourceValidationArgs(resourceClass, props),
+        props: props,
     };
 
     return {
@@ -104,7 +104,7 @@ function assertNoViolations(allViolations: PolicyViolation[]) {
 
 
 // assertHasViolation runs the policy and confirms the expected violation is reported.
-async function assertHasViolation(allViolations: PolicyViolation[], wantViolation: PolicyViolation) {
+function assertHasViolation(allViolations: PolicyViolation[], wantViolation: PolicyViolation) {
     if (!allViolations || allViolations.length === 0) {
         assert.fail("no violations reported, but expected one");
     } else {
