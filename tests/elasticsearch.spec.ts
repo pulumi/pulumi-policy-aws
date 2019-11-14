@@ -19,7 +19,7 @@ import * as aws from "@pulumi/aws";
 import * as elasticsearch from "../elasticsearch";
 import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
-describe("#ElasticsearchEncryptedAtRest", () => {
+describe("#elasticsearchEncryptedAtRest", () => {
     const policy = elasticsearch.elasticsearchEncryptedAtRest("mandatory");
     const domainName = "test-name";
 
@@ -55,7 +55,7 @@ describe("#ElasticsearchEncryptedAtRest", () => {
     });
 });
 
-describe("#ElasticsearchInVpcOnly", () => {
+describe("#elasticsearchInVpcOnly", () => {
     const policy = elasticsearch.elasticsearchInVpcOnly("mandatory");
 
     it("Should fail if no VPC options are available", async () => {

@@ -15,7 +15,7 @@
 import "mocha";
 
 import * as aws from "@pulumi/aws";
-import * as policy from "@pulumi/policy";
+import { ResourceValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
 import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
@@ -23,7 +23,7 @@ import { assertHasResourceViolation, assertNoResourceViolations, createResourceV
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
         const policy = database.redshiftClusterConfigurationCheck("mandatory", true, true, ["dc1.large", "test"]);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -79,13 +79,12 @@ describe("#redshiftClusterConfigurationCheck", () => {
             const msg = "Redshift cluster must have logging enabled.";
             await assertHasResourceViolation(policy, args, { message: msg });
         });
-
-    })
+    });
 
     describe("encryption and logging must be disabled and no nodeTypes specified", () => {
         const policy = database.redshiftClusterConfigurationCheck("mandatory", false, false);
 
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -124,13 +123,13 @@ describe("#redshiftClusterConfigurationCheck", () => {
             const msg = "Redshift cluster must not have logging enabled.";
             await assertHasResourceViolation(policy, args, { message: msg });
         });
-    })
+    });
 });
 
 describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     describe("allVersionUpgrade required, preferred maintenance window and automate retention of 1", async () => {
         const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true, "Mon:09:30-Mon:10:00", 1);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -183,11 +182,11 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
             const msg = "Redshift cluster must specify an automated snapshot retention period of ";
             await assertHasResourceViolation(policy, args, { message: msg });
         });
-    })
+    });
 
     describe("preferred maintenance window and retention period not specified", async () => {
         const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
@@ -201,12 +200,12 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
             const args = getHappyPathArgs();
             await assertNoResourceViolations(policy, args);
         });
-    })
+    });
 });
 
 describe("#redshiftClusterPublicAccessCheck", () => {
     const policy = database.redshiftClusterPublicAccessCheck("mandatory");
-    function getHappyPathArgs(): policy.ResourceValidationArgs {
+    function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.redshift.Cluster, {
             clusterIdentifier: "test",
             nodeType: "dc1.large",

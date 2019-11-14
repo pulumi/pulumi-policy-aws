@@ -149,12 +149,10 @@ export async function assertHasResourceViolation(resPolicy: policy.ResourceValid
     assertHasViolation(allViolations, wantViolation);
 }
 
-
 export async function assertNoResourceViolations(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs) {
     const allViolations = await runResourcePolicy(resPolicy, args);
     assertNoViolations(allViolations);
 }
-
 
 export async function assertNoStackViolations(stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs) {
     const allViolations = await runStackPolicy(stackPolicy, args);
