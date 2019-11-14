@@ -42,9 +42,29 @@ export interface PolicyViolation {
     urn?: string;
 }
 
-// testPolicy will run some basic checks for a policy's metadata, and then
+// createStackValidationArgs will create a StackValidationArgs, simulating a stack that has a
+// single resource with the provided type and properties.
+export function createStackValidationArgs<TResource extends Resource, TArgs>(
+    resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
+    props: any): policy.StackValidationArgs {
+    const type = (<any>resourceClass).__pulumiType;
+    if (typeof type !== "string") {
+        assert.fail("Could not determine Pulumi type from resourceClass.");
+    }
+
+    const testResource: policy.PolicyResource = {
+        type: type as string,
+        props: createResourceValidationArgs(resourceClass, props),
+    };
+
+    return {
+        resources: [ testResource ],
+    } as policy.StackValidationArgs;
+}
+
+// runResourcePolicy will run some basic checks for a policy's metadata, and then
 // execute its rules with the provided type and properties.
-async function runPolicy(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs): Promise<PolicyViolation[]> {
+async function runResourcePolicy(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs): Promise<PolicyViolation[]> {
     const violations: PolicyViolation[] = [];
     const report = (message: string, urn?: string) => {
         violations.push({ message: message, urn: urn });
@@ -58,9 +78,21 @@ async function runPolicy(resPolicy: policy.ResourceValidationPolicy, args: polic
     return violations;
 }
 
+// runStackPolicy will run some basic checks for a policy's metadata, and then
+// execute its rules with the provided type and properties.
+async function runStackPolicy(stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs): Promise<PolicyViolation[]> {
+    const violations: PolicyViolation[] = [];
+    const report = (message: string, urn?: string) => {
+        violations.push({ message: message, urn: urn });
+    };
+
+    await Promise.resolve(stackPolicy.validateStack(args, report));
+    return violations;
+}
+
+
 // assertNoViolations runs the policy and confirms no violations were found.
-export async function assertNoViolations(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs) {
-    const allViolations = await runPolicy(resPolicy, args);
+function assertNoViolations(allViolations: PolicyViolation[]) {
     if (allViolations && allViolations.length > 0) {
         for (const violation of allViolations) {
             const urnSuffix = violation.urn ? `(URN=${violation.urn})` : "";
@@ -72,9 +104,7 @@ export async function assertNoViolations(resPolicy: policy.ResourceValidationPol
 
 
 // assertHasViolation runs the policy and confirms the expected violation is reported.
-export async function assertHasViolation(
-    resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs, wantViolation: PolicyViolation) {
-    const allViolations = await runPolicy(resPolicy, args);
+async function assertHasViolation(allViolations: PolicyViolation[], wantViolation: PolicyViolation) {
     if (!allViolations || allViolations.length === 0) {
         assert.fail("no violations reported, but expected one");
     } else {
@@ -112,4 +142,29 @@ export function daysFromNow(days: number): Date {
     const date = new Date();
     date.setDate(date.getDate() + days);
     return date;
+}
+
+export async function assertHasResourceViolation(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs, wantViolation: PolicyViolation) {
+    const allViolations = await runResourcePolicy(resPolicy, args);
+    assertHasViolation(allViolations, wantViolation);
+}
+
+
+export async function assertNoResourceViolations(resPolicy: policy.ResourceValidationPolicy, args: policy.ResourceValidationArgs) {
+    const allViolations = await runResourcePolicy(resPolicy, args);
+    assertNoViolations(allViolations);
+}
+
+
+export async function assertNoStackViolations(stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs) {
+    const allViolations = await runStackPolicy(stackPolicy, args);
+    assertNoViolations(allViolations);
+}
+
+
+// assertHasViolation runs the policy and confirms the expected violation is reported.
+export async function assertHasStackViolation(
+    stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs, wantViolation: PolicyViolation) {
+    const allViolations = await runStackPolicy(stackPolicy, args);
+    assertHasViolation(allViolations, wantViolation);
 }
