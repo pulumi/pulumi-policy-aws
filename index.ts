@@ -26,7 +26,6 @@ export const policyPack = new PolicyPack("pulumi-awsguard", {
         ...compute,
         ...database,
         ...elasticsearch,
-        ...elasticsearch,
         ...security,
         ...storage,
     ],
