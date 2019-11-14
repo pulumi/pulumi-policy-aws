@@ -235,7 +235,7 @@ describe("#redshiftClusterPublicAccessCheck", () => {
 
 describe("#dynamodbTableEncryptionEnabled", () => {
     const policy = database.dynamodbTableEncryptionEnabled("mandatory");
-    function getHappyPathArgs(): policy.ResourceValidationArgs {
+    function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.dynamodb.Table, {
             hashKey: "test",
             attributes: [],
@@ -247,27 +247,27 @@ describe("#dynamodbTableEncryptionEnabled", () => {
 
     it("Should pass if table is encrypted", async () => {
         const args = getHappyPathArgs();
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 
     it("Should pass if table is encryption is not specified", async () => {
         const args = getHappyPathArgs();
         args.props.serverSideEncryption = undefined;
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 
     it("Should fail if table's encryption is set to false", async () => {
         const args = getHappyPathArgs();
         args.props.serverSideEncryption.enabled = false;
         const msg = "Dynamodb must have server side encryption enabled.";
-        await assertHasViolation(policy, args, { message: msg });
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 });
 
 describe("#dbInstanceBackupEnabled", () => {
     describe("retention period and window are specified, check read replicas", () => {
         const policy = database.dbInstanceBackupEnabled("mandatory", 7, "window", true);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
                 backupRetentionPeriod: 7,
@@ -278,13 +278,13 @@ describe("#dbInstanceBackupEnabled", () => {
 
         it("Should pass if backup retention explicity matches", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should pass if backup retention implicitly matches", async () => {
             const args = getHappyPathArgs();
             args.props.backupRetentionPeriod = undefined;
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should fail if theres a backup retention period mismatch", async () => {
@@ -292,7 +292,7 @@ describe("#dbInstanceBackupEnabled", () => {
             args.props.backupRetentionPeriod = 10;
 
             const msg = "RDS Instances must have a backup retention period of: 7.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if theres a backup window mismatch", async () => {
@@ -300,7 +300,7 @@ describe("#dbInstanceBackupEnabled", () => {
             args.props.backupWindow = "another-window";
 
             const msg = "RDS Instances must have a backup preferred back up window of: window.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if the backup window is not specified", async () => {
@@ -308,13 +308,13 @@ describe("#dbInstanceBackupEnabled", () => {
             args.props.backupWindow = undefined;
 
             const msg = "RDS Instances must have a backup preferred back up window of: window.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
     })
 
     describe("do not check read replicas", () => {
         const policy = database.dbInstanceBackupEnabled("mandatory", 7, "window", false);
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
                 backupRetentionPeriod: 0,
@@ -325,13 +325,13 @@ describe("#dbInstanceBackupEnabled", () => {
 
         it("Should pass if read replica is not backed up", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
     })
 
     describe("do not specify a required backup period or window", () => {
         const policy = database.dbInstanceBackupEnabled("mandatory");
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
                 backupRetentionPeriod: 10,
@@ -341,13 +341,13 @@ describe("#dbInstanceBackupEnabled", () => {
 
         it("Should pass is backup retention period is explicitly set", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should pass is backup retention period is implicitly set", async () => {
             const args = getHappyPathArgs();
             args.props.backupRetentionPeriod = undefined;
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should fail is backup retention period is set to 0", async () => {
@@ -355,14 +355,14 @@ describe("#dbInstanceBackupEnabled", () => {
             args.props.backupRetentionPeriod = 0;
 
             const msg = "RDS Instances must have backups enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
     })
 });
 
 describe("#rdsInstancePublicAccessCheck", () => {
     const policy = database.rdsInstancePublicAccessCheck("mandatory");
-    function getHappyPathArgs(): policy.ResourceValidationArgs {
+    function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.rds.Instance, {
             instanceClass: "db.m5.large",
             backupRetentionPeriod: 10,
@@ -373,27 +373,27 @@ describe("#rdsInstancePublicAccessCheck", () => {
 
     it("Should pass if instance is not publicly accessible", async () => {
         const args = getHappyPathArgs();
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 
     it("Should pass if publicly accessible is not specified", async () => {
         const args = getHappyPathArgs();
         args.props.publiclyAccessible = undefined;
-        await assertNoViolations(policy, args);
+        await assertNoResourceViolations(policy, args);
     });
 
     it("Should fail if instance is publicly accessible", async () => {
         const args = getHappyPathArgs();
         args.props.publiclyAccessible = true;
         const msg = "RDS Instance must not be publicly accessible.";
-        await assertHasViolation(policy, args, { message: msg });
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 });
 
 describe("#rdsStorageEncrypted", () => {
     describe("kms key is specified", () => {
         const policy = database.rdsStorageEncrypted("mandatory", "a-kms-key");
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
                 backupRetentionPeriod: 10,
@@ -405,7 +405,7 @@ describe("#rdsStorageEncrypted", () => {
 
         it("Should pass if instance is encrypted and key is specified", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should fail if storage encryption is not specified", async () => {
@@ -413,7 +413,7 @@ describe("#rdsStorageEncrypted", () => {
             args.props.storageEncrypted = undefined;
 
             const msg = "RDS Instance must have storage encryption enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
 
@@ -422,7 +422,7 @@ describe("#rdsStorageEncrypted", () => {
             args.props.kmsKeyId = undefined;
 
             const msg = "RDS Instance must be encrypted with kms key id: a-kms-key.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if storage encryption is false", async () => {
@@ -430,7 +430,7 @@ describe("#rdsStorageEncrypted", () => {
             args.props.storageEncrypted = false;
 
             const msg = "RDS Instance must have storage encryption enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should pass if storage encryption if read replica has kms key", async () => {
@@ -438,13 +438,13 @@ describe("#rdsStorageEncrypted", () => {
             args.props.storageEncrypted = undefined;
             args.props.replicateSourceDb = "some-other-db";
 
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
     })
 
     describe("kms key is not specified", () => {
         const policy = database.rdsStorageEncrypted("mandatory");
-        function getHappyPathArgs(): policy.ResourceValidationArgs {
+        function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
                 backupRetentionPeriod: 10,
@@ -455,7 +455,7 @@ describe("#rdsStorageEncrypted", () => {
 
         it("Should pass if instance is encrypted", async () => {
             const args = getHappyPathArgs();
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
 
         it("Should fail if storage encryption is not specified", async () => {
@@ -463,7 +463,7 @@ describe("#rdsStorageEncrypted", () => {
             args.props.storageEncrypted = undefined;
 
             const msg = "RDS Instance must have storage encryption enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should fail if storage encryption is false", async () => {
@@ -471,7 +471,7 @@ describe("#rdsStorageEncrypted", () => {
             args.props.storageEncrypted = false;
 
             const msg = "RDS Instance must have storage encryption enabled.";
-            await assertHasViolation(policy, args, { message: msg });
+            await assertHasResourceViolation(policy, args, { message: msg });
         });
 
         it("Should pass if storage encryption is false AND its a read replica", async () => {
@@ -479,7 +479,7 @@ describe("#rdsStorageEncrypted", () => {
             args.props.storageEncrypted = false;
             args.props.replicateSourceDb = "some-other-db";
 
-            await assertNoViolations(policy, args);
+            await assertNoResourceViolations(policy, args);
         });
     })
 });
