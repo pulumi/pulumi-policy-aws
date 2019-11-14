@@ -139,8 +139,9 @@ func TestElasticSearch(t *testing.T) {
 				WantErrors: []string{
 					// Diagnostics
 					"aws:elasticsearch:Domain (not-encrypted-at-rest):",
-					"  mandatory: Elasticsearch domain",
+					"  mandatory: [elasticsearch-encrypted-at-rest] Checks if the Elasticsearch Service domains have encryption at rest enabled.",
 					"must be encrypted at rest.",
+					"  mandatory: [elasticsearch-in-vpc-only] Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
 					"must run within a VPC.",
 				},
 			},
@@ -148,8 +149,9 @@ func TestElasticSearch(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:elasticsearch:Domain (not-encrypted-at-rest):",
-					"  mandatory: Elasticsearch domain",
+					"  mandatory: [elasticsearch-encrypted-at-rest] Checks if the Elasticsearch Service domains have encryption at rest enabled.",
 					"must be encrypted at rest.",
+					"  mandatory: [elasticsearch-in-vpc-only] Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
 					"must run within a VPC.",
 				},
 			},
@@ -157,7 +159,7 @@ func TestElasticSearch(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:elasticsearch:Domain (not-encrypted-at-rest):",
-					"  mandatory: Elasticsearch domain",
+					"  mandatory: [elasticsearch-in-vpc-only] Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
 					"must run within a VPC.",
 				},
 			},
@@ -191,28 +193,32 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: EC2 instances must have detailed monitoring enabled.",
+					"  mandatory: [ec2-instance-detailed-monitoring-enabled] Checks whether detailed monitoring is enabled for EC2 instances.",
+					"  EC2 instances must have detailed monitoring enabled.",
 				},
 			},
 			// Test scenario 3 - monitoring is false.
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: EC2 instances must have detailed monitoring enabled.",
+					"  mandatory: [ec2-instance-detailed-monitoring-enabled] Checks whether detailed monitoring is enabled for EC2 instances.",
+					"  EC2 instances must have detailed monitoring enabled.",
 				},
 			},
 			// Test scenario 4 - public IP is associated.
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: EC2 instance must not have a public IP.",
+					"  mandatory: [ec2-instance-no-public-ip] Checks whether Amazon EC2 instances have a public IP association. This rule applies only to IPv4.",
+					"  EC2 instance must not have a public IP.",
 				},
 			},
 			// Test scenario 5 - load balancers do not have access logs enabled.
 			{
 				WantErrors: []string{
 					"aws:elasticloadbalancing:LoadBalancer (test-elb):",
-					"  mandatory: Elastic Load Balancer must have access logs enabled.",
+					"  mandatory: [elb-logging-enabled] Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
+					"  Elastic Load Balancer must have access logs enabled.",
 					"aws:elasticloadbalancingv2:LoadBalancer (test-elb-v2):",
 					"aws:applicationloadbalancing:LoadBalancer (test-alb):",
 				},
@@ -221,7 +227,8 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: EC2 instance must have an EBS volume attached",
+					"  mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+					"  EC2 instance must have an EBS volume attached",
 				},
 			},
 			// Test scenario 7 - an EBS volume that is not marked for deletion on termination of the EC2
@@ -229,8 +236,10 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					" mandatory: ECS instance's EBS volume ", "must be marked for termination on delete.",
-					" mandatory: EBS volume ", "must be encrypted.",
+					"  mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+					"  ECS instance's EBS volume ", "must be marked for termination on delete.",
+					"  mandatory: [encrypted-volumes] Checks whether the EBS volumes that are in an attached state are encrypted. If you specify the ID of a KMS key for encryption using the kmsId parameter, the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
+					"  EBS volume ", "must be encrypted.",
 				},
 			},
 		})
