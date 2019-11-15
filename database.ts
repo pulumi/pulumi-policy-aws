@@ -20,7 +20,7 @@ export const database: ResourceValidationPolicy[] = [
     redshiftClusterMaintenanceSettingsCheck("mandatory", true /* allowVersionUpgrade */),
     redshiftClusterPublicAccessCheck("mandatory"),
     dynamodbTableEncryptionEnabled("mandatory"),
-    dbInstanceBackupEnabled("mandatory"),
+    rdsInstanceBackupEnabled("mandatory"),
     rdsInstancePublicAccessCheck("mandatory"),
     rdsStorageEncrypted("mandatory"),
 ];
@@ -141,24 +141,23 @@ export function dynamodbTableEncryptionEnabled(
 /**
  *
  * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- * @param [backupRetentionPeriod] Retention period for backups.
+ * @param [backupRetentionPeriod] Retention period for backups. Must be greater than 0.
  * @param [preferredBackupWindow] Time range in which backups are created.
  * @param [checkReadReplicas=true] Checks whether RDS DB instances have backups enabled for read replicas.
  */
-export function dbInstanceBackupEnabled(
+export function rdsInstanceBackupEnabled(
     enforcementLevel: EnforcementLevel = "advisory",
     backupRetentionPeriod?: number,
     preferredBackupWindow?: string,
     checkReadReplicas: boolean = true): ResourceValidationPolicy {
     return {
-        name: "db-instance-backup-enabled",
+        name: "rds-instance-backup-enabled",
         description: "Checks whether RDS DB instances have backups enabled. " +
             "Optionally, the rule checks the backup retention period and the backup window.",
         enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
-            if (backupRetentionPeriod && backupRetentionPeriod === 0) {
-                console.log("A retention period of 0 means backups are disabled.");
-                process.exit(1);
+            if (backupRetentionPeriod && backupRetentionPeriod <= 0) {
+                throw new Error("Specified retention period must be greater than 0.");
             }
 
             // Run checks if the instance is not a read replica or if check read replicas is true.

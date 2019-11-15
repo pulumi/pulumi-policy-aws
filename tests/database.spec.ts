@@ -18,7 +18,7 @@ import * as aws from "@pulumi/aws";
 import { ResourceValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
-import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
+import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs, assertResourcePolicyThrows } from "./util";
 
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
@@ -259,14 +259,15 @@ describe("#dynamodbTableEncryptionEnabled", () => {
     it("Should fail if table's encryption is set to false", async () => {
         const args = getHappyPathArgs();
         args.props.serverSideEncryption.enabled = false;
-        const msg = "Dynamodb must have server side encryption enabled.";
+
+        const msg = "DynamoDB must have server side encryption enabled.";
         await assertHasResourceViolation(policy, args, { message: msg });
     });
 });
 
-describe("#dbInstanceBackupEnabled", () => {
+describe("#rdsInstanceBackupEnabled", () => {
     describe("retention period and window are specified, check read replicas", () => {
-        const policy = database.dbInstanceBackupEnabled("mandatory", 7, "window", true);
+        const policy = database.rdsInstanceBackupEnabled("mandatory", 7, "window", true);
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
@@ -313,7 +314,7 @@ describe("#dbInstanceBackupEnabled", () => {
     })
 
     describe("do not check read replicas", () => {
-        const policy = database.dbInstanceBackupEnabled("mandatory", 7, "window", false);
+        const policy = database.rdsInstanceBackupEnabled("mandatory", 7, "window", false);
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
@@ -330,7 +331,7 @@ describe("#dbInstanceBackupEnabled", () => {
     })
 
     describe("do not specify a required backup period or window", () => {
-        const policy = database.dbInstanceBackupEnabled("mandatory");
+        const policy = database.rdsInstanceBackupEnabled("mandatory");
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
