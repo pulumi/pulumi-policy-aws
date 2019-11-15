@@ -122,7 +122,7 @@ export function redshiftClusterPublicAccessCheck(
 
 /**
  * 
- * @param enforcementLevel The enforcement level to enforce this policy with.
+ * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
  */
 export function dynamodbTableEncryptionEnabled(
     enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
@@ -132,7 +132,7 @@ export function dynamodbTableEncryptionEnabled(
         enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.dynamodb.Table, (table, args, reportViolation) => {
             if (table.serverSideEncryption && !table.serverSideEncryption.enabled) {
-                reportViolation("Dynamodb must have server side encryption enabled.");
+                reportViolation("DynamoDB must have server side encryption enabled.");
             }
         }),
     };
