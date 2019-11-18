@@ -150,16 +150,16 @@ export function rdsInstanceBackupEnabled(
     backupRetentionPeriod?: number,
     preferredBackupWindow?: string,
     checkReadReplicas: boolean = true): ResourceValidationPolicy {
+
+    if (backupRetentionPeriod !== undefined && backupRetentionPeriod <= 0) {
+        throw new Error("Specified retention period must be greater than 0.");
+    }
     return {
         name: "rds-instance-backup-enabled",
         description: "Checks whether RDS DB instances have backups enabled. " +
             "Optionally, the rule checks the backup retention period and the backup window.",
         enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
-            if (backupRetentionPeriod && backupRetentionPeriod <= 0) {
-                throw new Error("Specified retention period must be greater than 0.");
-            }
-
             // Run checks if the instance is not a read replica or if check read replicas is true.
             if (!instance.replicateSourceDb || checkReadReplicas) {
                 if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {

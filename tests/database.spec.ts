@@ -13,12 +13,13 @@
 // limitations under the License.
 
 import "mocha";
+import * as assert from "assert";
 
 import * as aws from "@pulumi/aws";
 import { ResourceValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
-import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs, assertResourcePolicyThrows } from "./util";
+import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
@@ -357,6 +358,13 @@ describe("#rdsInstanceBackupEnabled", () => {
 
             const msg = "RDS Instances must have backups enabled.";
             await assertHasResourceViolation(policy, args, { message: msg });
+        });
+    })
+
+    describe("a poorly configure policy", () => {
+        it("Should throw an error", async () => {
+            assert.throws(() => { database.rdsInstanceBackupEnabled("mandatory", 0) },
+                Error("Specified retention period must be greater than 0."));
         });
     })
 });
