@@ -362,7 +362,7 @@ describe("#rdsInstanceBackupEnabled", () => {
     });
 
     describe("a poorly configure policy", () => {
-        it("Should throw an error", async () => {
+        it("Should throw an error", () => {
             assert.throws(() => { database.rdsInstanceBackupEnabled("mandatory", 0); },
                 Error("Specified retention period must be greater than 0."));
         });
