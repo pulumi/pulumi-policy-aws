@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "mocha";
 import * as assert from "assert";
+import "mocha";
 
 import * as aws from "@pulumi/aws";
 import { ResourceValidationArgs } from "@pulumi/policy";
@@ -312,7 +312,7 @@ describe("#rdsInstanceBackupEnabled", () => {
             const msg = "RDS Instances must have a backup preferred back up window of: window.";
             await assertHasResourceViolation(policy, args, { message: msg });
         });
-    })
+    });
 
     describe("do not check read replicas", () => {
         const policy = database.rdsInstanceBackupEnabled("mandatory", 7, "window", false);
@@ -329,7 +329,7 @@ describe("#rdsInstanceBackupEnabled", () => {
             const args = getHappyPathArgs();
             await assertNoResourceViolations(policy, args);
         });
-    })
+    });
 
     describe("do not specify a required backup period or window", () => {
         const policy = database.rdsInstanceBackupEnabled("mandatory");
@@ -359,14 +359,14 @@ describe("#rdsInstanceBackupEnabled", () => {
             const msg = "RDS Instances must have backups enabled.";
             await assertHasResourceViolation(policy, args, { message: msg });
         });
-    })
+    });
 
     describe("a poorly configure policy", () => {
         it("Should throw an error", async () => {
-            assert.throws(() => { database.rdsInstanceBackupEnabled("mandatory", 0) },
+            assert.throws(() => { database.rdsInstanceBackupEnabled("mandatory", 0); },
                 Error("Specified retention period must be greater than 0."));
         });
-    })
+    });
 });
 
 describe("#rdsInstancePublicAccessCheck", () => {
@@ -408,7 +408,7 @@ describe("#rdsStorageEncrypted", () => {
                 backupRetentionPeriod: 10,
                 backupWindow: "random-window",
                 storageEncrypted: true,
-                kmsKeyId: "a-kms-key"
+                kmsKeyId: "a-kms-key",
             });
         }
 
@@ -449,7 +449,7 @@ describe("#rdsStorageEncrypted", () => {
 
             await assertNoResourceViolations(policy, args);
         });
-    })
+    });
 
     describe("kms key is not specified", () => {
         const policy = database.rdsStorageEncrypted("mandatory");
@@ -490,5 +490,5 @@ describe("#rdsStorageEncrypted", () => {
 
             await assertNoResourceViolations(policy, args);
         });
-    })
+    });
 });

@@ -121,7 +121,7 @@ export function redshiftClusterPublicAccessCheck(
 }
 
 /**
- * 
+ *
  * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
  */
 export function dynamodbTableEncryptionEnabled(
