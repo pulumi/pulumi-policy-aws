@@ -13,12 +13,21 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, Policies, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-export const elasticsearch: ResourceValidationPolicy[] = [
-    elasticsearchEncryptedAtRest("mandatory"),
-    elasticsearchInVpcOnly("mandatory"),
-];
+// ElasticsearchSettings defines the configuration parameters for any individual Compute policies
+// that can be configured individually. If not provided, will default to a reasonable value
+// from the AWS Guard module.
+export interface ElasticsearchPolicySettings {}
+
+// getPolicies returns all Compute policies.
+export function getPolicies(
+    enforcement: EnforcementLevel, settings: ElasticsearchPolicySettings): Policies {
+    return [
+        elasticsearchEncryptedAtRest(enforcement),
+        elasticsearchInVpcOnly(enforcement),
+    ];
+}
 
 export function elasticsearchEncryptedAtRest(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
     return {

@@ -13,13 +13,38 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, Policies, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-export const database: ResourceValidationPolicy[] = [
-    redshiftClusterConfigurationCheck("mandatory", true /* clusterDbEncrypted */, true /* loggingEnabled */),
-    redshiftClusterMaintenanceSettingsCheck("mandatory", true /* allowVersionUpgrade */),
-    redshiftClusterPublicAccessCheck("mandatory"),
-];
+import { getValueOrDefault } from "./util";
+
+// DatabasePolicySettings defines the configuration parameters for any individual Database policies
+// that can be configured individually. If not provided, will default to a reasonable value
+// from the AWS Guard module.
+export interface DatabasePolicySettings {
+    // For redshiftClusterConfigurationCheck policy:
+    // Checks if the cluster is or is not encrypted.
+    redshiftClusterConfigurationCheckClusterEncrypted?: boolean;
+    // Check if logging is or is not enabled.
+    redshiftClusterConfigurationCheckLoggingEnabled?: boolean;
+
+    // For redshiftClusterMaintenanceSettingsCheck policy:
+    // Check if the cluster does or does not check for version upgrades.
+    clusterMaintenanceSettingsCheckAllowVersionUpgrade?: boolean;
+}
+
+// getPolicies returns all Compute policies.
+export function getPolicies(
+    enforcement: EnforcementLevel, settings: DatabasePolicySettings): Policies {
+
+    const clusterEncrypted = getValueOrDefault(settings.redshiftClusterConfigurationCheckClusterEncrypted, true);
+    const loggingEnabled = getValueOrDefault(settings.redshiftClusterConfigurationCheckLoggingEnabled, true);
+    const allowVersionUpgrade = getValueOrDefault(settings.clusterMaintenanceSettingsCheckAllowVersionUpgrade, true);
+    return [
+        redshiftClusterConfigurationCheck(enforcement, clusterEncrypted, loggingEnabled),
+        redshiftClusterMaintenanceSettingsCheck(enforcement, allowVersionUpgrade),
+        redshiftClusterPublicAccessCheck(enforcement),
+    ];
+}
 
 /**
  *

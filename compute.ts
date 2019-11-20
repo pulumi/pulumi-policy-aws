@@ -13,15 +13,32 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, Policies, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-export const compute: ResourceValidationPolicy[] = [
-    ec2InstanceDetailedMonitoringEnabled("mandatory"),
-    ec2InstanceNoPublicIP("mandatory"),
-    ec2VolumeInUseCheck("mandatory", true),
-    elbAccessLoggingEnabled("mandatory"),
-    encryptedVolumes("mandatory"),
-];
+import { getValueOrDefault } from "./util";
+
+// ComputePolicySettings defines the configuration parameters for any individual Compute policies
+// that can be configured individually. If not provided, will default to a reasonable value
+// from the AWS Guard module.
+export interface ComputePolicySettings {
+    // For ec2VolumneInUseCheck policy:
+    // Check if the the EC2 instance is marked for deletion is terminated as well.
+    ec2VolumneInUseCheckForDeletion?: boolean;
+}
+
+// getPolicies returns all Compute policies.
+export function getPolicies(
+    enforcement: EnforcementLevel, settings: ComputePolicySettings): Policies {
+
+    const checkForDeletion = getValueOrDefault(settings.ec2VolumneInUseCheckForDeletion, true);
+    return  [
+        ec2InstanceDetailedMonitoringEnabled(enforcement),
+        ec2InstanceNoPublicIP(enforcement),
+        ec2VolumeInUseCheck(enforcement, checkForDeletion),
+        elbAccessLoggingEnabled(enforcement),
+        encryptedVolumes(enforcement),
+    ];
+}
 
 export function ec2InstanceDetailedMonitoringEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
     return {

@@ -14,19 +14,45 @@
 
 import { PolicyPack } from "@pulumi/policy";
 
-import { compute } from "./compute";
-import { database } from "./database";
-import { elasticsearch } from "./elasticsearch";
-import { security } from "./security";
-import { storage } from "./storage";
+import * as compute from "./compute";
+import * as database from "./database";
+import * as elasticsearch from "./elasticsearch";
+import * as security from "./security";
+import * as storage from "./storage";
 
-// Create a new Policy Pack.
-export const policyPack = new PolicyPack("pulumi-awsguard", {
-    policies: [
-        ...compute,
-        ...database,
-        ...elasticsearch,
-        ...security,
-        ...storage,
-    ],
-});
+import * as path from "path";
+
+function isBeingLoadedDirectly(): boolean {
+    if (!module.parent) {
+        return false;  // We cannot say for sure.
+    }
+
+    // Fully qualified path to the module that loaded this one. The loader for policy packs
+    // will be something like ".../node_modules/@pulumi/pulumi/cmd/run-policy-pack/run.js".
+    let parentModuleFilepath = module.parent.filename;
+    parentModuleFilepath = parentModuleFilepath.replace(path.sep, "/");
+    return parentModuleFilepath.indexOf("/@pulumi/pulumi/") !== -1;
+}
+
+// Check if the module is being loaded directly, rather than simply being referenced
+// as a dependency. When loaded directly, we export a policy pack with the full set
+// of AWS Guard rules using their default settings.
+//
+// In order to customize the policy pack, you will need to create a new node module
+// and import @pulumi/pulumi-awsguard as a dependency. And then in its index.{js, ts}
+// export a new instance of PolicyPack.
+if (isBeingLoadedDirectly()) {
+    // Mark all policies as "advisory", meaning they will not fail an update.
+    // Policies marked as "mandatory" will fail an update if any violations are seen.
+    const e = "advisory";
+
+    const policyPack = new PolicyPack("pulumi-awsguard", {
+        policies: [
+            ...compute.getPolicies(e, {}),
+            ...database.getPolicies(e, {}),
+            ...elasticsearch.getPolicies(e, {}),
+            ...security.getPolicies(e, {}),
+            ...storage.getPolicies(e, {}),
+        ],
+    });
+}

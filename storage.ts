@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, Policies, validateTypedResource } from "@pulumi/policy";
+
+// StoragePolicySettings defines the configuration settings for any individual
+// policies.
+export interface StoragePolicySettings {}
 
 /**
    ebs-snapshot-public-restorable-check (Requires aws-sdk)
@@ -30,43 +34,49 @@ import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy"
    s3-bucket-ssl-requests-only
    s3-bucket-versioning-enabled
  */
-export const storage: ResourceValidationPolicy[] = [
-    {
-        name: "efs-encrypted-check",
-        description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
-        enforcementLevel: "advisory",
-        validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, args, reportViolation) => {
-            if (!fileSystem.kmsKeyId) {
-                reportViolation("Amazon Elastic File System must have a KMS Key defined.");
-            }
-        }),
-    },
-    {
-        name: "elb-deletion-protection-enabled",
-        description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
-        enforcementLevel: "advisory",
-        validateResource: [
-            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
-                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
-                    reportViolation("Deletion Protection must be enabled.");
+
+// getPolicies returns all Storage policies.
+export function getPolicies(
+    enforcement: EnforcementLevel, settings: StoragePolicySettings): Policies {
+
+    return [
+        {
+            name: "efs-encrypted-check",
+            description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
+            enforcementLevel: enforcement,
+            validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, args, reportViolation) => {
+                if (!fileSystem.kmsKeyId) {
+                    reportViolation("Amazon Elastic File System must have a KMS Key defined.");
                 }
             }),
-            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
-                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
-                    reportViolation("Deletion Protection must be enabled.");
+        },
+        {
+            name: "elb-deletion-protection-enabled",
+            description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
+            enforcementLevel: enforcement,
+            validateResource: [
+                validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+                    if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
+                        reportViolation("Deletion Protection must be enabled.");
+                    }
+                }),
+                validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
+                    if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
+                        reportViolation("Deletion Protection must be enabled.");
+                    }
+                }),
+            ],
+        },
+        {
+            name: "s3-bucket-logging-enabled",
+            description: "Checks whether logging is enabled for your S3 buckets.",
+            enforcementLevel: enforcement,
+            validateResource: validateTypedResource(aws.s3.Bucket, (bucket, args, reportViolation) => {
+                // AWS will ensure the `targetBucket` exists and is WRITE-able.
+                if (!bucket.loggings || bucket.loggings.length === 0) {
+                    reportViolation("Bucket logging must be defined.");
                 }
             }),
-        ],
-    },
-    {
-        name: "s3-bucket-logging-enabled",
-        description: "Checks whether logging is enabled for your S3 buckets.",
-        enforcementLevel: "advisory",
-        validateResource: validateTypedResource(aws.s3.Bucket, (bucket, args, reportViolation) => {
-            // AWS will ensure the `targetBucket` exists and is WRITE-able.
-            if (!bucket.loggings || bucket.loggings.length === 0) {
-                reportViolation("Bucket logging must be defined.");
-            }
-        }),
-    },
-];
+        },
+    ];
+}

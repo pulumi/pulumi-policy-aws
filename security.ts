@@ -22,18 +22,38 @@ import {
     validateTypedResource,
 } from "@pulumi/policy";
 
+import { getValueOrDefault } from "./util";
+
 import { Resource } from "@pulumi/pulumi";
 import * as q from "@pulumi/pulumi/queryable";
 
 // Milliseconds in a day.
 const msInDay = 24 * 60 * 60 * 1000;
 
-export const security: Policies = [
-    acmCheckCertificateExpiration("mandatory", 14 /* max days before certificate expires */),
-    cmkBackingKeyRotationEnabled("mandatory"),
-    iamAccessKeysRotated("mandatory", 90 /* max key age in days */),
-    iamMfaEnabledForConsoleAccess("mandatory"),
-];
+// SecurityPolicySettings defines the configuration parameters for any individual Compute policies
+// that can be configured individually. If not provided, will default to a reasonable value
+// from the AWS Guard module.
+export interface SecurityPolicySettings {
+    // For acmCheckCertificateExpiration policy:
+    // Is the maximum number of days before an ACM certificate is set to expire before the
+    // policy rule will report a violation.
+    acmCheckCertificateExpirationMaxDays?: number;
+
+    // For iamAccessKeysRotated policy:
+    // The maximum age an IAM access key can be before it must be rotated.
+    iamAccessKeysRotatedMaxDays?: number;
+}
+
+// getPolicies returns all Compute policies.
+export function getPolicies(
+    enforcement: EnforcementLevel, settings: SecurityPolicySettings): Policies {
+    return [
+        acmCheckCertificateExpiration(enforcement, getValueOrDefault(settings.acmCheckCertificateExpirationMaxDays, 14)),
+        cmkBackingKeyRotationEnabled(enforcement),
+        iamAccessKeysRotated(enforcement, getValueOrDefault(settings.iamAccessKeysRotatedMaxDays, 90)),
+        iamMfaEnabledForConsoleAccess(enforcement),
+    ];
+}
 
 export function acmCheckCertificateExpiration(enforcementLevel: EnforcementLevel = "advisory", maxDaysUntilExpiration: number): StackValidationPolicy {
     return {
