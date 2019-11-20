@@ -21,6 +21,8 @@ import { ResourceValidationArgs } from "@pulumi/policy";
 import * as database from "../database";
 import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
+const expect = chai.expect;
+
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
         const policy = database.redshiftClusterConfigurationCheck("mandatory", true, true, ["dc1.large", "test"]);
@@ -363,9 +365,8 @@ describe("#rdsInstanceBackupEnabled", () => {
 
     describe("a poorly configure policy", () => {
         it("Should throw an error", () => {
-            assert.throws(
-                () => { database.rdsInstanceBackupEnabled("mandatory", 0); },
-                new Error("Specified retention period must be greater than 0."));
+            expect(() => { database.rdsInstanceBackupEnabled("mandatory", 0); })
+                .throws(new Error("Specified retention period must be greater than 0."));
         });
     });
 });
