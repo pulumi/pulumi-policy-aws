@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as assert from "assert";
+
 import "mocha";
 
 import * as aws from "@pulumi/aws";
@@ -363,8 +364,9 @@ describe("#rdsInstanceBackupEnabled", () => {
 
     describe("a poorly configure policy", () => {
         it("Should throw an error", () => {
-            assert.throws(() => { database.rdsInstanceBackupEnabled("mandatory", 0); },
-                Error("Specified retention period must be greater than 0."));
+            assert.throws(
+                () => { database.rdsInstanceBackupEnabled("mandatory", 0); },
+                "Specified retention period must be greater than 0.");
         });
     });
 });
