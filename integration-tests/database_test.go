@@ -52,7 +52,7 @@ func TestDatabase(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:dynamodb:Table (test-table):",
-					"Dynamodb must have server side encryption enabled.",
+					"DynamoDB must have server side encryption enabled.",
 				},
 			},
 			// Test scenario 5 - happy path for rds instance.
