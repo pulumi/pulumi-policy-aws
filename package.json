@@ -1,10 +1,14 @@
 {
-    "name": "policy-pack-typescript",
-    "version": "0.0.1",
+    "name": "pulumi-awsguard",
+    "description": "Pulumi Policy as Code package for AWS.",
+    "version": "${VERSION}",
     "scripts": {
-        "build": "tsc",
+        "build2": "tsc",
+        "clean": "rm -rf ./bin/ ./node_modules",
         "lint": "tslint --project .",
-        "test": "mocha -r ts-node/register tests/**/*.spec.ts"
+        "test": "mocha -r ts-node/register tests/**/*.spec.ts",
+        "prepare": "npm run build",
+        "prepublishOnly": "npm run lint && npm run test"
     },
     "dependencies": {
         "@pulumi/aws": "^1.0.0",

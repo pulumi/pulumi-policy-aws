@@ -1,3 +1,0 @@
-name: pulumi-awsguard
-description: A policy pack of rules to enforce AWS best practices for security, reliability, cost, and more
-runtime: nodejs

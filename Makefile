@@ -4,6 +4,9 @@ PROJECT      := github.com/pulumi/pulumi-awsguard
 # Macro for printing the current step name.
 STEP_MESSAGE = @echo -e "\033[0;32m$(shell echo '$(PROJECT_NAME): $@' | tr a-z A-Z | tr '_' ' ')\033[0m"
 
+# Generate a package version number based on git info.
+VERSION := $(shell ./scripts/get-version)
+
 .PHONY: ensure
 ensure::
 	$(call STEP_MESSAGE)
@@ -20,7 +23,14 @@ lint::
 .PHONY: build
 build::
 	$(call STEP_MESSAGE)
+	@echo ${VERSION}
+	rm -rf bin/
 	yarn build
+
+	# Package not source artifacts to be published.
+	cp ./README.md bin/
+	# Write version to package.json in bindir.
+	sed -e 's/\$${VERSION}/$(VERSION)/g' < package.json > bin/package.json
 
 .PHONY: test_fast
 test_fast::
@@ -33,9 +43,14 @@ test_all::
 	$(call STEP_MESSAGE)
 	go test ./integration-tests/ -v -timeout 30m
 
+.PHONY: publish_packages
+publish_packages:
+	$(call STEP_MESSAGE)
+	./scripts/publish_packages.sh
+
 # The travis_* targets are entrypoints for CI.
 .PHONY: travis_cron travis_push travis_pull_request travis_api
 travis_cron: all
-travis_push: lint build test_all
+travis_push: lint build test_all publish_packages
 travis_pull_request: lint build test_all
 travis_api: all
