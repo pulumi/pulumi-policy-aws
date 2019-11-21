@@ -1,37 +1,44 @@
-PROJECT_NAME := Pulumi AWS Guard Policy Pack
-PROJECT      := github.com/pulumi/pulumi-awsguard
+PROJECT_NAME := pulumi-awsguard
+NODE_MODULE_NAME := @pulumi/pulumi-awsguard
+include build/common.mk
 
-# Macro for printing the current step name.
-STEP_MESSAGE = @echo -e "\033[0;32m$(shell echo '$(PROJECT_NAME): $@' | tr a-z A-Z | tr '_' ' ')\033[0m"
+VERSION := $(shell ./scripts/get-version.sh)
 
 .PHONY: ensure
 ensure::
-	$(call STEP_MESSAGE)
-	yarn install
+	yarn install --cwd ./src/
 
 	# Golang dependencies for the integration tests.
 	go get -t -d ./integration-tests
 
-.PHONY: lint
-lint::
-	$(call STEP_MESSAGE)
-	yarn lint
-
 .PHONY: build
 build::
-	$(call STEP_MESSAGE)
-	yarn build
+	# Clean
+	rm -rf bin/
 
-.PHONY: test_fast
+	# Build
+	tsc --project ./src --outDir ./bin/
+
+	# Set version and copy non-source assets.
+	sed -e 's/\$${VERSION}/$(VERSION)/g' < ./src/package.json > bin/package.json
+	cp README.md LICENSE ./bin/
+	node ./scripts/reversion.js bin/version.js ${VERSION}
+
+.PHONY: lint
+lint::
+	tslint -c ./src/tslint.json -p ./src/tsconfig.json
+
 test_fast::
-	$(call STEP_MESSAGE)
-	yarn test
+	mocha -r ts-node/register ./src/tests/**/*.spec.ts
 
 .PHONY: test_all
 test_all::
 	$(MAKE) test_fast
-	$(call STEP_MESSAGE)
 	go test ./integration-tests/ -v -timeout 30m
+
+.PHONY: publish
+publish:
+	./scripts/publish.sh
 
 # The travis_* targets are entrypoints for CI.
 .PHONY: travis_cron travis_push travis_pull_request travis_api

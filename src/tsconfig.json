@@ -24,6 +24,7 @@
         "tests/database.spec.ts",
         "tests/elasticsearch.spec.ts",
         "tests/security.spec.ts",
-        "tests/util.ts"
+        "tests/util.ts",
+        "version.ts"
     ]
 }
