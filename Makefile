@@ -43,6 +43,6 @@ publish:
 # The travis_* targets are entrypoints for CI.
 .PHONY: travis_cron travis_push travis_pull_request travis_api
 travis_cron: all
-travis_push: lint build test_all
+travis_push: lint build test_all publish_packages
 travis_pull_request: lint build test_all
 travis_api: all
