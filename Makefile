@@ -6,7 +6,7 @@ VERSION := $(shell ./scripts/get-version.sh)
 
 .PHONY: ensure
 ensure::
-	yarn install --cwd ./src/ --production=false  # Pickup dev dependencies
+	yarn install --cwd ./src/
 
 	# Golang dependencies for the integration tests.
 	go get -t -d ./integration-tests
@@ -29,7 +29,7 @@ lint::
 	tslint -c ./src/tslint.json -p ./src/tsconfig.json
 
 test_fast::
-	cd src && mocha -r ts-node/register tests/**/*.spec.ts
+	cd src && mocha --require ./node_modules/ts-node/register tests/**/*.spec.ts
 
 .PHONY: test_all
 test_all::
