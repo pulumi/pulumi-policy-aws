@@ -58,7 +58,7 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
     };
 
     return {
-        resources: [ testResource ],
+        resources: [testResource],
     } as policy.StackValidationArgs;
 }
 
