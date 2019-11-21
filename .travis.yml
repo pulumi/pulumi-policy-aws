@@ -1,18 +1,23 @@
-if: branch = master OR branch =~ ^features/ OR branch =~ ^release/ OR tag IS present
+# It may be tempting to add parens around each individual clause in this expression, but Travis then builds pushes anyway
+if: branch = master OR branch =~ ^release/ OR tag IS present
 language: go
 go: 1.12.1
 sudo: true # give us 7.5GB and >2 bursted cores.
 git:
     depth: false
+before_install:
+    - git clone https://github.com/pulumi/scripts ${GOPATH}/src/github.com/pulumi/scripts
+    - source ${GOPATH}/src/github.com/pulumi/scripts/ci/prepare-environment.sh
 install:
     # Install Pulumi 🍹
     - curl -fsSL https://get.pulumi.com/ | bash
     - export PATH="$HOME/.pulumi/bin:$PATH"
-    # Yarn and TS toolchain.
+    # Install toolchain
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.15.2
-    - yarn global add tslint
+    - yarn global add tslint		
     - yarn global add typescript
     - yarn global add mocha
+    # Install dependencies
     - make ensure
 script:
     - make travis_${TRAVIS_EVENT_TYPE}
