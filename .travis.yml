@@ -13,7 +13,9 @@ install:
     - curl -fsSL https://get.pulumi.com/ | bash
     - export PATH="$HOME/.pulumi/bin:$PATH"
     # Install toolchain
-    - source ${PULUMI_SCRIPTS}/ci/install-common-toolchain.sh
+    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.15.2		     - source ${PULUMI_SCRIPTS}/ci/install-common-toolchain.sh
+    - yarn global add tslint		
+    - yarn global add typescript
     - yarn global add mocha
     # Install dependencies
     - make ensure
