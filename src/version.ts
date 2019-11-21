@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The version that the pulumi-awsguard module was built as.
+// The version that the @pulumi/awsguard package was built as.
 export const version = "${VERSION}";

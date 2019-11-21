@@ -1,3 +1,2 @@
-# pulumi-awsguard
+# Pulumi CrossGuard policies for AWS
 
-Pulumi CrossGuard policies for AWS.

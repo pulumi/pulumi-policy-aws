@@ -46,6 +46,10 @@ func runPolicyPackIntegrationTest(
 	initialConfig map[string]string, scenarios []policyTestScenario) {
 	t.Logf("Running Policy Pack Integration Test from directory %q", pulumiProgramDir)
 
+	// HACK: There is no package.json which Pulumi's analyzer bootstrapper looks for. So we
+	// need to actually redirect to the src directory.
+	policyPackDir = path.Join(policyPackDir, "src")
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Error getting working directory")
