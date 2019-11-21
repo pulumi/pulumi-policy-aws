@@ -1,5 +1,5 @@
-PROJECT_NAME := pulumi-awsguard
-NODE_MODULE_NAME := @pulumi/pulumi-awsguard
+PROJECT_NAME := awsguard
+NODE_MODULE_NAME := @pulumi/awsguard
 include build/common.mk
 
 VERSION := $(shell ./scripts/get-version.sh)
