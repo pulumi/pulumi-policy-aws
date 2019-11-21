@@ -29,7 +29,7 @@ lint::
 	tslint -c ./src/tslint.json -p ./src/tsconfig.json
 
 test_fast::
-	mocha -r ts-node/register ./src/tests/**/*.spec.ts
+	cd src && mocha -r ts-node/register tests/**/*.spec.ts
 
 .PHONY: test_all
 test_all::
