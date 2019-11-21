@@ -6,7 +6,7 @@ VERSION := $(shell ./scripts/get-version.sh)
 
 .PHONY: ensure
 ensure::
-	yarn install --cwd ./src/
+	yarn install --cwd ./src/ --production=false  # Pickup dev dependencies
 
 	# Golang dependencies for the integration tests.
 	go get -t -d ./integration-tests
