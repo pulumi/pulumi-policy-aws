@@ -1,4 +1,4 @@
-// Copyright 2016-2018, Pulumi Corporation.  All rights reserved.
+// Copyright 2016-2019, Pulumi Corporation.  All rights reserved.
 
 // This program simply reads a package.json from stdin, takes a set of arguments representing
 // package names, and for each one, promotes that package from a peerDependency to a real dependency.

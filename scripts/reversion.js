@@ -1,4 +1,4 @@
-// Copyright 2018, Pulumi Corporation.  All rights reserved.
+// Copyright 2019, Pulumi Corporation.  All rights reserved.
 
 var fs = require("fs");
 
