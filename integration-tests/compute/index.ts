@@ -66,6 +66,7 @@ let albArgs: aws.applicationloadbalancing.LoadBalancerArgs = {
         enabled: true,
         bucket: elbBucket.arn,
     },
+    enableDeletionProtection: true,
 };
 
 switch (testScenario) {
@@ -114,7 +115,9 @@ switch (testScenario) {
         elbV2Args = {
             enableDeletionProtection: true,
         };
-        albArgs = {};
+        albArgs = {
+            enableDeletionProtection: true,
+        };
         break;
     case 6:
         // No EBS volume attached to EC2 instance.
