@@ -1,5 +1,5 @@
 {
-    "name": "@pulumi/pulumi-awsguard",
+    "name": "@pulumi/awsguard",
     "version": "${VERSION}",
     "description": "Pulumi CrossGuard policies for AWS.",
     "license": "Apache-2.0",
