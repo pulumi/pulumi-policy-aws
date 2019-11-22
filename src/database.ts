@@ -13,17 +13,35 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, Policies, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { getValueOrDefault } from "./util";
 
-export const database: ResourceValidationPolicy[] = [
-    redshiftClusterConfigurationCheck("mandatory", true /* clusterDbEncrypted */, true /* loggingEnabled */),
-    redshiftClusterMaintenanceSettingsCheck("mandatory", true /* allowVersionUpgrade */),
-    redshiftClusterPublicAccessCheck("mandatory"),
-    dynamodbTableEncryptionEnabled("mandatory"),
-    rdsInstanceBackupEnabled("mandatory"),
-    rdsInstancePublicAccessCheck("mandatory"),
-    rdsStorageEncrypted("mandatory"),
-];
+// DatabasePolicySettings defines the configuration parameters for any individual Database policies
+// that can be configured individually. If not provided, will default to a reasonable value
+// from the AWS Guard module.
+export interface DatabasePolicySettings {
+    clusterDbEncrypted?: boolean;
+    loggingEnabled?: boolean;
+    allowVersionUpgrade?: boolean;
+}
+
+// getPolicies returns all Compute policies.
+export function getPolicies(
+    enforcement: EnforcementLevel, settings: DatabasePolicySettings): Policies {
+
+    const clusterDbEncrypted = getValueOrDefault(settings.clusterDbEncrypted, true);
+    const loggingEnabled = getValueOrDefault(settings.loggingEnabled, true);
+    const allowVersionUpgrade = getValueOrDefault(settings.allowVersionUpgrade, true);
+    return [
+        redshiftClusterConfigurationCheck(enforcement, clusterDbEncrypted, loggingEnabled),
+        redshiftClusterMaintenanceSettingsCheck(enforcement, allowVersionUpgrade),
+        redshiftClusterPublicAccessCheck(enforcement),
+        dynamodbTableEncryptionEnabled(enforcement),
+        rdsInstanceBackupEnabled(enforcement),
+        rdsInstancePublicAccessCheck(enforcement),
+        rdsStorageEncrypted(enforcement),
+    ];
+}
 
 /**
  *
