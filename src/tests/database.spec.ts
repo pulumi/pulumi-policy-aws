@@ -366,7 +366,7 @@ describe("#rdsInstanceBackupEnabled", () => {
         it("Should throw an error", () => {
             assert.throws(
                 () => { database.rdsInstanceBackupEnabled("mandatory", 0); },
-                "Specified retention period must be greater than 0.");
+                "Specified retention period must be greater than 0");
         });
     });
 });
