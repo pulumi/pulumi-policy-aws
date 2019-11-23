@@ -13,9 +13,13 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
-import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-/**
+import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+
+import { registerPolicy } from "./awsGuard";
+import { defaultEnforcementLevel } from "./enforcementLevel";
+
+/*
    ebs-snapshot-public-restorable-check (Requires aws-sdk)
  ✓ efs-encrypted-check
  ✓ elb-deletion-protection-enabled
@@ -29,44 +33,68 @@ import { ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy"
    s3-bucket-server-side-encryption-enabled
    s3-bucket-ssl-requests-only
    s3-bucket-versioning-enabled
- */
-export const storage: ResourceValidationPolicy[] = [
-    {
+*/
+
+// Mixin additional properties onto AwsGuardArgs.
+declare module "./awsGuard" {
+    interface AwsGuardArgs {
+        efsEncryptedCheck?: EnforcementLevel;
+        elbDeletionProtectionEnabled?: EnforcementLevel;
+        s3BucketLoggingEnabled?: EnforcementLevel;
+    }
+}
+
+// Register policy factories.
+registerPolicy("efsEncryptedCheck", efsEncryptedCheck);
+registerPolicy("elbDeletionProtectionEnabled", elbDeletionProtectionEnabled);
+registerPolicy("s3BucketLoggingEnabled", s3BucketLoggingEnabled);
+
+/** @internal */
+export function efsEncryptedCheck(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "efs-encrypted-check",
         description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
-        enforcementLevel: "advisory",
-        validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, _, reportViolation) => {
             if (!fileSystem.kmsKeyId) {
                 reportViolation("Amazon Elastic File System must have a KMS Key defined.");
             }
         }),
-    },
-    {
+    };
+}
+
+/** @internal */
+export function elbDeletionProtectionEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "elb-deletion-protection-enabled",
         description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
-        enforcementLevel: "advisory",
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: [
-            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, _, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }
             }),
-            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, _, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }
             }),
         ],
-    },
-    {
+    };
+}
+
+/** @internal */
+export function s3BucketLoggingEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+    return {
         name: "s3-bucket-logging-enabled",
         description: "Checks whether logging is enabled for your S3 buckets.",
-        enforcementLevel: "advisory",
-        validateResource: validateTypedResource(aws.s3.Bucket, (bucket, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.s3.Bucket, (bucket, _, reportViolation) => {
             // AWS will ensure the `targetBucket` exists and is WRITE-able.
             if (!bucket.loggings || bucket.loggings.length === 0) {
                 reportViolation("Bucket logging must be defined.");
             }
         }),
-    },
-];
+    };
+}

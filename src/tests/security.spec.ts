@@ -34,7 +34,10 @@ import { ListAccessKeysRequest, ListMFADevicesRequest } from "aws-sdk/clients/ia
 
 describe("#iamAccessKeysRotated", () => {
     const maxKeyAge = 30;
-    const policy = security.iamAccessKeysRotated("mandatory", maxKeyAge);
+    const policy = security.iamAccessKeysRotated({
+        enforcementLevel: "mandatory",
+        maxKeyAge,
+    });
 
     const testAccessKeyId = "AKITESTKEYID";
     const testUserEmail = "test-user@example.com";

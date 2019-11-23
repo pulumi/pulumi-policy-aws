@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AwsGuard, AwsGuardArgs } from "./awsGuard";
+import { EnforcementLevel } from "@pulumi/policy";
 
-// Import each area to add AwsGuardArgs mixins and register policies.
-import "./compute";
-import "./database";
-import "./elasticsearch";
-import "./security";
-import "./storage";
-
-export { AwsGuard, AwsGuardArgs };
+export interface PolicyArgs {
+    /** The enforcement level to enforce this policy with. */
+    enforcementLevel?: EnforcementLevel;
+}
