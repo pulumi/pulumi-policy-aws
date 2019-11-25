@@ -11,7 +11,7 @@
     "repository": "https://github.com/pulumi/pulumi-awsguard",
     "dependencies": {
         "@pulumi/aws": "^1.0.0",
-        "@pulumi/policy": "^0.2.0",
+        "@pulumi/policy": "0.2.1-dev.1574701641",
         "@pulumi/pulumi": "^1.0.0",
         "aws-sdk": "^2.545.0"
     },
