@@ -22,3 +22,8 @@ import "./security";
 import "./storage";
 
 export { AwsGuard, AwsGuardArgs };
+
+// If we're running our integration tests, create a new instance of AwsGuard.
+if (process.env["PULUMI_AWSGUARD_TESTING"] === "true") {
+    const awsGuard = new AwsGuard();
+}
