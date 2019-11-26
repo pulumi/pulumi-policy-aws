@@ -39,22 +39,22 @@ const factoryMap: Record<string, PolicyFactory<any>> = {};
  * The above is equivalent to:
  *
  * ```typescript
- * const awsGuard = new AwsGuard({ all: "mandatory" });
- * ```
- *
- * To make all policies advisory rather than mandatory:
- *
- * ```typescript
  * const awsGuard = new AwsGuard({ all: "advisory" });
  * ```
  *
- * To make all policies advisory, but changing a couple to be mandatory:
+ * To make all policies mandatory rather than advisory:
+ *
+ * ```typescript
+ * const awsGuard = new AwsGuard({ all: "mandatory" });
+ * ```
+ *
+ * To make all policies mandatory, but change a couple to be advisory:
  *
  * ```typescript
  * const awsGuard = new AwsGuard({
- *     all: "advisory",
- *     ec2InstanceNoPublicIP: "mandatory",
- *     elbAccessLoggingEnabled: "mandatory",
+ *     all: "mandatory",
+ *     ec2InstanceNoPublicIP: "advisory",
+ *     elbAccessLoggingEnabled: "advisory",
  * });
  * ```
  *
@@ -80,8 +80,10 @@ const factoryMap: Record<string, PolicyFactory<any>> = {};
  *
  * ```typescript
  * const awsGuard = new AwsGuard({
- *     ec2VolumeInUseCheck: { enforcementLevel: "mandatory", checkDeletion: false },
+ *     ec2VolumeInUseCheck: { checkDeletion: false },
  *     encryptedVolumes: { enforcementLevel: "mandatory", kmsId: "id" },
+ *     redshiftClusterMaintenanceSettingsCheck: { preferredMaintenanceWindow: "Mon:09:30-Mon:10:00" },
+ *     acmCheckCertificateExpiration: { maxDaysUntilExpiration: 10 },
  * });
  * ```
  */
@@ -97,10 +99,9 @@ export class AwsGuard extends PolicyPack {
 /**
  * Argument bag for configuring AwsGuard policies.
  */
-// Mixins will be applied to this interface in each module that adds a property to
-// configure each policy.
 export interface AwsGuardArgs {
     all?: EnforcementLevel;
+    // Note: Properties to configure each policy are added to this interface (mixins) by each module.
 }
 
 /** @internal */

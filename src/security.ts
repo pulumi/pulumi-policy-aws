@@ -58,10 +58,8 @@ export interface AcmCheckCertificateExpirationArgs extends PolicyArgs {
 export function acmCheckCertificateExpiration(args?: EnforcementLevel | AcmCheckCertificateExpirationArgs): StackValidationPolicy {
     const { enforcementLevel, maxDaysUntilExpiration } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
+        maxDaysUntilExpiration: 14,
     });
-    const maxDays = maxDaysUntilExpiration === undefined
-        ? 14
-        : maxDaysUntilExpiration;
 
     return {
         name: "acm-certificate-expiration",
@@ -78,7 +76,7 @@ export function acmCheckCertificateExpiration(args?: EnforcementLevel | AcmCheck
                     let daysUntilExpiry = (certDescription.NotAfter.getTime() - Date.now()) / msInDay;
                     daysUntilExpiry = Math.floor(daysUntilExpiry);
 
-                    if (daysUntilExpiry < maxDays) {
+                    if (daysUntilExpiry < maxDaysUntilExpiration!) {
                         reportViolation(`certificate expires in ${daysUntilExpiry} (max allowed ${maxDaysUntilExpiration} days)`);
                     }
                 }
@@ -110,12 +108,10 @@ export interface IamAccessKeysRotatedArgs extends PolicyArgs {
 export function iamAccessKeysRotated(args?: EnforcementLevel | IamAccessKeysRotatedArgs): StackValidationPolicy {
     const { enforcementLevel, maxKeyAge } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
+        maxKeyAge: 90,
     });
-    const maxAge = maxKeyAge === undefined
-        ? 90
-        : maxKeyAge;
 
-    if (maxAge < 1 || maxAge > 2 * 365) {
+    if (maxKeyAge! < 1 || maxKeyAge! > 2 * 365) {
         throw new Error("Invalid maxKeyAge.");
     }
 
@@ -141,7 +137,7 @@ export function iamAccessKeysRotated(args?: EnforcementLevel | IamAccessKeysRota
                         if (accessKey.AccessKeyId === instance.id && accessKey.CreateDate) {
                             let daysSinceCreated = (Date.now() - accessKey.CreateDate!.getTime()) / msInDay;
                             daysSinceCreated = Math.floor(daysSinceCreated);
-                            if (daysSinceCreated > maxAge) {
+                            if (daysSinceCreated > maxKeyAge!) {
                                 reportViolation(`access key must be rotated within ${maxKeyAge} days (key is ${daysSinceCreated} days old)`);
                             }
                         }

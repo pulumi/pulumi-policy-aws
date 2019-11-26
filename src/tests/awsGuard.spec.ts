@@ -50,7 +50,7 @@ describe("#AwsGuard", () => {
     });
 
     describe("getPolicies", () => {
-        const defaultEnforcementLevel: EnforcementLevel = "mandatory";
+        const defaultEnforcementLevel: EnforcementLevel = "advisory";
 
         const factories: Record<string, PolicyFactory<any>> = {
             ec2InstanceDetailedMonitoringEnabled: compute.ec2InstanceDetailedMonitoringEnabled,

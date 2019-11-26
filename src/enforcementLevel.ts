@@ -15,7 +15,7 @@
 import { EnforcementLevel } from "@pulumi/policy";
 
 /** @internal */
-export const defaultEnforcementLevel: EnforcementLevel = "mandatory";
+export const defaultEnforcementLevel: EnforcementLevel = "advisory";
 
 /** @internal */
 export function isEnforcementLevel(o: any): o is EnforcementLevel {
