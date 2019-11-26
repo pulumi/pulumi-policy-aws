@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "bin",
+        "outDir": "../bin",
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
@@ -16,15 +16,22 @@
         "strictNullChecks": true
     },
     "files": [
-        "index.ts",
+        "awsGuard.ts",
         "compute.ts",
         "database.ts",
+        "elasticsearch.ts",
+        "enforcementLevel.ts",
+        "index.ts",
+        "policyArgs.ts",
         "security.ts",
         "storage.ts",
+        "tests/awsGuard.spec.ts",
         "tests/database.spec.ts",
         "tests/elasticsearch.spec.ts",
         "tests/security.spec.ts",
+        "tests/util.spec.ts",
         "tests/util.ts",
+        "util.ts",
         "version.ts"
     ]
 }

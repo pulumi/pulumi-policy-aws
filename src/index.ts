@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { PolicyPack } from "@pulumi/policy";
+import { AwsGuard, AwsGuardArgs } from "./awsGuard";
 
-import { compute } from "./compute";
-import { database } from "./database";
-import { elasticsearch } from "./elasticsearch";
-import { security } from "./security";
-import { storage } from "./storage";
+// Import each area to add AwsGuardArgs mixins and register policies.
+import "./compute";
+import "./database";
+import "./elasticsearch";
+import "./security";
+import "./storage";
 
-// Create a new Policy Pack.
-export const policyPack = new PolicyPack("pulumi-awsguard", {
-    policies: [
-        ...compute,
-        ...database,
-        ...elasticsearch,
-        ...security,
-        ...storage,
-    ],
-});
+export { AwsGuard, AwsGuardArgs };
+
+// If we're running our integration tests, create a new instance of AwsGuard.
+// TODO[pulumi/pulumi-awsguard#34] Use an alternative approach to creating a new instance of AwsGuard
+// for the integration tests, rather than having this baked into the library itself.
+if (process.env["PULUMI_AWSGUARD_TESTING"] === "true") {
+    const awsGuard = new AwsGuard({ all: "mandatory" });
+}

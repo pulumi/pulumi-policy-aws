@@ -58,6 +58,7 @@ let elbV2Args: aws.elasticloadbalancingv2.LoadBalancerArgs = {
         enabled: true,
         bucket: elbBucket.arn,
     },
+    enableDeletionProtection: true,
 };
 
 let albArgs: aws.applicationloadbalancing.LoadBalancerArgs = {
@@ -65,6 +66,7 @@ let albArgs: aws.applicationloadbalancing.LoadBalancerArgs = {
         enabled: true,
         bucket: elbBucket.arn,
     },
+    enableDeletionProtection: true,
 };
 
 switch (testScenario) {
@@ -110,8 +112,12 @@ switch (testScenario) {
     case 5:
         // Elastic Load Balancers do not have access logs specified.
         elbArgs = { listeners: [] };
-        elbV2Args = {};
-        albArgs = {};
+        elbV2Args = {
+            enableDeletionProtection: true,
+        };
+        albArgs = {
+            enableDeletionProtection: true,
+        };
         break;
     case 6:
         // No EBS volume attached to EC2 instance.

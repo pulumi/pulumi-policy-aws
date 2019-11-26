@@ -17,7 +17,7 @@ import * as AWS from "aws-sdk";
 import * as aws from "@pulumi/aws";
 
 import {
-    EnforcementLevel, Policies, ReportViolation, ResourceValidationPolicy,
+    EnforcementLevel, ReportViolation, ResourceValidationPolicy,
     StackValidation, StackValidationArgs, StackValidationPolicy,
     validateTypedResource,
 } from "@pulumi/policy";
@@ -25,22 +25,47 @@ import {
 import { Resource } from "@pulumi/pulumi";
 import * as q from "@pulumi/pulumi/queryable";
 
+import { registerPolicy } from "./awsGuard";
+import { defaultEnforcementLevel } from "./enforcementLevel";
+import { PolicyArgs } from "./policyArgs";
+import { getValueOrDefault } from "./util";
+
+// Mixin additional properties onto AwsGuardArgs.
+declare module "./awsGuard" {
+    interface AwsGuardArgs {
+        acmCheckCertificateExpiration?: EnforcementLevel | AcmCheckCertificateExpirationArgs;
+        cmkBackingKeyRotationEnabled?: EnforcementLevel;
+        iamAccessKeysRotated?: EnforcementLevel | IamAccessKeysRotatedArgs;
+        iamMfaEnabledForConsoleAccess?: EnforcementLevel;
+    }
+}
+
+// Register policy factories.
+registerPolicy("acmCheckCertificateExpiration", acmCheckCertificateExpiration);
+registerPolicy("cmkBackingKeyRotationEnabled", cmkBackingKeyRotationEnabled);
+registerPolicy("iamAccessKeysRotated", iamAccessKeysRotated);
+registerPolicy("iamMfaEnabledForConsoleAccess", iamMfaEnabledForConsoleAccess);
+
 // Milliseconds in a day.
 const msInDay = 24 * 60 * 60 * 1000;
 
-export const security: Policies = [
-    acmCheckCertificateExpiration("mandatory", 14 /* max days before certificate expires */),
-    cmkBackingKeyRotationEnabled("mandatory"),
-    iamAccessKeysRotated("mandatory", 90 /* max key age in days */),
-    iamMfaEnabledForConsoleAccess("mandatory"),
-];
+export interface AcmCheckCertificateExpirationArgs extends PolicyArgs {
+    /** Max days before certificate expires. Defaults to 14. */
+    maxDaysUntilExpiration?: number;
+}
 
-export function acmCheckCertificateExpiration(enforcementLevel: EnforcementLevel = "advisory", maxDaysUntilExpiration: number): StackValidationPolicy {
+/** @internal */
+export function acmCheckCertificateExpiration(args?: EnforcementLevel | AcmCheckCertificateExpirationArgs): StackValidationPolicy {
+    const { enforcementLevel, maxDaysUntilExpiration } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        maxDaysUntilExpiration: 14,
+    });
+
     return {
         name: "acm-certificate-expiration",
         description: "Checks whether an ACM certificate has expired. Certificates provided by ACM are automatically renewed. ACM does not automatically renew certificates that you import.",
         enforcementLevel: enforcementLevel,
-        validateStack: validateTypedResources(aws.acm.Certificate.isInstance, async (acmCertificates, args, reportViolation) => {
+        validateStack: validateTypedResources(aws.acm.Certificate.isInstance, async (acmCertificates, _, reportViolation) => {
             const acm = new AWS.ACM();
             // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
             for (const certInStack of acmCertificates) {
@@ -51,7 +76,7 @@ export function acmCheckCertificateExpiration(enforcementLevel: EnforcementLevel
                     let daysUntilExpiry = (certDescription.NotAfter.getTime() - Date.now()) / msInDay;
                     daysUntilExpiry = Math.floor(daysUntilExpiry);
 
-                    if (daysUntilExpiry < maxDaysUntilExpiration) {
+                    if (daysUntilExpiry < maxDaysUntilExpiration!) {
                         reportViolation(`certificate expires in ${daysUntilExpiry} (max allowed ${maxDaysUntilExpiration} days)`);
                     }
                 }
@@ -60,12 +85,13 @@ export function acmCheckCertificateExpiration(enforcementLevel: EnforcementLevel
     };
 }
 
-export function cmkBackingKeyRotationEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function cmkBackingKeyRotationEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "cmk-backing-key-rotation-enabled",
         description: "Checks that key rotation is enabled for each customer master key (CMK). Checks that key rotation is enabled for specific key object. Does not apply to CMKs that have imported key material.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.kms.Key, async (instance, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.kms.Key, async (instance, _, reportViolation) => {
             if (!instance.enableKeyRotation) {
                 reportViolation("CMK does not have the key rotation setting enabled");
             }
@@ -73,8 +99,19 @@ export function cmkBackingKeyRotationEnabled(enforcementLevel: EnforcementLevel 
     };
 }
 
-export function iamAccessKeysRotated(enforcementLevel: EnforcementLevel = "advisory", maxKeyAge: number): StackValidationPolicy {
-    if (maxKeyAge < 1 || maxKeyAge > 2 * 365) {
+export interface IamAccessKeysRotatedArgs extends PolicyArgs {
+    /** Max key age in days. Defaults to 90. */
+    maxKeyAge?: number;
+}
+
+/** @internal */
+export function iamAccessKeysRotated(args?: EnforcementLevel | IamAccessKeysRotatedArgs): StackValidationPolicy {
+    const { enforcementLevel, maxKeyAge } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        maxKeyAge: 90,
+    });
+
+    if (maxKeyAge! < 1 || maxKeyAge! > 2 * 365) {
         throw new Error("Invalid maxKeyAge.");
     }
 
@@ -82,7 +119,7 @@ export function iamAccessKeysRotated(enforcementLevel: EnforcementLevel = "advis
         name: "access-keys-rotated",
         description: "Checks whether an access key have been rotated within maxKeyAge days.",
         enforcementLevel: enforcementLevel,
-        validateStack: validateTypedResources(aws.iam.AccessKey.isInstance, async (accessKeys, args, reportViolation) => {
+        validateStack: validateTypedResources(aws.iam.AccessKey.isInstance, async (accessKeys, _, reportViolation) => {
             const iam = new AWS.IAM();
             for (const instance of accessKeys) {
                 // Skip any access keys that haven't yet been provisioned or whose status is inactive.
@@ -100,7 +137,7 @@ export function iamAccessKeysRotated(enforcementLevel: EnforcementLevel = "advis
                         if (accessKey.AccessKeyId === instance.id && accessKey.CreateDate) {
                             let daysSinceCreated = (Date.now() - accessKey.CreateDate!.getTime()) / msInDay;
                             daysSinceCreated = Math.floor(daysSinceCreated);
-                            if (daysSinceCreated > maxKeyAge) {
+                            if (daysSinceCreated > maxKeyAge!) {
                                 reportViolation(`access key must be rotated within ${maxKeyAge} days (key is ${daysSinceCreated} days old)`);
                             }
                         }
@@ -113,12 +150,13 @@ export function iamAccessKeysRotated(enforcementLevel: EnforcementLevel = "advis
     };
 }
 
-export function iamMfaEnabledForConsoleAccess(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function iamMfaEnabledForConsoleAccess(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "mfa-enabled-for-iam-console-access",
         description: "Checks whether multi-factor Authentication (MFA) is enabled for an IAM user that use a console password.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.iam.UserLoginProfile, async (instance, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.iam.UserLoginProfile, async (instance, _, reportViolation) => {
             const iam = new AWS.IAM();
             const mfaDevicesResp = await iam.listMFADevices({ UserName: instance.user }).promise();
             // We don't bother with paging through all MFA devices, since we only check that there is at least one.

@@ -24,7 +24,13 @@ import { assertHasResourceViolation, assertNoResourceViolations, createResourceV
 
 describe("#redshiftClusterConfigurationCheck", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
-        const policy = database.redshiftClusterConfigurationCheck("mandatory", true, true, ["dc1.large", "test"]);
+        const policy = database.redshiftClusterConfigurationCheck({
+            enforcementLevel: "mandatory",
+            clusterDbEncrypted: true,
+            loggingEnabled: true,
+            nodeTypes: ["dc1.large", "test"],
+        });
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
@@ -84,7 +90,11 @@ describe("#redshiftClusterConfigurationCheck", () => {
     });
 
     describe("encryption and logging must be disabled and no nodeTypes specified", () => {
-        const policy = database.redshiftClusterConfigurationCheck("mandatory", false, false);
+        const policy = database.redshiftClusterConfigurationCheck({
+            enforcementLevel: "mandatory",
+            clusterDbEncrypted: false,
+            loggingEnabled: false,
+        });
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
@@ -130,7 +140,13 @@ describe("#redshiftClusterConfigurationCheck", () => {
 
 describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     describe("allVersionUpgrade required, preferred maintenance window and automate retention of 1", async () => {
-        const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true, "Mon:09:30-Mon:10:00", 1);
+        const policy = database.redshiftClusterMaintenanceSettingsCheck({
+            enforcementLevel: "mandatory",
+            allowVersionUpgrade: true,
+            preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
+            automatedSnapshotRetentionPeriod: 1,
+        });
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
@@ -187,7 +203,11 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     });
 
     describe("preferred maintenance window and retention period not specified", async () => {
-        const policy = database.redshiftClusterMaintenanceSettingsCheck("mandatory", true);
+        const policy = database.redshiftClusterMaintenanceSettingsCheck({
+            enforcementLevel: "mandatory",
+            allowVersionUpgrade: true,
+        });
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
@@ -269,7 +289,13 @@ describe("#dynamodbTableEncryptionEnabled", () => {
 
 describe("#rdsInstanceBackupEnabled", () => {
     describe("retention period and window are specified, check read replicas", () => {
-        const policy = database.rdsInstanceBackupEnabled("mandatory", 7, "window", true);
+        const policy = database.rdsInstanceBackupEnabled({
+            enforcementLevel: "mandatory",
+            backupRetentionPeriod: 7,
+            preferredBackupWindow: "window",
+            checkReadReplicas: true,
+        });
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
@@ -316,7 +342,13 @@ describe("#rdsInstanceBackupEnabled", () => {
     });
 
     describe("do not check read replicas", () => {
-        const policy = database.rdsInstanceBackupEnabled("mandatory", 7, "window", false);
+        const policy = database.rdsInstanceBackupEnabled({
+            enforcementLevel: "mandatory",
+            backupRetentionPeriod: 7,
+            preferredBackupWindow: "window",
+            checkReadReplicas: false,
+        });
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
@@ -334,6 +366,7 @@ describe("#rdsInstanceBackupEnabled", () => {
 
     describe("do not specify a required backup period or window", () => {
         const policy = database.rdsInstanceBackupEnabled("mandatory");
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
@@ -365,8 +398,8 @@ describe("#rdsInstanceBackupEnabled", () => {
     describe("a poorly configure policy", () => {
         it("Should throw an error", () => {
             assert.throws(
-                () => { database.rdsInstanceBackupEnabled("mandatory", 0); },
-                "Specified retention period must be greater than 0.");
+                () => { database.rdsInstanceBackupEnabled({ backupRetentionPeriod: 0 }); },
+                "Specified retention period must be greater than 0");
         });
     });
 });
@@ -403,7 +436,11 @@ describe("#rdsInstancePublicAccessCheck", () => {
 
 describe("#rdsStorageEncrypted", () => {
     describe("kms key is specified", () => {
-        const policy = database.rdsStorageEncrypted("mandatory", "a-kms-key");
+        const policy = database.rdsStorageEncrypted({
+            enforcementLevel: "mandatory",
+            kmsKeyId: "a-kms-key",
+        });
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",

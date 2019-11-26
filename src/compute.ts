@@ -13,22 +13,40 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
+
 import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-export const compute: ResourceValidationPolicy[] = [
-    ec2InstanceDetailedMonitoringEnabled("mandatory"),
-    ec2InstanceNoPublicIP("mandatory"),
-    ec2VolumeInUseCheck("mandatory", true),
-    elbAccessLoggingEnabled("mandatory"),
-    encryptedVolumes("mandatory"),
-];
+import { registerPolicy } from "./awsGuard";
+import { defaultEnforcementLevel } from "./enforcementLevel";
+import { PolicyArgs } from "./policyArgs";
+import { getValueOrDefault } from "./util";
 
-export function ec2InstanceDetailedMonitoringEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+// Mixin additional properties onto AwsGuardArgs.
+declare module "./awsGuard" {
+    interface AwsGuardArgs {
+        ec2InstanceDetailedMonitoringEnabled?: EnforcementLevel;
+        ec2InstanceNoPublicIP?: EnforcementLevel;
+        ec2VolumeInUseCheck?: EnforcementLevel | Ec2VolumeInUseCheckArgs;
+        elbAccessLoggingEnabled?: EnforcementLevel;
+        encryptedVolumes?: EnforcementLevel | EncryptedVolumesArgs;
+    }
+}
+
+// Register policy factories.
+registerPolicy("ec2InstanceDetailedMonitoringEnabled", ec2InstanceDetailedMonitoringEnabled);
+registerPolicy("ec2InstanceNoPublicIP", ec2InstanceNoPublicIP);
+registerPolicy("ec2VolumeInUseCheck", ec2VolumeInUseCheck);
+registerPolicy("elbAccessLoggingEnabled", elbAccessLoggingEnabled);
+registerPolicy("encryptedVolumes", encryptedVolumes);
+
+
+/** @internal */
+export function ec2InstanceDetailedMonitoringEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "ec2-instance-detailed-monitoring-enabled",
         description: "Checks whether detailed monitoring is enabled for EC2 instances.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (!instance.monitoring) {
                 reportViolation("EC2 instances must have detailed monitoring enabled.");
             }
@@ -36,13 +54,14 @@ export function ec2InstanceDetailedMonitoringEnabled(enforcementLevel: Enforceme
     };
 }
 
-export function ec2InstanceNoPublicIP(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function ec2InstanceNoPublicIP(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "ec2-instance-no-public-ip",
         description: "Checks whether Amazon EC2 instances have a public IP association. " +
             "This rule applies only to IPv4.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (instance.associatePublicIpAddress) {
                 reportViolation("EC2 instance must not have a public IP.");
             }
@@ -50,13 +69,23 @@ export function ec2InstanceNoPublicIP(enforcementLevel: EnforcementLevel = "advi
     };
 }
 
-function ec2VolumeInUseCheck(enforcementLevel: EnforcementLevel = "advisory", checkDeletion: boolean): ResourceValidationPolicy {
+export interface Ec2VolumeInUseCheckArgs extends PolicyArgs {
+    checkDeletion?: boolean;
+}
+
+/** @internal */
+export function ec2VolumeInUseCheck(args?: EnforcementLevel | Ec2VolumeInUseCheckArgs): ResourceValidationPolicy {
+    const { enforcementLevel, checkDeletion } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        checkDeletion: true,
+    });
+
     return {
         name: "ec2-volume-inuse-check",
         description: "Checks whether EBS volumes are attached to EC2 instances. " +
             "Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (!instance.ebsBlockDevices || instance.ebsBlockDevices.length === 0) {
                 reportViolation("EC2 instance must have an EBS volume attached.");
             }
@@ -72,11 +101,12 @@ function ec2VolumeInUseCheck(enforcementLevel: EnforcementLevel = "advisory", ch
     };
 }
 
-export function elbAccessLoggingEnabled(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function elbAccessLoggingEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "elb-logging-enabled",
         description: "Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
-        enforcementLevel: enforcementLevel,
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: [
             validateTypedResource(aws.elasticloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
@@ -97,14 +127,24 @@ export function elbAccessLoggingEnabled(enforcementLevel: EnforcementLevel = "ad
     };
 }
 
-export function encryptedVolumes(enforcementLevel: EnforcementLevel = "advisory", kmsId?: string): ResourceValidationPolicy {
+export interface EncryptedVolumesArgs extends PolicyArgs {
+    kmsId?: string;
+}
+
+/** @internal */
+export function encryptedVolumes(args?: EnforcementLevel | EncryptedVolumesArgs): ResourceValidationPolicy {
+    const { enforcementLevel, kmsId } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        kmsId: undefined,
+    });
+
     return {
         name: "encrypted-volumes",
         description: "Checks whether the EBS volumes that are in an attached state are encrypted. " +
             "If you specify the ID of a KMS key for encryption using the kmsId parameter, " +
             "the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (instance.ebsBlockDevices && instance.ebsBlockDevices.length > 0) {
                 for (const ebs of instance.ebsBlockDevices) {
                     if (!ebs.encrypted) {

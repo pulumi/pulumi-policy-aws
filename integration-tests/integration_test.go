@@ -96,6 +96,8 @@ func runPolicyPackIntegrationTest(
 
 			e.RunCommand("pulumi", "config", "set", "scenario", fmt.Sprintf("%d", idx+1))
 
+			os.Setenv("PULUMI_AWSGUARD_TESTING", "true")
+
 			if len(scenario.WantErrors) == 0 {
 				t.Log("No errors are expected.")
 				e.RunCommand("pulumi", "preview", "--policy-pack", policyPackDir)

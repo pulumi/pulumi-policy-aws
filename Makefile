@@ -17,7 +17,7 @@ build::
 	rm -rf bin/
 
 	# Build
-	tsc --project ./src --outDir ./bin/
+	cd src && yarn run build
 
 	# Set version and copy non-source assets.
 	sed -e 's/\$${VERSION}/$(VERSION)/g' < ./src/package.json > bin/package.json
@@ -26,10 +26,10 @@ build::
 
 .PHONY: lint
 lint::
-	tslint -c ./src/tslint.json -p ./src/tsconfig.json
+	cd src && yarn run lint
 
 test_fast::
-	cd src && mocha --require ./node_modules/ts-node/register tests/**/*.spec.ts
+	cd src && yarn run test
 
 .PHONY: test_all
 test_all::

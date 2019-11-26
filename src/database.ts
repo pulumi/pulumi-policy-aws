@@ -13,33 +13,62 @@
 // limitations under the License.
 
 import * as aws from "@pulumi/aws";
+
 import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
 
-export const database: ResourceValidationPolicy[] = [
-    redshiftClusterConfigurationCheck("mandatory", true /* clusterDbEncrypted */, true /* loggingEnabled */),
-    redshiftClusterMaintenanceSettingsCheck("mandatory", true /* allowVersionUpgrade */),
-    redshiftClusterPublicAccessCheck("mandatory"),
-    dynamodbTableEncryptionEnabled("mandatory"),
-    rdsInstanceBackupEnabled("mandatory"),
-    rdsInstancePublicAccessCheck("mandatory"),
-    rdsStorageEncrypted("mandatory"),
-];
+import { registerPolicy } from "./awsGuard";
+import { defaultEnforcementLevel } from "./enforcementLevel";
+import { PolicyArgs } from "./policyArgs";
+import { getValueOrDefault } from "./util";
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- * @param [clusterDbEncrypted=true] If true, database encryption is enabled.
- * @param [loggingEnabled=true] If true, audit logging must be enabled.
- * @param [nodeTypes] List of allowed node types.
- */
+// Mixin additional properties onto AwsGuardArgs.
+declare module "./awsGuard" {
+    interface AwsGuardArgs {
+        redshiftClusterConfigurationCheck?: EnforcementLevel | RedshiftClusterConfigurationCheckArgs;
+        redshiftClusterMaintenanceSettingsCheck?: EnforcementLevel | RedshiftClusterMaintenanceSettingsCheckArgs;
+        redshiftClusterPublicAccessCheck?: EnforcementLevel;
+        dynamodbTableEncryptionEnabled?: EnforcementLevel;
+        rdsInstanceBackupEnabled?: EnforcementLevel | RdsInstanceBackupEnabledArgs;
+        rdsInstancePublicAccessCheck?: EnforcementLevel;
+        rdsStorageEncrypted?: EnforcementLevel | RdsStorageEncryptedArgs;
+    }
+}
+
+// Register policy factories.
+registerPolicy("redshiftClusterConfigurationCheck", redshiftClusterConfigurationCheck);
+registerPolicy("redshiftClusterMaintenanceSettingsCheck", redshiftClusterMaintenanceSettingsCheck);
+registerPolicy("redshiftClusterPublicAccessCheck", redshiftClusterPublicAccessCheck);
+registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
+registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
+registerPolicy("rdsInstancePublicAccessCheck", rdsInstancePublicAccessCheck);
+registerPolicy("rdsStorageEncrypted", rdsStorageEncrypted);
+
+export interface RedshiftClusterConfigurationCheckArgs extends PolicyArgs {
+    /** If true, database encryption is enabled. Defaults to true. */
+    clusterDbEncrypted?: boolean;
+
+    /** If true, audit logging must be enabled. Defaults to true. */
+    loggingEnabled?: boolean;
+
+    /** List of allowed node types. */
+    nodeTypes?: string[];
+}
+
+/** @internal */
 export function redshiftClusterConfigurationCheck(
-    enforcementLevel: EnforcementLevel = "advisory", clusterDbEncrypted: boolean = true,
-    loggingEnabled: boolean = true, nodeTypes?: string[]): ResourceValidationPolicy {
+    args?: EnforcementLevel | RedshiftClusterConfigurationCheckArgs): ResourceValidationPolicy {
+
+    const { enforcementLevel, clusterDbEncrypted, loggingEnabled, nodeTypes } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        clusterDbEncrypted: true,
+        loggingEnabled: true,
+    });
+
     return {
         name: "redshift-cluster-configuration-check",
         description: "Checks whether Amazon Redshift clusters have the specified settings.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
 
             // Check the cluster's encryption configuration.
             if (clusterDbEncrypted && (cluster.encrypted === undefined || cluster.encrypted === false)) {
@@ -63,21 +92,31 @@ export function redshiftClusterConfigurationCheck(
     };
 }
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- * @param [allowVersionUpgrade=true] Allow version upgrade is enabled. Defaults to true.
- * @param [preferredMaintenanceWindow] Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00).
- * @param [automatedSnapshotRetentionPeriod] Number of days to retain automated snapshots.
- */
+export interface RedshiftClusterMaintenanceSettingsCheckArgs extends PolicyArgs {
+    /** Allow version upgrade is enabled. Defaults to true. */
+    allowVersionUpgrade?: boolean;
+
+    /** Scheduled maintenance window for clusters (for example, Mon:09:30-Mon:10:00) */
+    preferredMaintenanceWindow?: string;
+
+    /** Number of days to retain automated snapshots. */
+    automatedSnapshotRetentionPeriod?: number;
+}
+
+/** @internal */
 export function redshiftClusterMaintenanceSettingsCheck(
-    enforcementLevel: EnforcementLevel = "advisory", allowVersionUpgrade: boolean = true,
-    preferredMaintenanceWindow?: string, automatedSnapshotRetentionPeriod?: number): ResourceValidationPolicy {
+    args?: EnforcementLevel | RedshiftClusterMaintenanceSettingsCheckArgs): ResourceValidationPolicy {
+
+    const { enforcementLevel, allowVersionUpgrade, preferredMaintenanceWindow, automatedSnapshotRetentionPeriod } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        allowVersionUpgrade: true,
+    });
+
     return {
         name: "redshift-cluster-maintenance-settings-check",
         description: "Checks whether Amazon Redshift clusters have the specified maintenance settings.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
             // Check the allowVersionUpgrade is configured properly.
             if (allowVersionUpgrade && cluster.allowVersionUpgrade !== undefined && cluster.allowVersionUpgrade === false) {
                 reportViolation("Redshift cluster must allow version upgrades.");
@@ -102,17 +141,13 @@ export function redshiftClusterMaintenanceSettingsCheck(
     };
 }
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- */
-export function redshiftClusterPublicAccessCheck(
-    enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function redshiftClusterPublicAccessCheck(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "redshift-cluster-public-access-check",
         description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
             if (cluster.publiclyAccessible === undefined || cluster.publiclyAccessible) {
                 reportViolation("Redshift cluster must not be publicly accessible.");
             }
@@ -120,17 +155,13 @@ export function redshiftClusterPublicAccessCheck(
     };
 }
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- */
-export function dynamodbTableEncryptionEnabled(
-    enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function dynamodbTableEncryptionEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "dynamodb-table-encryption-enabled",
         description: "Checks whether the Amazon DynamoDB tables are encrypted.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.dynamodb.Table, (table, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.dynamodb.Table, (table, _, reportViolation) => {
             if (table.serverSideEncryption && !table.serverSideEncryption.enabled) {
                 reportViolation("DynamoDB must have server side encryption enabled.");
             }
@@ -138,18 +169,25 @@ export function dynamodbTableEncryptionEnabled(
     };
 }
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- * @param [backupRetentionPeriod] Retention period for backups. Must be greater than 0.
- * @param [preferredBackupWindow] Time range in which backups are created.
- * @param [checkReadReplicas=true] Checks whether RDS DB instances have backups enabled for read replicas.
- */
+export interface RdsInstanceBackupEnabledArgs extends PolicyArgs {
+    /** Retention period for backups. Must be greater than 0. */
+    backupRetentionPeriod?: number;
+
+    /** Time range in which backups are created. */
+    preferredBackupWindow?: string;
+
+    /** Checks whether RDS DB instances have backups enabled for read replicas. Defaults to true. */
+    checkReadReplicas?: boolean;
+}
+
+/** @internal */
 export function rdsInstanceBackupEnabled(
-    enforcementLevel: EnforcementLevel = "advisory",
-    backupRetentionPeriod?: number,
-    preferredBackupWindow?: string,
-    checkReadReplicas: boolean = true): ResourceValidationPolicy {
+    args?: EnforcementLevel | RdsInstanceBackupEnabledArgs): ResourceValidationPolicy {
+
+    const { enforcementLevel, backupRetentionPeriod, preferredBackupWindow, checkReadReplicas } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+        checkReadReplicas: true,
+    });
 
     if (backupRetentionPeriod !== undefined && backupRetentionPeriod <= 0) {
         throw new Error("Specified retention period must be greater than 0.");
@@ -159,7 +197,7 @@ export function rdsInstanceBackupEnabled(
         description: "Checks whether RDS DB instances have backups enabled. " +
             "Optionally, the rule checks the backup retention period and the backup window.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
             // Run checks if the instance is not a read replica or if check read replicas is true.
             if (!instance.replicateSourceDb || checkReadReplicas) {
                 if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
@@ -184,16 +222,13 @@ export function rdsInstanceBackupEnabled(
     };
 }
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- */
-export function rdsInstancePublicAccessCheck(enforcementLevel: EnforcementLevel = "advisory"): ResourceValidationPolicy {
+/** @internal */
+export function rdsInstancePublicAccessCheck(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "rds-instance-public-access-check",
         description: "Check whether the Amazon Relational Database Service instances are not publicly accessible.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
             if (instance.publiclyAccessible) {
                 reportViolation("RDS Instance must not be publicly accessible.");
             }
@@ -201,17 +236,22 @@ export function rdsInstancePublicAccessCheck(enforcementLevel: EnforcementLevel 
     };
 }
 
-/**
- *
- * @param [enforcementLevel="advisory"] The enforcement level to enforce this policy with.
- * @param [kmsKeyId] KMS key ID or ARN used to encrypt the storage.
- */
-export function rdsStorageEncrypted(enforcementLevel: EnforcementLevel = "advisory", kmsKeyId?: string): ResourceValidationPolicy {
+export interface RdsStorageEncryptedArgs extends PolicyArgs {
+    /** KMS key ID or ARN used to encrypt the storage. */
+    kmsKeyId?: string;
+}
+
+/** @internal */
+export function rdsStorageEncrypted(args?: EnforcementLevel | RdsStorageEncryptedArgs): ResourceValidationPolicy {
+    const { enforcementLevel, kmsKeyId } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+    });
+
     return {
         name: "rds-storage-encrypted",
         description: "Checks whether storage encryption is enabled for your RDS DB instances.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, args, reportViolation) => {
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
             // Read replicas ignore this field and instead use the kmsId, so we will only check this
             // if its not a read replica.
             if (!instance.replicateSourceDb) {
