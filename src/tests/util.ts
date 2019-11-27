@@ -24,7 +24,7 @@ import * as assert from "assert";
 // from the resource's constructor parameters.
 export function createResourceValidationArgs<TResource extends Resource, TArgs>(
     resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
-    args: NonNullable<Unwrap<TArgs>>,
+    args: Unwrap<NonNullable<TArgs>>,
 ): policy.ResourceValidationArgs {
     const type = (<any>resourceClass).__pulumiType;
     if (typeof type !== "string") {
@@ -34,6 +34,8 @@ export function createResourceValidationArgs<TResource extends Resource, TArgs>(
     return {
         type: type as string,
         props: args,
+        urn: "unknown",
+        name: "unknown",
     };
 }
 
@@ -55,6 +57,8 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
     const testResource: policy.PolicyResource = {
         type: type as string,
         props: props,
+        urn: "unknown",
+        name: "unknown",
     };
 
     return {
