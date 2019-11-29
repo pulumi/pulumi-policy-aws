@@ -1,0 +1,9 @@
+{
+    "name": "awsguard-test-network",
+    "main": "index.ts",
+    "dependencies": {
+        "@pulumi/pulumi": "^1.0.0",
+        "@pulumi/aws": "^1.0.0",
+        "@pulumi/awsx": "^0.18.10"
+    }
+}
