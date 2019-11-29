@@ -30,9 +30,7 @@ const httpsPort = 443;
 
 // S3 bucket for storing the ALB's access logs. Once we have support for disabling some AWSGuard rules
 // when running integration tests, we should no longer require creating this resource.
-
-// Semi-random but stable enough way to create a unique bucket name.
-const testBucketName = `awsguard-test-${pulumi.getStack()}_${os.hostname()}`;
+const testBucketName = `awsguard-test-${pulumi.getStack()}-logs`;
 
 const accessLogsBucket = new aws.s3.Bucket("accessLogs", {
     bucket: testBucketName,
