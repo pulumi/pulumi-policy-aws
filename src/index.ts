@@ -24,9 +24,19 @@ import "./storage";
 
 export { AwsGuard, AwsGuardArgs };
 
-// If we're running our integration tests, create a new instance of AwsGuard.
-// TODO[pulumi/pulumi-awsguard#34] Use an alternative approach to creating a new instance of AwsGuard
-// for the integration tests, rather than having this baked into the library itself.
-if (process.env["PULUMI_AWSGUARD_TESTING"] === "true") {
-    const awsGuard = new AwsGuard({ all: "mandatory" });
-}
+// To create a policy pack using all of the AWS Guard rules,  create
+// a new NPM module and add the following code:
+//
+// Using JavaScript
+//      const awsguard = require("@pulumi/awsguard");
+//      new awsguard.AwsGuard({ all: "mandatory" });
+//
+// Using TypeScript
+//      import { AwsGuard, AwsGuardArgs } from "@pulumi/awsguard";
+//      export policyPack = new AwsGuard({ all: "mandatory" });
+//
+// Though you may want to configure any individual rules or their
+// settings by writing more code.
+//
+// Fore more information on enabling and configuring AWS Guard, see:
+// https://www.pulumi.com/docs/guides/crossguard

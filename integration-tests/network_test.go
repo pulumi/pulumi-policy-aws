@@ -15,21 +15,13 @@
 package integrationtests
 
 import (
-	"os"
-	"path"
 	"testing"
 )
 
 func TestNetwork(t *testing.T) {
-	// Get the directory for the policy pack to run. (The parent of this /integration-tests directory.)
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Error getting working directory")
-	}
-	policyPackDir := path.Join(cwd, "..")
-
 	runPolicyPackIntegrationTest(
-		t, "network", policyPackDir,
+		t, "network",
+		awsGuardSettings{},
 		map[string]string{
 			"aws:region": "us-west-2",
 		},
