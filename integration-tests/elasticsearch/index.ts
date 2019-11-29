@@ -46,8 +46,6 @@ switch (testScenario) {
         // Use the default VPC for the AWS account
         const defaultVpc = awsx.ec2.Vpc.getDefault();
 
-        console.log("Default VPC", defaultVpc);
-
         // Should update successful with a valid Elasticsearch domain!
         encryptedAtRestParam = {
             enabled: true,

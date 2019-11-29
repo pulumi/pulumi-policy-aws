@@ -55,9 +55,6 @@ export function elasticsearchInVpcOnly(enforcementLevel?: EnforcementLevel): Res
             if (domain.vpcOptions === undefined) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must run within a VPC.`);
             }
-            // TODO: Do a more extensive check. We confirmed there is _any_ VPC associated with the ES Domain.
-            // But we could also add a separate rule to confirm that that VPC isn't internet addressable. Such
-            // as by checking if the subnets created have any rout table associations with an internet gateway.
         }),
     };
 }
