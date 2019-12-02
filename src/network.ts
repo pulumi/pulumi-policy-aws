@@ -30,7 +30,7 @@ declare module "./awsGuard" {
 registerPolicy("albHttpToHttpsRedirection", albHttpToHttpsRedirection);
 
 /** @internal */
-export function albHttpToHttpsRedirection(enforcementLevel: EnforcementLevel): ResourceValidationPolicy {
+export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
         name: "alb-http-to-https-redirection-check",
         description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
