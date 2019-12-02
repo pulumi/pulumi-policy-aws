@@ -32,7 +32,7 @@ registerPolicy("albHttpToHttpsRedirection", albHttpToHttpsRedirection);
 /** @internal */
 export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
-        name: "alb-http-to-https-redirection-check",
+        name: "alb-http-to-https-redirection",
         description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
