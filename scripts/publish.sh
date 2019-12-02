@@ -4,16 +4,16 @@ set -o nounset -o errexit -o pipefail
 
 echo "Publishing to NPMjs.com:"
 
-if [ ! -f "./bin/index.js" ]; then
-    echo "Error: ./bin/index.js not found. Do you need to build?"
+if [ ! -f "./src/bin/index.js" ]; then
+    echo "Error: ./src/bin/index.js not found. Do you need to build?"
     exit 1
 fi
 
 node $(dirname $0)/promote.js ${@:2} < \
-    ./bin/package.json > \
-    ./bin/package.json.publish
+    ./src/bin/package.json > \
+    ./src/bin/package.json.publish
 
-cd ./bin/
+cd ./src/bin/
 
 mv package.json package.json.dev
 mv package.json.publish package.json
