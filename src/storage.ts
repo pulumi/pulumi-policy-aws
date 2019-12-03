@@ -19,40 +19,24 @@ import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } fro
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 
-/*
-   ebs-snapshot-public-restorable-check (Requires aws-sdk)
- ✓ efs-encrypted-check
- ✓ elb-deletion-protection-enabled
-   s3-blacklisted-actions-prohibited
- ✓ s3-bucket-logging-enabled
-   s3-bucket-policy-grantee-check
-   s3-bucket-policy-not-more-permissive
-   s3-bucket-public-read-prohibited
-   s3-bucket-public-write-prohibited
-   s3-bucket-replication-enabled
-   s3-bucket-server-side-encryption-enabled
-   s3-bucket-ssl-requests-only
-   s3-bucket-versioning-enabled
-*/
-
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
-        efsEncryptedCheck?: EnforcementLevel;
+        efsEncrypted?: EnforcementLevel;
         elbDeletionProtectionEnabled?: EnforcementLevel;
         s3BucketLoggingEnabled?: EnforcementLevel;
     }
 }
 
 // Register policy factories.
-registerPolicy("efsEncryptedCheck", efsEncryptedCheck);
+registerPolicy("efsEncrypted", efsEncrypted);
 registerPolicy("elbDeletionProtectionEnabled", elbDeletionProtectionEnabled);
 registerPolicy("s3BucketLoggingEnabled", s3BucketLoggingEnabled);
 
 /** @internal */
-export function efsEncryptedCheck(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+export function efsEncrypted(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
-        name: "efs-encrypted-check",
+        name: "efs-encrypted",
         description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, _, reportViolation) => {

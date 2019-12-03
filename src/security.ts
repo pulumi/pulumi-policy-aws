@@ -33,7 +33,7 @@ import { getValueOrDefault } from "./util";
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
-        acmCheckCertificateExpiration?: EnforcementLevel | AcmCheckCertificateExpirationArgs;
+        acmCertificateExpiration?: EnforcementLevel | AcmCertificateExpirationArgs;
         cmkBackingKeyRotationEnabled?: EnforcementLevel;
         iamAccessKeysRotated?: EnforcementLevel | IamAccessKeysRotatedArgs;
         iamMfaEnabledForConsoleAccess?: EnforcementLevel;
@@ -41,7 +41,7 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("acmCheckCertificateExpiration", acmCheckCertificateExpiration);
+registerPolicy("acmCertificateExpiration", acmCertificateExpiration);
 registerPolicy("cmkBackingKeyRotationEnabled", cmkBackingKeyRotationEnabled);
 registerPolicy("iamAccessKeysRotated", iamAccessKeysRotated);
 registerPolicy("iamMfaEnabledForConsoleAccess", iamMfaEnabledForConsoleAccess);
@@ -49,13 +49,13 @@ registerPolicy("iamMfaEnabledForConsoleAccess", iamMfaEnabledForConsoleAccess);
 // Milliseconds in a day.
 const msInDay = 24 * 60 * 60 * 1000;
 
-export interface AcmCheckCertificateExpirationArgs extends PolicyArgs {
+export interface AcmCertificateExpirationArgs extends PolicyArgs {
     /** Max days before certificate expires. Defaults to 14. */
     maxDaysUntilExpiration?: number;
 }
 
 /** @internal */
-export function acmCheckCertificateExpiration(args?: EnforcementLevel | AcmCheckCertificateExpirationArgs): StackValidationPolicy {
+export function acmCertificateExpiration(args?: EnforcementLevel | AcmCertificateExpirationArgs): StackValidationPolicy {
     const { enforcementLevel, maxDaysUntilExpiration } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
         maxDaysUntilExpiration: 14,

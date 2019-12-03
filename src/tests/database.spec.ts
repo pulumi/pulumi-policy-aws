@@ -22,9 +22,9 @@ import { ResourceValidationArgs } from "@pulumi/policy";
 import * as database from "../database";
 import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
-describe("#redshiftClusterConfigurationCheck", () => {
+describe("#redshiftClusterConfiguration", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
-        const policy = database.redshiftClusterConfigurationCheck({
+        const policy = database.redshiftClusterConfiguration({
             enforcementLevel: "mandatory",
             clusterDbEncrypted: true,
             loggingEnabled: true,
@@ -90,7 +90,7 @@ describe("#redshiftClusterConfigurationCheck", () => {
     });
 
     describe("encryption and logging must be disabled and no nodeTypes specified", () => {
-        const policy = database.redshiftClusterConfigurationCheck({
+        const policy = database.redshiftClusterConfiguration({
             enforcementLevel: "mandatory",
             clusterDbEncrypted: false,
             loggingEnabled: false,
@@ -138,9 +138,9 @@ describe("#redshiftClusterConfigurationCheck", () => {
     });
 });
 
-describe("#redshiftClusterMaintenanceSettingsCheck", () => {
+describe("#redshiftClusterMaintenanceSettings", () => {
     describe("allVersionUpgrade required, preferred maintenance window and automate retention of 1", async () => {
-        const policy = database.redshiftClusterMaintenanceSettingsCheck({
+        const policy = database.redshiftClusterMaintenanceSettings({
             enforcementLevel: "mandatory",
             allowVersionUpgrade: true,
             preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
@@ -203,7 +203,7 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     });
 
     describe("preferred maintenance window and retention period not specified", async () => {
-        const policy = database.redshiftClusterMaintenanceSettingsCheck({
+        const policy = database.redshiftClusterMaintenanceSettings({
             enforcementLevel: "mandatory",
             allowVersionUpgrade: true,
         });
@@ -225,8 +225,8 @@ describe("#redshiftClusterMaintenanceSettingsCheck", () => {
     });
 });
 
-describe("#redshiftClusterPublicAccessCheck", () => {
-    const policy = database.redshiftClusterPublicAccessCheck("mandatory");
+describe("#redshiftClusterPublicAccess", () => {
+    const policy = database.redshiftClusterPublicAccess("mandatory");
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.redshift.Cluster, {
             clusterIdentifier: "test",
@@ -404,8 +404,8 @@ describe("#rdsInstanceBackupEnabled", () => {
     });
 });
 
-describe("#rdsInstancePublicAccessCheck", () => {
-    const policy = database.rdsInstancePublicAccessCheck("mandatory");
+describe("#rdsInstancePublicAccess", () => {
+    const policy = database.rdsInstancePublicAccess("mandatory");
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.rds.Instance, {
             instanceClass: "db.m5.large",

@@ -26,7 +26,7 @@ declare module "./awsGuard" {
     interface AwsGuardArgs {
         ec2InstanceDetailedMonitoringEnabled?: EnforcementLevel;
         ec2InstanceNoPublicIP?: EnforcementLevel;
-        ec2VolumeInUseCheck?: EnforcementLevel | Ec2VolumeInUseCheckArgs;
+        ec2VolumeInUse?: EnforcementLevel | Ec2VolumeInUseArgs;
         elbAccessLoggingEnabled?: EnforcementLevel;
         encryptedVolumes?: EnforcementLevel | EncryptedVolumesArgs;
     }
@@ -35,7 +35,7 @@ declare module "./awsGuard" {
 // Register policy factories.
 registerPolicy("ec2InstanceDetailedMonitoringEnabled", ec2InstanceDetailedMonitoringEnabled);
 registerPolicy("ec2InstanceNoPublicIP", ec2InstanceNoPublicIP);
-registerPolicy("ec2VolumeInUseCheck", ec2VolumeInUseCheck);
+registerPolicy("ec2VolumeInUse", ec2VolumeInUse);
 registerPolicy("elbAccessLoggingEnabled", elbAccessLoggingEnabled);
 registerPolicy("encryptedVolumes", encryptedVolumes);
 
@@ -69,19 +69,19 @@ export function ec2InstanceNoPublicIP(enforcementLevel?: EnforcementLevel): Reso
     };
 }
 
-export interface Ec2VolumeInUseCheckArgs extends PolicyArgs {
+export interface Ec2VolumeInUseArgs extends PolicyArgs {
     checkDeletion?: boolean;
 }
 
 /** @internal */
-export function ec2VolumeInUseCheck(args?: EnforcementLevel | Ec2VolumeInUseCheckArgs): ResourceValidationPolicy {
+export function ec2VolumeInUse(args?: EnforcementLevel | Ec2VolumeInUseArgs): ResourceValidationPolicy {
     const { enforcementLevel, checkDeletion } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
         checkDeletion: true,
     });
 
     return {
-        name: "ec2-volume-inuse-check",
+        name: "ec2-volume-inuse",
         description: "Checks whether EBS volumes are attached to EC2 instances. " +
             "Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
         enforcementLevel: enforcementLevel,

@@ -109,10 +109,10 @@ To use AWSGuard policies, you must create a Policy Pack that references the `@pu
 
     ```typescript
     new AwsGuard({
-        ec2VolumeInUseCheck: { checkDeletion: false },
+        ec2VolumeInUse: { checkDeletion: false },
         encryptedVolumes: { enforcementLevel: "mandatory", kmsId: "id" },
-        redshiftClusterMaintenanceSettingsCheck: { preferredMaintenanceWindow: "Mon:09:30-Mon:10:00" },
-        acmCheckCertificateExpiration: { maxDaysUntilExpiration: 10 },
+        redshiftClusterMaintenanceSettings: { preferredMaintenanceWindow: "Mon:09:30-Mon:10:00" },
+        acmCertificateExpiration: { maxDaysUntilExpiration: 10 },
     });
     ```
 
