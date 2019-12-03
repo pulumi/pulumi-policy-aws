@@ -33,7 +33,7 @@ export { AwsGuard, AwsGuardArgs };
 //
 // Using TypeScript
 //      import { AwsGuard, AwsGuardArgs } from "@pulumi/awsguard";
-//      export policyPack = new AwsGuard({ all: "mandatory" });
+//      new AwsGuard({ all: "mandatory" });
 //
 // Though you may want to configure any individual rules or their
 // settings by writing more code.
