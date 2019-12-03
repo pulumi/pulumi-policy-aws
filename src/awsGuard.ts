@@ -80,10 +80,10 @@ const factoryMap: Record<string, PolicyFactory<any>> = {};
  *
  * ```typescript
  * const awsGuard = new AwsGuard({
- *     ec2VolumeInUseCheck: { checkDeletion: false },
+ *     ec2VolumeInUse: { checkDeletion: false },
  *     encryptedVolumes: { enforcementLevel: "mandatory", kmsId: "id" },
- *     redshiftClusterMaintenanceSettingsCheck: { preferredMaintenanceWindow: "Mon:09:30-Mon:10:00" },
- *     acmCheckCertificateExpiration: { maxDaysUntilExpiration: 10 },
+ *     redshiftClusterMaintenanceSettings: { preferredMaintenanceWindow: "Mon:09:30-Mon:10:00" },
+ *     acmCertificateExpiration: { maxDaysUntilExpiration: 10 },
  * });
  * ```
  */

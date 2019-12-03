@@ -35,11 +35,11 @@ describe("#AwsGuard", () => {
             assert.deepStrictEqual(getNameAndArgs({}), [defaultName, {}]);
             assert.deepStrictEqual(getNameAndArgs({ all: "advisory" }), [defaultName, { all: "advisory" }]);
             assert.deepStrictEqual(
-                getNameAndArgs({ ec2VolumeInUseCheck: "advisory" }),
-                [defaultName, { ec2VolumeInUseCheck: "advisory" }]);
+                getNameAndArgs({ ec2VolumeInUse: "advisory" }),
+                [defaultName, { ec2VolumeInUse: "advisory" }]);
             assert.deepStrictEqual(
-                getNameAndArgs({ ec2VolumeInUseCheck: { checkDeletion: true } }),
-                [defaultName, { ec2VolumeInUseCheck: { checkDeletion: true } }]);
+                getNameAndArgs({ ec2VolumeInUse: { checkDeletion: true } }),
+                [defaultName, { ec2VolumeInUse: { checkDeletion: true } }]);
             assert.deepStrictEqual(getNameAndArgs("hi", {}), ["hi", {}]);
             assert.deepStrictEqual(getNameAndArgs("hi", { all: "advisory" }), ["hi", { all: "advisory" }]);
             assert.deepStrictEqual(
@@ -55,7 +55,7 @@ describe("#AwsGuard", () => {
         const factories: Record<string, PolicyFactory<any>> = {
             ec2InstanceDetailedMonitoringEnabled: compute.ec2InstanceDetailedMonitoringEnabled,
             ec2InstanceNoPublicIP: compute.ec2InstanceNoPublicIP,
-            ec2VolumeInUseCheck: compute.ec2VolumeInUseCheck,
+            ec2VolumeInUse: compute.ec2VolumeInUse,
             elbAccessLoggingEnabled: compute.elbAccessLoggingEnabled,
             encryptedVolumes: compute.encryptedVolumes,
         };
@@ -63,7 +63,7 @@ describe("#AwsGuard", () => {
         const createExpected = (enforcementLevel: EnforcementLevel) => [
             { name: "ec2-instance-detailed-monitoring-enabled", enforcementLevel },
             { name: "ec2-instance-no-public-ip", enforcementLevel },
-            { name: "ec2-volume-inuse-check", enforcementLevel },
+            { name: "ec2-volume-inuse", enforcementLevel },
             { name: "elb-logging-enabled", enforcementLevel },
             { name: "encrypted-volumes", enforcementLevel },
         ];
@@ -95,7 +95,7 @@ describe("#AwsGuard", () => {
             ];
             const actual = getPolicies(factories, {
                 ec2InstanceNoPublicIP: "disabled",
-                ec2VolumeInUseCheck: "disabled",
+                ec2VolumeInUse: "disabled",
             });
             assertPoliciesEqual(actual, expected);
         });
@@ -107,7 +107,7 @@ describe("#AwsGuard", () => {
                 { name: "elb-logging-enabled", enforcementLevel: defaultEnforcementLevel },
             ];
             const actual = getPolicies(factories, {
-                ec2VolumeInUseCheck: { enforcementLevel: "disabled" },
+                ec2VolumeInUse: { enforcementLevel: "disabled" },
                 encryptedVolumes: { enforcementLevel: "disabled" },
             });
             assertPoliciesEqual(actual, expected);
@@ -130,7 +130,7 @@ describe("#AwsGuard", () => {
             const expected: Expected[] = [
                 { name: "ec2-instance-detailed-monitoring-enabled", enforcementLevel: "advisory" },
                 { name: "ec2-instance-no-public-ip", enforcementLevel: "advisory" },
-                { name: "ec2-volume-inuse-check", enforcementLevel: "advisory" },
+                { name: "ec2-volume-inuse", enforcementLevel: "advisory" },
                 { name: "elb-logging-enabled", enforcementLevel: "mandatory" },
                 { name: "encrypted-volumes", enforcementLevel: "advisory" },
             ];
@@ -145,33 +145,33 @@ describe("#AwsGuard", () => {
             const expected: Expected[] = [
                 { name: "ec2-instance-detailed-monitoring-enabled", enforcementLevel: "advisory" },
                 { name: "ec2-instance-no-public-ip", enforcementLevel: "advisory" },
-                { name: "ec2-volume-inuse-check", enforcementLevel: "mandatory" },
+                { name: "ec2-volume-inuse", enforcementLevel: "mandatory" },
                 { name: "elb-logging-enabled", enforcementLevel: "advisory" },
                 { name: "encrypted-volumes", enforcementLevel: "advisory" },
             ];
             assertPoliciesEqual(getPolicies(factories, {
                 all: "advisory",
-                ec2VolumeInUseCheck: { enforcementLevel: "mandatory" },
+                ec2VolumeInUse: { enforcementLevel: "mandatory" },
             }), expected);
             assertPoliciesEqual(getPolicies(factories, {
                 all: "advisory",
-                ec2VolumeInUseCheck: { enforcementLevel: "mandatory", checkDeletion: true },
+                ec2VolumeInUse: { enforcementLevel: "mandatory", checkDeletion: true },
             }), expected);
         });
 
         it("returns policies that are explicitly enabled through args", () => {
             const expected: Expected[] = [
-                { name: "ec2-volume-inuse-check", enforcementLevel: "advisory" },
+                { name: "ec2-volume-inuse", enforcementLevel: "advisory" },
                 { name: "encrypted-volumes", enforcementLevel: "mandatory" },
             ];
             assertPoliciesEqual(getPolicies(factories, {
                 all: "disabled",
-                ec2VolumeInUseCheck: { enforcementLevel: "advisory" },
+                ec2VolumeInUse: { enforcementLevel: "advisory" },
                 encryptedVolumes: { enforcementLevel: "mandatory" },
             }), expected);
             assertPoliciesEqual(getPolicies(factories, {
                 all: "disabled",
-                ec2VolumeInUseCheck: { enforcementLevel: "advisory", checkDeletion: true },
+                ec2VolumeInUse: { enforcementLevel: "advisory", checkDeletion: true },
                 encryptedVolumes: { enforcementLevel: "mandatory", kmsId: "id" },
             }), expected);
         });

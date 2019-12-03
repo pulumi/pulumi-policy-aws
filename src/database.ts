@@ -24,26 +24,26 @@ import { getValueOrDefault } from "./util";
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
-        redshiftClusterConfigurationCheck?: EnforcementLevel | RedshiftClusterConfigurationCheckArgs;
-        redshiftClusterMaintenanceSettingsCheck?: EnforcementLevel | RedshiftClusterMaintenanceSettingsCheckArgs;
-        redshiftClusterPublicAccessCheck?: EnforcementLevel;
+        redshiftClusterConfiguration?: EnforcementLevel | RedshiftClusterConfigurationArgs;
+        redshiftClusterMaintenanceSettings?: EnforcementLevel | RedshiftClusterMaintenanceSettingsArgs;
+        redshiftClusterPublicAccess?: EnforcementLevel;
         dynamodbTableEncryptionEnabled?: EnforcementLevel;
         rdsInstanceBackupEnabled?: EnforcementLevel | RdsInstanceBackupEnabledArgs;
-        rdsInstancePublicAccessCheck?: EnforcementLevel;
+        rdsInstancePublicAccess?: EnforcementLevel;
         rdsStorageEncrypted?: EnforcementLevel | RdsStorageEncryptedArgs;
     }
 }
 
 // Register policy factories.
-registerPolicy("redshiftClusterConfigurationCheck", redshiftClusterConfigurationCheck);
-registerPolicy("redshiftClusterMaintenanceSettingsCheck", redshiftClusterMaintenanceSettingsCheck);
-registerPolicy("redshiftClusterPublicAccessCheck", redshiftClusterPublicAccessCheck);
+registerPolicy("redshiftClusterConfiguration", redshiftClusterConfiguration);
+registerPolicy("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
+registerPolicy("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
 registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
 registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
-registerPolicy("rdsInstancePublicAccessCheck", rdsInstancePublicAccessCheck);
+registerPolicy("rdsInstancePublicAccess", rdsInstancePublicAccess);
 registerPolicy("rdsStorageEncrypted", rdsStorageEncrypted);
 
-export interface RedshiftClusterConfigurationCheckArgs extends PolicyArgs {
+export interface RedshiftClusterConfigurationArgs extends PolicyArgs {
     /** If true, database encryption is enabled. Defaults to true. */
     clusterDbEncrypted?: boolean;
 
@@ -55,8 +55,8 @@ export interface RedshiftClusterConfigurationCheckArgs extends PolicyArgs {
 }
 
 /** @internal */
-export function redshiftClusterConfigurationCheck(
-    args?: EnforcementLevel | RedshiftClusterConfigurationCheckArgs): ResourceValidationPolicy {
+export function redshiftClusterConfiguration(
+    args?: EnforcementLevel | RedshiftClusterConfigurationArgs): ResourceValidationPolicy {
 
     const { enforcementLevel, clusterDbEncrypted, loggingEnabled, nodeTypes } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
@@ -65,7 +65,7 @@ export function redshiftClusterConfigurationCheck(
     });
 
     return {
-        name: "redshift-cluster-configuration-check",
+        name: "redshift-cluster-configuration",
         description: "Checks whether Amazon Redshift clusters have the specified settings.",
         enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
@@ -92,7 +92,7 @@ export function redshiftClusterConfigurationCheck(
     };
 }
 
-export interface RedshiftClusterMaintenanceSettingsCheckArgs extends PolicyArgs {
+export interface RedshiftClusterMaintenanceSettingsArgs extends PolicyArgs {
     /** Allow version upgrade is enabled. Defaults to true. */
     allowVersionUpgrade?: boolean;
 
@@ -104,8 +104,8 @@ export interface RedshiftClusterMaintenanceSettingsCheckArgs extends PolicyArgs 
 }
 
 /** @internal */
-export function redshiftClusterMaintenanceSettingsCheck(
-    args?: EnforcementLevel | RedshiftClusterMaintenanceSettingsCheckArgs): ResourceValidationPolicy {
+export function redshiftClusterMaintenanceSettings(
+    args?: EnforcementLevel | RedshiftClusterMaintenanceSettingsArgs): ResourceValidationPolicy {
 
     const { enforcementLevel, allowVersionUpgrade, preferredMaintenanceWindow, automatedSnapshotRetentionPeriod } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
@@ -113,7 +113,7 @@ export function redshiftClusterMaintenanceSettingsCheck(
     });
 
     return {
-        name: "redshift-cluster-maintenance-settings-check",
+        name: "redshift-cluster-maintenance-settings",
         description: "Checks whether Amazon Redshift clusters have the specified maintenance settings.",
         enforcementLevel: enforcementLevel,
         validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
@@ -142,9 +142,9 @@ export function redshiftClusterMaintenanceSettingsCheck(
 }
 
 /** @internal */
-export function redshiftClusterPublicAccessCheck(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+export function redshiftClusterPublicAccess(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
-        name: "redshift-cluster-public-access-check",
+        name: "redshift-cluster-public-access",
         description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
@@ -223,9 +223,9 @@ export function rdsInstanceBackupEnabled(
 }
 
 /** @internal */
-export function rdsInstancePublicAccessCheck(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+export function rdsInstancePublicAccess(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
-        name: "rds-instance-public-access-check",
+        name: "rds-instance-public-access",
         description: "Check whether the Amazon Relational Database Service instances are not publicly accessible.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {

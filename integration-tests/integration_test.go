@@ -222,7 +222,7 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+					"  mandatory: [ec2-volume-inuse] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
 					"  EC2 instance must have an EBS volume attached",
 				},
 			},
@@ -231,7 +231,7 @@ func TestComputeEC2(t *testing.T) {
 			{
 				WantErrors: []string{
 					"aws:ec2:Instance (test-ec2-instance):",
-					"  mandatory: [ec2-volume-inuse-check] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
+					"  mandatory: [ec2-volume-inuse] Checks whether EBS volumes are attached to EC2 instances. Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
 					"  ECS instance's EBS volume ", "must be marked for termination on delete.",
 					"  mandatory: [encrypted-volumes] Checks whether the EBS volumes that are in an attached state are encrypted. If you specify the ID of a KMS key for encryption using the kmsId parameter, the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
 					"  EBS volume ", "must be encrypted.",
