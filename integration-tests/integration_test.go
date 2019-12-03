@@ -42,13 +42,10 @@ type policyTestScenario struct {
 // a sequence of test scenarios where a configuration value is set and then
 // the stack is updated or previewed, confirming the expected result.
 func runPolicyPackIntegrationTest(
-	t *testing.T, pulumiProgramDir, policyPackDir string,
+	t *testing.T, pulumiProgramDir string,
+	awsGuardSettings awsGuardSettings,
 	initialConfig map[string]string, scenarios []policyTestScenario) {
 	t.Logf("Running Policy Pack Integration Test from directory %q", pulumiProgramDir)
-
-	// HACK: There is no package.json which Pulumi's analyzer bootstrapper looks for. So we
-	// need to actually redirect to the src directory.
-	policyPackDir = path.Join(policyPackDir, "src")
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -61,6 +58,12 @@ func runPolicyPackIntegrationTest(
 	// Copy the Pulumi program to /tmp and run various operations within that directory.
 	e := ptesting.NewEnvironment(t)
 	e.ImportDirectory(testProgramDir)
+
+	// Create policy pack specific for the test.
+	policyPackDir, err := awsGuardSettings.CreatePolicyPack(e)
+	if err != nil || t.Failed() {
+		t.Fatalf("Error creating customized AWS Guard module: %v", err)
+	}
 
 	// Create the stack
 	e.RunCommand("pulumi", "login", "--local")
@@ -96,8 +99,6 @@ func runPolicyPackIntegrationTest(
 
 			e.RunCommand("pulumi", "config", "set", "scenario", fmt.Sprintf("%d", idx+1))
 
-			os.Setenv("PULUMI_AWSGUARD_TESTING", "true")
-
 			if len(scenario.WantErrors) == 0 {
 				t.Log("No errors are expected.")
 				e.RunCommand("pulumi", "preview", "--policy-pack", policyPackDir)
@@ -127,15 +128,9 @@ func runPolicyPackIntegrationTest(
 
 // Tests related to the Elasticsearch policies.
 func TestElasticSearch(t *testing.T) {
-	// Get the directory for the policy pack to run. (The parent of this /integration-tests directory.)
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Error getting working directory")
-	}
-	policyPackDir := path.Join(cwd, "..")
-
 	runPolicyPackIntegrationTest(
-		t, "elasticsearch", policyPackDir,
+		t, "elasticsearch",
+		awsGuardSettings{},
 		map[string]string{
 			"aws:region": "us-west-2",
 		},
@@ -180,15 +175,9 @@ func TestElasticSearch(t *testing.T) {
 }
 
 func TestComputeEC2(t *testing.T) {
-	// Get the directory for the policy pack to run. (The parent of this /integration-tests directory.)
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Error getting working directory")
-	}
-	policyPackDir := path.Join(cwd, "..")
-
 	runPolicyPackIntegrationTest(
-		t, "compute", policyPackDir,
+		t, "compute",
+		awsGuardSettings{},
 		map[string]string{
 			"aws:region": "us-west-2",
 		},
