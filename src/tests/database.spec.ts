@@ -20,7 +20,10 @@ import * as aws from "@pulumi/aws";
 import { ResourceValidationArgs, StackValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
-import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs, createStackValidationArgs, assertHasStackViolation, assertNoStackViolations } from './util';
+import {
+    assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs,
+    createStackValidationArgs, assertHasStackViolation, assertNoStackViolations
+} from "./util";
 
 describe("#redshiftClusterConfiguration", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {

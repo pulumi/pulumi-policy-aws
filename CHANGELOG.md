@@ -3,6 +3,7 @@
 ### Improvements
 
 - Use consistent naming of policies.
+- Add rdsInstanceMultiAZEnabled and basic dynamodbTableAutoscalingEnabled policies.
 
 ## 0.1.0 (2019-11-26)
 
