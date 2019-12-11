@@ -34,7 +34,7 @@ declare module "./awsGuard" {
         redshiftClusterConfiguration?: EnforcementLevel | RedshiftClusterConfigurationArgs;
         redshiftClusterMaintenanceSettings?: EnforcementLevel | RedshiftClusterMaintenanceSettingsArgs;
         redshiftClusterPublicAccess?: EnforcementLevel;
-        dynamodbTableAutoscalingEnabled?: EnforcementLevel | DynamodbTableAutoscalingEnabledArgs;
+        dynamodbTableAutoscalingEnabled?: EnforcementLevel;
         dynamodbTableEncryptionEnabled?: EnforcementLevel;
         rdsInstanceBackupEnabled?: EnforcementLevel | RdsInstanceBackupEnabledArgs;
         rdsInstanceMultiAZEnabled?: EnforcementLevel;
@@ -166,40 +166,17 @@ export function redshiftClusterPublicAccess(enforcementLevel?: EnforcementLevel)
     };
 }
 
-export interface DynamodbTableAutoscalingEnabledArgs extends PolicyArgs {
-    /** Minimum number of units that should be provisioned with read capacity in the Auto Scaling group. If not set, no minimum is required. */
-    minProvisionedReadCapacity?: number;
-
-    /** Minimum number of units that should be provisioned with write capacity in the Auto Scaling group. If not set, no minimum is required. */
-    minProvisionedWriteCapacity?: number;
-
-    /** Maximum number of units that should be provisioned with read capacity in the Auto Scaling group. If not set, no maximum is enforced. */
-    maxProvisionedReadCapacity?: number;
-
-    /** Maximum number of units that should be provisioned with write capacity in the Auto Scaling group. If not set, no maximum is enforced. */
-    maxProvisionedWriteCapacity?: number;
-
-    /** The target utilization percentage for read capacity. Target utilization is expressed in terms of the ratio of consumed capacity to provisioned capacity. */
-    targetReadUtilization?: number;
-
-    /** The target utilization percentage for write capacity. Target utilization is expressed in terms of the ratio of consumed capacity to provisioned capacity. */
-    targetWriteUtilization?: number;
-}
-
 /** @internal */
-export function dynamodbTableAutoscalingEnabled(
-    args?: EnforcementLevel | DynamodbTableAutoscalingEnabledArgs): StackValidationPolicy {
-
-    const { enforcementLevel } = getValueOrDefault(args, {
-        enforcementLevel: defaultEnforcementLevel,
-    });
-
+export function dynamodbTableAutoscalingEnabled(enforcementLevel?: EnforcementLevel): StackValidationPolicy {
     return {
-        name: "dynamodb-autoscaling-enabled",
-        description: "Checks whether Auto Scaling or On-Demand is enabled on your DynamoDB tables " +
-            "and/or global secondary indexes.",
-        enforcementLevel: enforcementLevel,
+        name: "dynamodb-table-autoscaling-enabled",
+        description: "Checks whether Auto Scaling is enabled on your DynamoDB tables.",
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateStack: (args: StackValidationArgs, reportViolation: ReportViolation) => {
+
+            // There is a lot more configuration we could be checking here such as the minProvisionedReadCapacity
+            // or targetReadUtilization. We cannot perform these checks until we have resolved the following:
+            // https://github.com/pulumi/pulumi-policy/issues/153
 
             // Get resolved DynamoDB tables and App Scaling policies.
             const dynamodbTables = getResolvedResources(aws.dynamodb.Table.isInstance, args);
@@ -215,7 +192,6 @@ export function dynamodbTableAutoscalingEnabled(
                 if (policyResourceIDMap[table.id] === undefined) {
                     reportViolation(`DynamoDB table ${table.id} missing appscaling policy.`);
                 }
-
             }
         },
     };
