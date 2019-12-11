@@ -78,10 +78,11 @@ switch (testScenario) {
         rdsInstanceArgs = {
             instanceClass: "db.m5.large",
             storageEncrypted: true,
+            multiAz: true,
         };
         break;
     case 6:
-        // RDS Instance - no backup.
+        // RDS Instance - no backup & no multiAz.
         rdsInstanceArgs = {
             instanceClass: "db.m5.large",
             backupRetentionPeriod: 0,
