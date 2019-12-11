@@ -20,6 +20,7 @@ const testScenario = config.getNumber("scenario");
 
 let redshiftClusterArgs: aws.redshift.ClusterArgs | undefined;
 let dynamodbArgs: aws.dynamodb.TableArgs | undefined;
+let appScalingPolicyArgs: aws.appautoscaling.PolicyArgs | undefined;
 let rdsInstanceArgs: aws.rds.InstanceArgs | undefined;
 
 console.log(`Running test scenario #${testScenario}`);
@@ -55,6 +56,11 @@ switch (testScenario) {
             serverSideEncryption: {
                 enabled: true,
             },
+        };
+        appScalingPolicyArgs = {
+            resourceId: "test",
+            scalableDimension: "test",
+            serviceNamespace: "test",
         };
         break;
     case 4:

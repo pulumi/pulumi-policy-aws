@@ -17,10 +17,10 @@ import * as assert from "assert";
 import "mocha";
 
 import * as aws from "@pulumi/aws";
-import { ResourceValidationArgs } from "@pulumi/policy";
+import { ResourceValidationArgs, StackValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
-import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
+import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs, createStackValidationArgs, assertHasStackViolation, assertNoStackViolations } from './util';
 
 describe("#redshiftClusterConfiguration", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
@@ -255,6 +255,49 @@ describe("#redshiftClusterPublicAccess", () => {
     });
 });
 
+describe("#dynamodbTableAutoscalingEnabled", () => {
+    const policy = database.dynamodbTableAutoscalingEnabled("mandatory");
+    function getStackArgsForTable(): StackValidationArgs {
+        return createStackValidationArgs(aws.dynamodb.Table, {
+            hashKey: "test",
+            attributes: [],
+            id: "test-table",
+        });
+    }
+
+    it("Should pass if table has an appscaling policy", async () => {
+        const args = getStackArgsForTable();
+        const appScalingPolicy = createResourceValidationArgs(aws.appautoscaling.Policy, {
+            resourceId: "test-table",
+            scalableDimension: "test",
+            serviceNamespace: "test",
+        })
+        args.resources.push(appScalingPolicy);
+
+        await assertNoStackViolations(policy, args);
+    });
+
+    it("Should fail if appscaling policy is not present", async () => {
+        const args = getStackArgsForTable();
+
+        const msg = "DynamoDB table test-table missing appscaling policy.";
+        await assertHasStackViolation(policy, args, { message: msg });
+    });
+
+    it("Should fail if appscaling policy is not for the table", async () => {
+        const args = getStackArgsForTable();
+        const appScalingPolicy = createResourceValidationArgs(aws.appautoscaling.Policy, {
+            resourceId: "another-table",
+            scalableDimension: "test",
+            serviceNamespace: "test",
+        })
+        args.resources.push(appScalingPolicy);
+
+        const msg = "DynamoDB table test-table missing appscaling policy.";
+        await assertHasStackViolation(policy, args, { message: msg });
+    });
+});
+
 describe("#dynamodbTableEncryptionEnabled", () => {
     const policy = database.dynamodbTableEncryptionEnabled("mandatory");
     function getHappyPathArgs(): ResourceValidationArgs {
@@ -401,6 +444,36 @@ describe("#rdsInstanceBackupEnabled", () => {
                 () => { database.rdsInstanceBackupEnabled({ backupRetentionPeriod: 0 }); },
                 "Specified retention period must be greater than 0");
         });
+    });
+});
+
+describe("#rdsInstanceMultiAZEnabled", () => {
+    const policy = database.rdsInstanceMultiAZEnabled("mandatory");
+    function getHappyPathArgs(): ResourceValidationArgs {
+        return createResourceValidationArgs(aws.rds.Instance, {
+            instanceClass: "db.m5.large",
+            multiAz: true,
+        });
+    }
+
+    it("Should pass if instance is not publicly accessible", async () => {
+        const args = getHappyPathArgs();
+        await assertNoResourceViolations(policy, args);
+    });
+
+    it("Should fail if multiAz is not specified", async () => {
+        const args = getHappyPathArgs();
+        args.props.multiAz = undefined;
+
+        const msg = "RDS Instances must be configured with multiple AZs for highly available.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
+
+    it("Should fail if instance's multiAz is set to false", async () => {
+        const args = getHappyPathArgs();
+        args.props.multiAz = false;
+        const msg = "RDS Instances must be configured with multiple AZs for highly available.";
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 });
 

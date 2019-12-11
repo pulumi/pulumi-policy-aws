@@ -14,12 +14,19 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import {
+    EnforcementLevel, ResourceValidationPolicy, ReportViolation,
+    StackValidationArgs, StackValidationPolicy,
+    validateTypedResource
+} from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
+
+import { Resource } from "@pulumi/pulumi";
+import * as q from "@pulumi/pulumi/queryable";
 
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
@@ -27,8 +34,10 @@ declare module "./awsGuard" {
         redshiftClusterConfiguration?: EnforcementLevel | RedshiftClusterConfigurationArgs;
         redshiftClusterMaintenanceSettings?: EnforcementLevel | RedshiftClusterMaintenanceSettingsArgs;
         redshiftClusterPublicAccess?: EnforcementLevel;
+        dynamodbTableAutoscalingEnabled?: EnforcementLevel | DynamodbTableAutoscalingEnabledArgs;
         dynamodbTableEncryptionEnabled?: EnforcementLevel;
         rdsInstanceBackupEnabled?: EnforcementLevel | RdsInstanceBackupEnabledArgs;
+        rdsInstanceMultiAZEnabled?: EnforcementLevel;
         rdsInstancePublicAccess?: EnforcementLevel;
         rdsStorageEncrypted?: EnforcementLevel | RdsStorageEncryptedArgs;
     }
@@ -38,8 +47,10 @@ declare module "./awsGuard" {
 registerPolicy("redshiftClusterConfiguration", redshiftClusterConfiguration);
 registerPolicy("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
 registerPolicy("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
+registerPolicy("dynamodbTableAutoscalingEnabled", dynamodbTableAutoscalingEnabled);
 registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
 registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
+registerPolicy("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
 registerPolicy("rdsInstancePublicAccess", rdsInstancePublicAccess);
 registerPolicy("rdsStorageEncrypted", rdsStorageEncrypted);
 
@@ -155,6 +166,72 @@ export function redshiftClusterPublicAccess(enforcementLevel?: EnforcementLevel)
     };
 }
 
+export interface DynamodbTableAutoscalingEnabledArgs extends PolicyArgs {
+    /** Minimum number of units that should be provisioned with read capacity in the Auto Scaling group. If not set, no minimum is required. */
+    minProvisionedReadCapacity?: number;
+
+    /** Minimum number of units that should be provisioned with write capacity in the Auto Scaling group. If not set, no minimum is required. */
+    minProvisionedWriteCapacity?: number;
+
+    /** Maximum number of units that should be provisioned with read capacity in the Auto Scaling group. If not set, no maximum is enforced. */
+    maxProvisionedReadCapacity?: number;
+
+    /** Maximum number of units that should be provisioned with write capacity in the Auto Scaling group. If not set, no maximum is enforced. */
+    maxProvisionedWriteCapacity?: number;
+
+    /** The target utilization percentage for read capacity. Target utilization is expressed in terms of the ratio of consumed capacity to provisioned capacity. */
+    targetReadUtilization?: number;
+
+    /** The target utilization percentage for write capacity. Target utilization is expressed in terms of the ratio of consumed capacity to provisioned capacity. */
+    targetWriteUtilization?: number;
+}
+
+/** @internal */
+export function dynamodbTableAutoscalingEnabled(
+    args?: EnforcementLevel | DynamodbTableAutoscalingEnabledArgs): StackValidationPolicy {
+
+    const { enforcementLevel } = getValueOrDefault(args, {
+        enforcementLevel: defaultEnforcementLevel,
+    });
+
+    return {
+        name: "dynamodb-autoscaling-enabled",
+        description: "Checks whether Auto Scaling or On-Demand is enabled on your DynamoDB tables " +
+            "and/or global secondary indexes.",
+        enforcementLevel: enforcementLevel,
+        validateStack: (args: StackValidationArgs, reportViolation: ReportViolation) => {
+
+            // Get resolved DynamoDB tables and App Scaling policies.
+            const dynamodbTables = getResolvedResources(aws.dynamodb.Table.isInstance, args);
+            const appScalingPolicies = getResolvedResources(aws.appautoscaling.Policy.isInstance, args);
+
+            // Create map of resource id's to each policy.
+            const policyResourceIDMap: Record<string, q.ResolvedResource<aws.appautoscaling.Policy>> = {};
+            for (const policy of appScalingPolicies) {
+                policyResourceIDMap[policy.resourceId] = policy;
+            }
+
+            for (const table of dynamodbTables) {
+                if (policyResourceIDMap[table.id] === undefined) {
+                    reportViolation(`DynamoDB table ${table.id} missing appscaling policy.`);
+                }
+
+            }
+        },
+    };
+}
+
+// Utility method for defining returning all resources matching the provided type.
+function getResolvedResources<TResource extends Resource>(
+    typeFilter: (o: any) => o is TResource,
+    args: StackValidationArgs,
+): q.ResolvedResource<TResource>[] {
+    return args.resources
+        .map(r => (<unknown>{ ...r.props, __pulumiType: r.type } as q.ResolvedResource<TResource>))
+        .filter(typeFilter);
+}
+
+
 /** @internal */
 export function dynamodbTableEncryptionEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
@@ -217,6 +294,20 @@ export function rdsInstanceBackupEnabled(
                         reportViolation(`RDS Instances must have a backup preferred back up window of: ${preferredBackupWindow}.`);
                     }
                 }
+            }
+        }),
+    };
+}
+
+/** @internal */
+export function rdsInstanceMultiAZEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+    return {
+        name: "rds-instance-multi-az-enabled",
+        description: "Check whether high availability is enabled for Amazon Relational Database Service instances.",
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
+            if (instance.multiAz === undefined || instance.multiAz === false) {
+                reportViolation("RDS Instances must be configured with multiple AZs for highly available.");
             }
         }),
     };
