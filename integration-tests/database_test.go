@@ -56,6 +56,7 @@ func TestDatabase(t *testing.T) {
 					"RDS Instances must have backups enabled.",
 					"RDS Instance must not be publicly accessible.",
 					"RDS Instance must have storage encryption enabled.",
+					"RDS Instances must be configured with multiple AZs for highly available.",
 				},
 			},
 		})

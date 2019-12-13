@@ -14,12 +14,18 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import {
+    EnforcementLevel, ReportViolation, ResourceValidationPolicy,
+    StackValidationArgs, StackValidationPolicy, validateTypedResource,
+} from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
+
+import { Resource } from "@pulumi/pulumi";
+import * as q from "@pulumi/pulumi/queryable";
 
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
@@ -29,6 +35,7 @@ declare module "./awsGuard" {
         redshiftClusterPublicAccess?: EnforcementLevel;
         dynamodbTableEncryptionEnabled?: EnforcementLevel;
         rdsInstanceBackupEnabled?: EnforcementLevel | RdsInstanceBackupEnabledArgs;
+        rdsInstanceMultiAZEnabled?: EnforcementLevel;
         rdsInstancePublicAccess?: EnforcementLevel;
         rdsStorageEncrypted?: EnforcementLevel | RdsStorageEncryptedArgs;
     }
@@ -40,6 +47,7 @@ registerPolicy("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceS
 registerPolicy("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
 registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
 registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
+registerPolicy("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
 registerPolicy("rdsInstancePublicAccess", rdsInstancePublicAccess);
 registerPolicy("rdsStorageEncrypted", rdsStorageEncrypted);
 
@@ -155,6 +163,7 @@ export function redshiftClusterPublicAccess(enforcementLevel?: EnforcementLevel)
     };
 }
 
+
 /** @internal */
 export function dynamodbTableEncryptionEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
     return {
@@ -217,6 +226,20 @@ export function rdsInstanceBackupEnabled(
                         reportViolation(`RDS Instances must have a backup preferred back up window of: ${preferredBackupWindow}.`);
                     }
                 }
+            }
+        }),
+    };
+}
+
+/** @internal */
+export function rdsInstanceMultiAZEnabled(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+    return {
+        name: "rds-instance-multi-az-enabled",
+        description: "Check whether high availability is enabled for Amazon Relational Database Service instances.",
+        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
+        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
+            if (instance.multiAz === undefined || instance.multiAz === false) {
+                reportViolation("RDS Instances must be configured with multiple AZs for highly available.");
             }
         }),
     };

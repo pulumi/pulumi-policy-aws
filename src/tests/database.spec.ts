@@ -17,10 +17,14 @@ import * as assert from "assert";
 import "mocha";
 
 import * as aws from "@pulumi/aws";
-import { ResourceValidationArgs } from "@pulumi/policy";
+import { ResourceValidationArgs, StackValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
-import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
+import {
+    assertHasResourceViolation, assertHasStackViolation, assertNoResourceViolations,
+    assertNoStackViolations, createResourceValidationArgs,
+    createStackValidationArgs,
+} from "./util";
 
 describe("#redshiftClusterConfiguration", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
@@ -401,6 +405,36 @@ describe("#rdsInstanceBackupEnabled", () => {
                 () => { database.rdsInstanceBackupEnabled({ backupRetentionPeriod: 0 }); },
                 "Specified retention period must be greater than 0");
         });
+    });
+});
+
+describe("#rdsInstanceMultiAZEnabled", () => {
+    const policy = database.rdsInstanceMultiAZEnabled("mandatory");
+    function getHappyPathArgs(): ResourceValidationArgs {
+        return createResourceValidationArgs(aws.rds.Instance, {
+            instanceClass: "db.m5.large",
+            multiAz: true,
+        });
+    }
+
+    it("Should pass if instance is not publicly accessible", async () => {
+        const args = getHappyPathArgs();
+        await assertNoResourceViolations(policy, args);
+    });
+
+    it("Should fail if multiAz is not specified", async () => {
+        const args = getHappyPathArgs();
+        args.props.multiAz = undefined;
+
+        const msg = "RDS Instances must be configured with multiple AZs for highly available.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
+
+    it("Should fail if instance's multiAz is set to false", async () => {
+        const args = getHappyPathArgs();
+        args.props.multiAz = false;
+        const msg = "RDS Instances must be configured with multiple AZs for highly available.";
+        await assertHasResourceViolation(policy, args, { message: msg });
     });
 });
 
