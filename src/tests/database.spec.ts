@@ -259,49 +259,6 @@ describe("#redshiftClusterPublicAccess", () => {
     });
 });
 
-describe("#dynamodbTableAutoscalingEnabled", () => {
-    const policy = database.dynamodbTableAutoscalingEnabled("mandatory");
-    function getStackArgsForTable(): StackValidationArgs {
-        return createStackValidationArgs(aws.dynamodb.Table, {
-            hashKey: "test",
-            attributes: [],
-            id: "test-table",
-        });
-    }
-
-    it("Should pass if table has an appscaling policy", async () => {
-        const args = getStackArgsForTable();
-        const appScalingPolicy = createResourceValidationArgs(aws.appautoscaling.Policy, {
-            resourceId: "test-table",
-            scalableDimension: "test",
-            serviceNamespace: "test",
-        });
-        args.resources.push(appScalingPolicy);
-
-        await assertNoStackViolations(policy, args);
-    });
-
-    it("Should fail if appscaling policy is not present", async () => {
-        const args = getStackArgsForTable();
-
-        const msg = "DynamoDB table test-table missing appscaling policy.";
-        await assertHasStackViolation(policy, args, { message: msg });
-    });
-
-    it("Should fail if appscaling policy is not for the table", async () => {
-        const args = getStackArgsForTable();
-        const appScalingPolicy = createResourceValidationArgs(aws.appautoscaling.Policy, {
-            resourceId: "another-table",
-            scalableDimension: "test",
-            serviceNamespace: "test",
-        });
-        args.resources.push(appScalingPolicy);
-
-        const msg = "DynamoDB table test-table missing appscaling policy.";
-        await assertHasStackViolation(policy, args, { message: msg });
-    });
-});
-
 describe("#dynamodbTableEncryptionEnabled", () => {
     const policy = database.dynamodbTableEncryptionEnabled("mandatory");
     function getHappyPathArgs(): ResourceValidationArgs {

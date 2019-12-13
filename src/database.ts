@@ -33,7 +33,6 @@ declare module "./awsGuard" {
         redshiftClusterConfiguration?: EnforcementLevel | RedshiftClusterConfigurationArgs;
         redshiftClusterMaintenanceSettings?: EnforcementLevel | RedshiftClusterMaintenanceSettingsArgs;
         redshiftClusterPublicAccess?: EnforcementLevel;
-        dynamodbTableAutoscalingEnabled?: EnforcementLevel;
         dynamodbTableEncryptionEnabled?: EnforcementLevel;
         rdsInstanceBackupEnabled?: EnforcementLevel | RdsInstanceBackupEnabledArgs;
         rdsInstanceMultiAZEnabled?: EnforcementLevel;
@@ -46,7 +45,6 @@ declare module "./awsGuard" {
 registerPolicy("redshiftClusterConfiguration", redshiftClusterConfiguration);
 registerPolicy("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
 registerPolicy("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
-registerPolicy("dynamodbTableAutoscalingEnabled", dynamodbTableAutoscalingEnabled);
 registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
 registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
 registerPolicy("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
@@ -163,47 +161,6 @@ export function redshiftClusterPublicAccess(enforcementLevel?: EnforcementLevel)
             }
         }),
     };
-}
-
-/** @internal */
-export function dynamodbTableAutoscalingEnabled(enforcementLevel?: EnforcementLevel): StackValidationPolicy {
-    return {
-        name: "dynamodb-table-autoscaling-enabled",
-        description: "Checks whether Auto Scaling is enabled on your DynamoDB tables.",
-        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateStack: (args: StackValidationArgs, reportViolation: ReportViolation) => {
-
-            // There is a lot more configuration we could be checking here such as the minProvisionedReadCapacity
-            // or targetReadUtilization. We cannot perform these checks until we have resolved the following:
-            // https://github.com/pulumi/pulumi-policy/issues/153
-
-            // Get resolved DynamoDB tables and App Scaling policies.
-            const dynamodbTables = getResolvedResources(aws.dynamodb.Table.isInstance, args);
-            const appScalingPolicies = getResolvedResources(aws.appautoscaling.Policy.isInstance, args);
-
-            // Create map of resource id's to each policy.
-            const policyResourceIDMap: Record<string, q.ResolvedResource<aws.appautoscaling.Policy>> = {};
-            for (const policy of appScalingPolicies) {
-                policyResourceIDMap[policy.resourceId] = policy;
-            }
-
-            for (const table of dynamodbTables) {
-                if (policyResourceIDMap[table.id] === undefined) {
-                    reportViolation(`DynamoDB table ${table.id} missing appscaling policy.`);
-                }
-            }
-        },
-    };
-}
-
-// Utility method for defining returning all resources matching the provided type.
-function getResolvedResources<TResource extends Resource>(
-    typeFilter: (o: any) => o is TResource,
-    args: StackValidationArgs,
-): q.ResolvedResource<TResource>[] {
-    return args.resources
-        .map(r => (<unknown>{ ...r.props, __pulumiType: r.type } as q.ResolvedResource<TResource>))
-        .filter(typeFilter);
 }
 
 
