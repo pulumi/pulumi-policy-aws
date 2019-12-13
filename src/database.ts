@@ -15,9 +15,8 @@
 import * as aws from "@pulumi/aws";
 
 import {
-    EnforcementLevel, ResourceValidationPolicy, ReportViolation,
-    StackValidationArgs, StackValidationPolicy,
-    validateTypedResource
+    EnforcementLevel, ReportViolation, ResourceValidationPolicy,
+    StackValidationArgs, StackValidationPolicy, validateTypedResource,
 } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";

@@ -21,8 +21,9 @@ import { ResourceValidationArgs, StackValidationArgs } from "@pulumi/policy";
 
 import * as database from "../database";
 import {
-    assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs,
-    createStackValidationArgs, assertHasStackViolation, assertNoStackViolations
+    assertHasResourceViolation, assertHasStackViolation, assertNoResourceViolations,
+    assertNoStackViolations, createResourceValidationArgs,
+    createStackValidationArgs,
 } from "./util";
 
 describe("#redshiftClusterConfiguration", () => {
@@ -274,7 +275,7 @@ describe("#dynamodbTableAutoscalingEnabled", () => {
             resourceId: "test-table",
             scalableDimension: "test",
             serviceNamespace: "test",
-        })
+        });
         args.resources.push(appScalingPolicy);
 
         await assertNoStackViolations(policy, args);
@@ -293,7 +294,7 @@ describe("#dynamodbTableAutoscalingEnabled", () => {
             resourceId: "another-table",
             scalableDimension: "test",
             serviceNamespace: "test",
-        })
+        });
         args.resources.push(appScalingPolicy);
 
         const msg = "DynamoDB table test-table missing appscaling policy.";
