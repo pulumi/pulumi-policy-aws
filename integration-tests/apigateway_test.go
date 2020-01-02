@@ -1,4 +1,4 @@
-// Copyright 2016-2019, Pulumi Corporation.
+// Copyright 2016-2020, Pulumi Corporation.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ func TestAPIGateway(t *testing.T) {
 				WantErrors: []string{
 					"aws:apigateway:Stage (stage)",
 					"mandatory: [apigateway-stage-cached] Checks that API Gateway Stages have a cache cluster enabled",
-					"API Gateway Stage 'prod' does not have a cache cluster enabled.",
+					"API Gateway Stage 'prod' must have a cache cluster enabled.",
 
 					"aws:apigateway:RestApi (restApi)",
-					"mandatory: [apigateway-endpoint-type-check] Checks API Gateway endpoint configuration is one of the allowed types.",
-					/* API Gateway 'restApi-96ff582' */ "has an unsupported endpoint type 'REGIONAL'",
+					"mandatory: [apigateway-endpoint-type] Checks API Gateway endpoint configuration is one of the allowed types. (By default, only 'EDGE' is allowed.)",
+					/* API Gateway 'restApi-96ff582' */ "must use a supported endpoint type [EDGE]. 'REGIONAL' is unsupported.",
 
 					// There are other failures, but we just confirm this one for the first scenario.
 				},
@@ -45,8 +45,8 @@ func TestAPIGateway(t *testing.T) {
 				WantErrors: []string{
 					"aws:apigateway:MethodSettings (methodSettings)",
 					"mandatory: [apigateway-method-cached-and-encrypted] Checks API Gateway Methods that responses are configured to be cached and that those cached responses are encrypted.",
-					"API Gateway Method 'r/GET' does not have caching enabled.",
-					"API Gateway Method 'r/GET' not configured to encrypt cached responses.",
+					"API Gateway Method 'r/GET' must have caching enabled.",
+					"API Gateway Method 'r/GET' must encrypt cached responses.",
 				},
 			},
 			{

@@ -1,4 +1,4 @@
-// Copyright 2016-2019, Pulumi Corporation.
+// Copyright 2016-2020, Pulumi Corporation.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ declare module "./awsGuard" {
     interface AwsGuardArgs {
         apiGatewayStageCached?: EnforcementLevel;
         apiGatewayMethodCachedAndEncrypted?: EnforcementLevel;
-        apiGatewayEndpointTypeCheck?: EnforcementLevel | ApiGatewayEndpointTypeCheckArgs;
+        apiGatewayEndpointType?: EnforcementLevel | ApiGatewayEndpointTypeArgs;
     }
 }
 
 // Register policy factories.
 registerPolicy("apiGatewayStageCached", apiGatewayStageCached);
 registerPolicy("apiGatewayMethodCachedAndEncrypted", apiGatewayMethodCachedAndEncrypted);
-registerPolicy("apiGatewayEndpointTypeCheck", apiGatewayEndpointTypeCheck);
+registerPolicy("apiGatewayEndpointType", apiGatewayEndpointType);
 
 /** @internal */
 export function apiGatewayStageCached(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
@@ -43,7 +43,7 @@ export function apiGatewayStageCached(enforcementLevel?: EnforcementLevel): Reso
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.apigateway.Stage, (stage, _, reportViolation) => {
             if (!stage.cacheClusterEnabled) {
-                reportViolation(`API Gateway Stage '${stage.stageName}' does not have a cache cluster enabled.`);
+                reportViolation(`API Gateway Stage '${stage.stageName}' must have a cache cluster enabled.`);
             }
         }),
     };
@@ -57,17 +57,20 @@ export function apiGatewayMethodCachedAndEncrypted(enforcementLevel?: Enforcemen
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.apigateway.MethodSettings, (methodSettings, _, reportViolation) => {
             if (!methodSettings.settings.cachingEnabled) {
-                reportViolation(`API Gateway Method '${methodSettings.methodPath}' does not have caching enabled.`);
+                reportViolation(`API Gateway Method '${methodSettings.methodPath}' must have caching enabled.`);
             }
             if (!methodSettings.settings.cacheDataEncrypted) {
-                reportViolation(`API Gateway Method '${methodSettings.methodPath}' not configured to encrypt cached responses.`);
+                reportViolation(`API Gateway Method '${methodSettings.methodPath}' must encrypt cached responses.`);
             }
         }),
     };
 }
 
-export interface ApiGatewayEndpointTypeCheckArgs extends PolicyArgs {
-    /** Whether or not API Endpoint type EDGE is allowed. */
+export interface ApiGatewayEndpointTypeArgs extends PolicyArgs {
+    /**
+     * Whether or not API Endpoint type EDGE is allowed. Will default to true
+     * if no other ApiGatewayEndpointTypeArgs are provided.
+     */
     allowEdge?: boolean;
     /** Whether or not API Endpoint type REGIONAL is allowed. */
     allowRegional?: boolean;
@@ -76,8 +79,8 @@ export interface ApiGatewayEndpointTypeCheckArgs extends PolicyArgs {
 }
 
 /** @internal */
-export function apiGatewayEndpointTypeCheck(
-    args?: EnforcementLevel | ApiGatewayEndpointTypeCheckArgs): ResourceValidationPolicy {
+export function apiGatewayEndpointType(
+    args?: EnforcementLevel | ApiGatewayEndpointTypeArgs): ResourceValidationPolicy {
 
     const { enforcementLevel, allowEdge, allowRegional, allowPrivate } = getValueOrDefault(args, {
         enforcementLevel: defaultEnforcementLevel,
@@ -87,8 +90,8 @@ export function apiGatewayEndpointTypeCheck(
     });
 
     return {
-        name: "apigateway-endpoint-type-check",
-        description: "Checks API Gateway endpoint configuration is one of the allowed types.",
+        name: "apigateway-endpoint-type",
+        description: "Checks API Gateway endpoint configuration is one of the allowed types. (By default, only 'EDGE' is allowed.)",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateTypedResource(aws.apigateway.RestApi, (restApi, _, reportViolation) => {
             let endpointType = "(endpointConfiguration.types unspecified)";
@@ -96,8 +99,20 @@ export function apiGatewayEndpointTypeCheck(
                 endpointType = restApi.endpointConfiguration.types;
             }
 
+            const supportedTypes: string[] = [];
+            if (allowEdge) {
+                supportedTypes.push("EDGE");
+            }
+            if (allowRegional) {
+                supportedTypes.push("REGIONAL");
+            }
+            if (allowPrivate) {
+                supportedTypes.push("PRIVATE");
+            }
+
+
             const wrappedReportViolation = () => {
-                reportViolation(`API Gateway '${restApi.name}' has an unsupported endpoint type '${endpointType}'.`);
+                reportViolation(`API Gateway '${restApi.name}' must use a supported endpoint type [${supportedTypes.join(",")}]. '${endpointType}' is unsupported.`);
             };
 
             switch (endpointType) {
