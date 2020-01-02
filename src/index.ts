@@ -15,6 +15,7 @@
 import { AwsGuard, AwsGuardArgs } from "./awsGuard";
 
 // Import each area to add AwsGuardArgs mixins and register policies.
+import "./apiGateway";
 import "./compute";
 import "./database";
 import "./elasticsearch";

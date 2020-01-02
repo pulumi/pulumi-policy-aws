@@ -1,0 +1,3 @@
+name: awsguard-test-api-gateway
+runtime: nodejs
+description: Tests for policy rules related to AWS API Gateway.
