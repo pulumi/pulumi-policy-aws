@@ -14,7 +14,7 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
@@ -46,7 +46,7 @@ export function ec2InstanceDetailedMonitoringEnabled(enforcementLevel?: Enforcem
         name: "ec2-instance-detailed-monitoring-enabled",
         description: "Checks whether detailed monitoring is enabled for EC2 instances.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (!instance.monitoring) {
                 reportViolation("EC2 instances must have detailed monitoring enabled.");
             }
@@ -61,7 +61,7 @@ export function ec2InstanceNoPublicIP(enforcementLevel?: EnforcementLevel): Reso
         description: "Checks whether Amazon EC2 instances have a public IP association. " +
             "This rule applies only to IPv4.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (instance.associatePublicIpAddress) {
                 reportViolation("EC2 instance must not have a public IP.");
             }
@@ -85,7 +85,7 @@ export function ec2VolumeInUse(args?: EnforcementLevel | Ec2VolumeInUseArgs): Re
         description: "Checks whether EBS volumes are attached to EC2 instances. " +
             "Optionally checks if EBS volumes are marked for deletion when an instance is terminated.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (!instance.ebsBlockDevices || instance.ebsBlockDevices.length === 0) {
                 reportViolation("EC2 instance must have an EBS volume attached.");
             }
@@ -108,17 +108,17 @@ export function elbAccessLoggingEnabled(enforcementLevel?: EnforcementLevel): Re
         description: "Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: [
-            validateTypedResource(aws.elasticloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            validateResourceOfType(aws.elasticloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                     reportViolation("Elastic Load Balancer must have access logs enabled.");
                 }
             }),
-            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                     reportViolation("Elastic Load Balancer must have access logs enabled.");
                 }
             }),
-            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
                 if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                     reportViolation("Application Load Balancer must have access logs enabled.");
                 }
@@ -144,7 +144,7 @@ export function encryptedVolumes(args?: EnforcementLevel | EncryptedVolumesArgs)
             "If you specify the ID of a KMS key for encryption using the kmsId parameter, " +
             "the rule checks if the EBS volumes in an attached state are encrypted with that KMS key.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.ec2.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.ec2.Instance, (instance, _, reportViolation) => {
             if (instance.ebsBlockDevices && instance.ebsBlockDevices.length > 0) {
                 for (const ebs of instance.ebsBlockDevices) {
                     if (!ebs.encrypted) {

@@ -14,18 +14,12 @@
 
 import * as aws from "@pulumi/aws";
 
-import {
-    EnforcementLevel, ReportViolation, ResourceValidationPolicy,
-    StackValidationArgs, StackValidationPolicy, validateTypedResource,
-} from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
-
-import { Resource } from "@pulumi/pulumi";
-import * as q from "@pulumi/pulumi/queryable";
 
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
@@ -76,7 +70,7 @@ export function redshiftClusterConfiguration(
         name: "redshift-cluster-configuration",
         description: "Checks whether Amazon Redshift clusters have the specified settings.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
 
             // Check the cluster's encryption configuration.
             if (clusterDbEncrypted && (cluster.encrypted === undefined || cluster.encrypted === false)) {
@@ -124,7 +118,7 @@ export function redshiftClusterMaintenanceSettings(
         name: "redshift-cluster-maintenance-settings",
         description: "Checks whether Amazon Redshift clusters have the specified maintenance settings.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
             // Check the allowVersionUpgrade is configured properly.
             if (allowVersionUpgrade && cluster.allowVersionUpgrade !== undefined && cluster.allowVersionUpgrade === false) {
                 reportViolation("Redshift cluster must allow version upgrades.");
@@ -155,7 +149,7 @@ export function redshiftClusterPublicAccess(enforcementLevel?: EnforcementLevel)
         name: "redshift-cluster-public-access",
         description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.redshift.Cluster, (cluster, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
             if (cluster.publiclyAccessible === undefined || cluster.publiclyAccessible) {
                 reportViolation("Redshift cluster must not be publicly accessible.");
             }
@@ -170,7 +164,7 @@ export function dynamodbTableEncryptionEnabled(enforcementLevel?: EnforcementLev
         name: "dynamodb-table-encryption-enabled",
         description: "Checks whether the Amazon DynamoDB tables are encrypted.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.dynamodb.Table, (table, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.dynamodb.Table, (table, _, reportViolation) => {
             if (table.serverSideEncryption && !table.serverSideEncryption.enabled) {
                 reportViolation("DynamoDB must have server side encryption enabled.");
             }
@@ -206,7 +200,7 @@ export function rdsInstanceBackupEnabled(
         description: "Checks whether RDS DB instances have backups enabled. " +
             "Optionally, the rule checks the backup retention period and the backup window.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
             // Run checks if the instance is not a read replica or if check read replicas is true.
             if (!instance.replicateSourceDb || checkReadReplicas) {
                 if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
@@ -237,7 +231,7 @@ export function rdsInstanceMultiAZEnabled(enforcementLevel?: EnforcementLevel): 
         name: "rds-instance-multi-az-enabled",
         description: "Check whether high availability is enabled for Amazon Relational Database Service instances.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
             if (instance.multiAz === undefined || instance.multiAz === false) {
                 reportViolation("RDS Instances must be configured with multiple AZs for highly available.");
             }
@@ -251,7 +245,7 @@ export function rdsInstancePublicAccess(enforcementLevel?: EnforcementLevel): Re
         name: "rds-instance-public-access",
         description: "Check whether the Amazon Relational Database Service instances are not publicly accessible.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
             if (instance.publiclyAccessible) {
                 reportViolation("RDS Instance must not be publicly accessible.");
             }
@@ -274,7 +268,7 @@ export function rdsStorageEncrypted(args?: EnforcementLevel | RdsStorageEncrypte
         name: "rds-storage-encrypted",
         description: "Checks whether storage encryption is enabled for your RDS DB instances.",
         enforcementLevel: enforcementLevel,
-        validateResource: validateTypedResource(aws.rds.Instance, (instance, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
             // Read replicas ignore this field and instead use the kmsId, so we will only check this
             // if its not a read replica.
             if (!instance.replicateSourceDb) {

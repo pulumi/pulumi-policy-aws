@@ -14,7 +14,7 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
@@ -35,7 +35,7 @@ export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): 
         name: "alb-http-to-https-redirection",
         description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
             if (listener.protocol !== "HTTP") {
                 return;
             }
