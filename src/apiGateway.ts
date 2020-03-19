@@ -17,16 +17,14 @@ import * as aws from "@pulumi/aws";
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
-import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
-import { getValueOrDefault } from "./util";
 
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
         apiGatewayStageCached?: EnforcementLevel;
         apiGatewayMethodCachedAndEncrypted?: EnforcementLevel;
-        apiGatewayEndpointType?: EnforcementLevel | ApiGatewayEndpointTypeArgs;
+        apiGatewayEndpointType?: EnforcementLevel | (ApiGatewayEndpointTypeArgs & PolicyArgs);
     }
 }
 
@@ -36,11 +34,10 @@ registerPolicy("apiGatewayMethodCachedAndEncrypted", apiGatewayMethodCachedAndEn
 registerPolicy("apiGatewayEndpointType", apiGatewayEndpointType);
 
 /** @internal */
-export function apiGatewayStageCached(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+export function apiGatewayStageCached(): ResourceValidationPolicy {
     return {
         name: "apigateway-stage-cached",
         description: "Checks that API Gateway Stages have a cache cluster enabled.",
-        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateResourceOfType(aws.apigateway.Stage, (stage, _, reportViolation) => {
             if (!stage.cacheClusterEnabled) {
                 reportViolation(`API Gateway Stage '${stage.stageName}' must have a cache cluster enabled.`);
@@ -50,11 +47,10 @@ export function apiGatewayStageCached(enforcementLevel?: EnforcementLevel): Reso
 }
 
 /** @internal */
-export function apiGatewayMethodCachedAndEncrypted(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
+export function apiGatewayMethodCachedAndEncrypted(): ResourceValidationPolicy {
     return {
         name: "apigateway-method-cached-and-encrypted",
         description: "Checks API Gateway Methods that responses are configured to be cached and that those cached responses are encrypted.",
-        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateResourceOfType(aws.apigateway.MethodSettings, (methodSettings, _, reportViolation) => {
             if (!methodSettings.settings.cachingEnabled) {
                 reportViolation(`API Gateway Method '${methodSettings.methodPath}' must have caching enabled.`);
@@ -66,7 +62,7 @@ export function apiGatewayMethodCachedAndEncrypted(enforcementLevel?: Enforcemen
     };
 }
 
-export interface ApiGatewayEndpointTypeArgs extends PolicyArgs {
+export interface ApiGatewayEndpointTypeArgs {
     /**
      * Whether or not API Endpoint type EDGE is allowed. Will default to true
      * if no other ApiGatewayEndpointTypeArgs are provided.
@@ -79,21 +75,29 @@ export interface ApiGatewayEndpointTypeArgs extends PolicyArgs {
 }
 
 /** @internal */
-export function apiGatewayEndpointType(
-    args?: EnforcementLevel | ApiGatewayEndpointTypeArgs): ResourceValidationPolicy {
-
-    const { enforcementLevel, allowEdge, allowRegional, allowPrivate } = getValueOrDefault(args, {
-        enforcementLevel: defaultEnforcementLevel,
-        allowEdge: true,
-        allowRegional: false,
-        allowPrivate: false,
-    });
-
+export function apiGatewayEndpointType(): ResourceValidationPolicy {
     return {
         name: "apigateway-endpoint-type",
         description: "Checks API Gateway endpoint configuration is one of the allowed types. (By default, only 'EDGE' is allowed.)",
-        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateResourceOfType(aws.apigateway.RestApi, (restApi, _, reportViolation) => {
+        configSchema: {
+            properties: {
+                allowEdge: {
+                    type: "boolean",
+                    default: true,
+                },
+                allowRegional: {
+                    type: "boolean",
+                    default: false,
+                },
+                allowPrivate: {
+                    type: "boolean",
+                    default: false,
+                },
+            },
+        },
+        validateResource: validateResourceOfType(aws.apigateway.RestApi, (restApi, args, reportViolation) => {
+            const { allowEdge, allowRegional, allowPrivate } = args.getConfig<Required<ApiGatewayEndpointTypeArgs>>();
+
             let endpointType = "(endpointConfiguration.types unspecified)";
             if (restApi.endpointConfiguration) {
                 endpointType = restApi.endpointConfiguration.types;
