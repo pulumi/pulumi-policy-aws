@@ -24,12 +24,7 @@ import { assertHasResourceViolation, assertNoResourceViolations, createResourceV
 
 describe("#redshiftClusterConfiguration", () => {
     describe("encryption and logging must be enabled and node types specified", async () => {
-        const policy = database.redshiftClusterConfiguration({
-            enforcementLevel: "mandatory",
-            clusterDbEncrypted: true,
-            loggingEnabled: true,
-            nodeTypes: ["dc1.large", "test"],
-        });
+        const policy = database.redshiftClusterConfiguration;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
@@ -39,6 +34,10 @@ describe("#redshiftClusterConfiguration", () => {
                     enable: true,
                 },
                 encrypted: true,
+            }, {
+                clusterDbEncrypted: true,
+                loggingEnabled: true,
+                nodeTypes: ["dc1.large", "test"],
             });
         }
 
@@ -90,11 +89,7 @@ describe("#redshiftClusterConfiguration", () => {
     });
 
     describe("encryption and logging must be disabled and no nodeTypes specified", () => {
-        const policy = database.redshiftClusterConfiguration({
-            enforcementLevel: "mandatory",
-            clusterDbEncrypted: false,
-            loggingEnabled: false,
-        });
+        const policy = database.redshiftClusterConfiguration;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
@@ -104,6 +99,10 @@ describe("#redshiftClusterConfiguration", () => {
                     enable: false,
                 },
                 encrypted: false,
+            }, {
+                clusterDbEncrypted: false,
+                loggingEnabled: false,
+                nodeTypes: false,
             });
         }
 

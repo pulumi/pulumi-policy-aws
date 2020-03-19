@@ -38,6 +38,7 @@ const empytOptions = {
 export function createResourceValidationArgs<TResource extends Resource, TArgs>(
     resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
     args: Unwrap<NonNullable<TArgs>>,
+    config?: Record<string, any>,
 ): policy.ResourceValidationArgs {
     const type = (<any>resourceClass).__pulumiType;
     if (typeof type !== "string") {
@@ -52,7 +53,7 @@ export function createResourceValidationArgs<TResource extends Resource, TArgs>(
         opts: empytOptions,
         isType: (cls) => isTypeOf(type, resourceClass),
         asType: (cls) => isTypeOf(type, cls) ? <any>args : undefined,
-        getConfig: <T>() => <T>{},
+        getConfig: <T>() => <T>(config || {}),
     };
 }
 
@@ -65,7 +66,9 @@ export interface PolicyViolation {
 // single resource with the provided type and properties.
 export function createStackValidationArgs<TResource extends Resource, TArgs>(
     resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
-    props: any): policy.StackValidationArgs {
+    props: any,
+    config?: Record<string, any>,
+): policy.StackValidationArgs {
     const type = (<any>resourceClass).__pulumiType;
     if (typeof type !== "string") {
         assert.fail("Could not determine Pulumi type from resourceClass.");
@@ -85,7 +88,7 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
 
     return {
         resources: [testResource],
-        getConfig: <T>() => <T>{},
+        getConfig: <T>() => <T>(config || {}),
     } as policy.StackValidationArgs;
 }
 
