@@ -50,10 +50,11 @@ export function createResourceValidationArgs<TResource extends Resource, TArgs>(
         urn: "unknown",
         name: "unknown",
         opts: empytOptions,
-        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => false,
+        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
         asType: <R extends Resource, A>(
             cls: { new(name: string, args: A, ...rest: any[]): R },
-        ): Unwrap<NonNullable<A>> | undefined => undefined,
+        ): Unwrap<NonNullable<A>> | undefined =>
+            isTypeOf(type, cls) ? <unknown>args as Unwrap<NonNullable<A>> : undefined,
         getConfig: <T>() => <T>{},
     };
 }
@@ -81,8 +82,9 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
         opts: empytOptions,
         dependencies: [],
         propertyDependencies: {},
-        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => false,
-        asType: <R extends Resource>(cls: { new(...rest: any[]): R }): q.ResolvedResource<R> | undefined => undefined,
+        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
+        asType: <R extends Resource>(cls: { new(...rest: any[]): R }): q.ResolvedResource<R> | undefined =>
+            isTypeOf(type, cls) ? props as q.ResolvedResource<R> : undefined,
     };
 
     return {
@@ -192,4 +194,15 @@ export async function assertHasStackViolation(
     stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs, wantViolation: PolicyViolation) {
     const allViolations = await runStackPolicy(stackPolicy, args);
     assertHasViolation(allViolations, wantViolation);
+}
+
+// Helper to check if `type` is the type of `resourceClass`.
+function isTypeOf<TResource extends Resource>(
+    type: string,
+    resourceClass: { new(...rest: any[]): TResource },
+): boolean {
+    const isInstance = (<any>resourceClass).isInstance;
+    return isInstance &&
+        typeof isInstance === "function" &&
+        isInstance({ __pulumiType: type }) === true;
 }
