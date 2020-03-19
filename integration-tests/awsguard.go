@@ -81,6 +81,12 @@ func (settings awsGuardSettings) CreatePolicyPack(e *ptesting.Environment) (stri
 		return "", errors.Wrap(err, "creating folder for customized AWS Guard module")
 	}
 
+	// PulumiPolicy.yaml, for the policy pack.
+	pulumiPolicyYamlFilePath := path.Join(moduleFolder, "PulumiPolicy.yaml")
+	if err := ioutil.WriteFile(pulumiPolicyYamlFilePath, []byte("runtime: nodejs\n"), os.ModePerm); err != nil {
+		return "", errors.Wrap(err, "writing PulumiPolicy.yaml")
+	}
+
 	// package.json, defining the module itself.
 	packageJSONFilePath := path.Join(moduleFolder, "package.json")
 	packageJSONFileContents := `{
