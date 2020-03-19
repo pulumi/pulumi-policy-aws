@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicyOld } from "./awsGuard";
+import { registerPolicy, registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
@@ -24,7 +24,7 @@ import { getValueOrDefault } from "./util";
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
-        redshiftClusterConfiguration?: EnforcementLevel | RedshiftClusterConfigurationArgs;
+        redshiftClusterConfiguration?: EnforcementLevel | (RedshiftClusterConfigurationArgs & PolicyArgs);
         redshiftClusterMaintenanceSettings?: EnforcementLevel | RedshiftClusterMaintenanceSettingsArgs;
         redshiftClusterPublicAccess?: EnforcementLevel;
         dynamodbTableEncryptionEnabled?: EnforcementLevel;
@@ -36,7 +36,6 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicyOld("redshiftClusterConfiguration", redshiftClusterConfiguration);
 registerPolicyOld("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
 registerPolicyOld("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
 registerPolicyOld("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
@@ -45,7 +44,7 @@ registerPolicyOld("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
 registerPolicyOld("rdsInstancePublicAccess", rdsInstancePublicAccess);
 registerPolicyOld("rdsStorageEncrypted", rdsStorageEncrypted);
 
-export interface RedshiftClusterConfigurationArgs extends PolicyArgs {
+export interface RedshiftClusterConfigurationArgs {
     /** If true, database encryption is enabled. Defaults to true. */
     clusterDbEncrypted?: boolean;
 
@@ -57,42 +56,51 @@ export interface RedshiftClusterConfigurationArgs extends PolicyArgs {
 }
 
 /** @internal */
-export function redshiftClusterConfiguration(
-    args?: EnforcementLevel | RedshiftClusterConfigurationArgs): ResourceValidationPolicy {
+export const redshiftClusterConfiguration: ResourceValidationPolicy = {
+    name: "redshift-cluster-configuration",
+    description: "Checks whether Amazon Redshift clusters have the specified settings.",
+    configSchema: {
+        properties: {
+            clusterDbEncrypted: {
+                type: "boolean",
+                default: true,
+            },
+            loggingEnabled: {
+                type: "boolean",
+                default: true,
+            },
+            nodeTypes: {
+                type: "array",
+                items: { type: "string" },
+                default: [],
+            },
+        },
+    },
+    validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, args, reportViolation) => {
+        const { clusterDbEncrypted, loggingEnabled, nodeTypes } =
+            args.getConfig<Required<RedshiftClusterConfigurationArgs>>();
 
-    const { enforcementLevel, clusterDbEncrypted, loggingEnabled, nodeTypes } = getValueOrDefault(args, {
-        enforcementLevel: defaultEnforcementLevel,
-        clusterDbEncrypted: true,
-        loggingEnabled: true,
-    });
+        // Check the cluster's encryption configuration.
+        if (clusterDbEncrypted && (cluster.encrypted === undefined || cluster.encrypted === false)) {
+            reportViolation("Redshift cluster must be encrypted.");
+        } else if (!clusterDbEncrypted && cluster.encrypted === true) {
+            reportViolation("Redshift cluster must not be encrypted.");
+        }
 
-    return {
-        name: "redshift-cluster-configuration",
-        description: "Checks whether Amazon Redshift clusters have the specified settings.",
-        enforcementLevel: enforcementLevel,
-        validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
+        // Check the cluster's node type.
+        if (nodeTypes.length > 0 && !nodeTypes.includes(cluster.nodeType)) {
+            reportViolation(`Redshift cluster node type must be one of the following: ${nodeTypes.toString()}`);
+        }
 
-            // Check the cluster's encryption configuration.
-            if (clusterDbEncrypted && (cluster.encrypted === undefined || cluster.encrypted === false)) {
-                reportViolation("Redshift cluster must be encrypted.");
-            } else if (!clusterDbEncrypted && cluster.encrypted === true) {
-                reportViolation("Redshift cluster must not be encrypted.");
-            }
-
-            // Check the cluster's node type.
-            if (nodeTypes && !nodeTypes.includes(cluster.nodeType)) {
-                reportViolation(`Redshift cluster node type must be one of the following: ${nodeTypes.toString()}`);
-            }
-
-            // Check the cluster's logging configuration.
-            if (loggingEnabled && (cluster.logging === undefined || cluster.logging.enable === false)) {
-                reportViolation(`Redshift cluster must have logging enabled.`);
-            } else if (!loggingEnabled && cluster.logging && cluster.logging.enable === true) {
-                reportViolation(`Redshift cluster must not have logging enabled.`);
-            }
-        }),
-    };
-}
+        // Check the cluster's logging configuration.
+        if (loggingEnabled && (cluster.logging === undefined || cluster.logging.enable === false)) {
+            reportViolation(`Redshift cluster must have logging enabled.`);
+        } else if (!loggingEnabled && cluster.logging && cluster.logging.enable === true) {
+            reportViolation(`Redshift cluster must not have logging enabled.`);
+        }
+    }),
+};
+registerPolicy("redshiftClusterConfiguration", redshiftClusterConfiguration);
 
 export interface RedshiftClusterMaintenanceSettingsArgs extends PolicyArgs {
     /** Allow version upgrade is enabled. Defaults to true. */
