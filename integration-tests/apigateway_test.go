@@ -29,24 +29,19 @@ func TestAPIGateway(t *testing.T) {
 			// Test scenario 1 - Confirm the REST API and Stage objects are not compliant.
 			{
 				WantErrors: []string{
-					"aws:apigateway:Stage (stage)",
-					"mandatory: [apigateway-stage-cached] Checks that API Gateway Stages have a cache cluster enabled",
-					"API Gateway Stage 'prod' must have a cache cluster enabled.",
-
-					"aws:apigateway:RestApi (restApi)",
-					"mandatory: [apigateway-endpoint-type] Checks API Gateway endpoint configuration is one of the allowed types. (By default, only 'EDGE' is allowed.)",
-					/* API Gateway 'restApi-96ff582' */ "must use a supported endpoint type [EDGE]. 'REGIONAL' is unsupported.",
-
-					// There are other failures, but we just confirm this one for the first scenario.
+					"mandatory",
+					"apigateway-endpoint-type",
+					"API Gateway endpoint configuration",
+					"must use a supported endpoint type [EDGE]. 'REGIONAL' is unsupported",
 				},
 			},
 			// Test scenario 2 - Confirm the MethodSettings object is not compliant.
 			{
 				WantErrors: []string{
-					"aws:apigateway:MethodSettings (methodSettings)",
-					"mandatory: [apigateway-method-cached-and-encrypted] Checks API Gateway Methods that responses are configured to be cached and that those cached responses are encrypted.",
+					"mandatory",
+					"apigateway-method-cached-and-encrypted",
 					"API Gateway Method 'r/GET' must have caching enabled.",
-					"API Gateway Method 'r/GET' must encrypt cached responses.",
+					"API Gateway Method 'r/GET' must encrypt cached responses",
 				},
 			},
 			{
