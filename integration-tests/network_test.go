@@ -29,7 +29,7 @@ func TestNetwork(t *testing.T) {
 			// Test scenario 1 - ALB Listener is using HTTP and not redirecting to HTTPS.
 			{
 				[]string{
-					"aws:elasticloadbalancingv2:Listener (httpListener):",
+					"mandatory",
 					"Default action for HTTP listener must be a redirect using HTTPS.",
 				},
 			},

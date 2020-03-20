@@ -31,7 +31,8 @@ func TestDatabase(t *testing.T) {
 			// Test scenario 2 - monitoring is undefined.
 			{
 				WantErrors: []string{
-					"aws:redshift:Cluster (test-cluster):",
+					"mandatory",
+					"redshift-cluster-configuration",
 					"Redshift cluster must be encrypted.",
 					"Redshift cluster must have logging enabled.",
 					"Redshift cluster must allow version upgrades.",
@@ -43,7 +44,8 @@ func TestDatabase(t *testing.T) {
 			// Test scenario 4 - dynamodb's server side encryption disabled.
 			{
 				WantErrors: []string{
-					"aws:dynamodb:Table (test-table):",
+					"mandatory",
+					"dynamodb-table-encryption-enabled",
 					"DynamoDB must have server side encryption enabled.",
 				},
 			},
@@ -52,7 +54,8 @@ func TestDatabase(t *testing.T) {
 			// Test scenario 6 - rds instance has no backup.
 			{
 				WantErrors: []string{
-					"aws:rds:Instance (test-rds-instance):",
+					"mandatory",
+					"rds-instance-backup-enabled",
 					"RDS Instances must have backups enabled.",
 					"RDS Instance must not be publicly accessible.",
 					"RDS Instance must have storage encryption enabled.",
