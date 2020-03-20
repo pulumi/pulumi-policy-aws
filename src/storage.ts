@@ -14,7 +14,7 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
@@ -39,7 +39,7 @@ export function efsEncrypted(enforcementLevel?: EnforcementLevel): ResourceValid
         name: "efs-encrypted",
         description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.efs.FileSystem, (fileSystem, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.efs.FileSystem, (fileSystem, _, reportViolation) => {
             if (!fileSystem.kmsKeyId) {
                 reportViolation("Amazon Elastic File System must have a KMS Key defined.");
             }
@@ -54,12 +54,12 @@ export function elbDeletionProtectionEnabled(enforcementLevel?: EnforcementLevel
         description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: [
-            validateTypedResource(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, _, reportViolation) => {
+            validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, _, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }
             }),
-            validateTypedResource(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, _, reportViolation) => {
+            validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, _, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }
@@ -74,7 +74,7 @@ export function s3BucketLoggingEnabled(enforcementLevel?: EnforcementLevel): Res
         name: "s3-bucket-logging-enabled",
         description: "Checks whether logging is enabled for your S3 buckets.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.s3.Bucket, (bucket, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.s3.Bucket, (bucket, _, reportViolation) => {
             // AWS will ensure the `targetBucket` exists and is WRITE-able.
             if (!bucket.loggings || bucket.loggings.length === 0) {
                 reportViolation("Bucket logging must be defined.");

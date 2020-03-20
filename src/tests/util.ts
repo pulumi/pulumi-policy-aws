@@ -15,8 +15,21 @@
 import * as policy from "@pulumi/policy";
 
 import { Resource, Unwrap } from "@pulumi/pulumi";
+import * as q from "@pulumi/pulumi/queryable";
 
 import * as assert from "assert";
+
+const empytOptions = {
+    protect: false,
+    ignoreChanges: [],
+    aliases: [],
+    customTimeouts: {
+        createSeconds: 0,
+        updateSeconds: 0,
+        deleteSeconds: 0,
+    },
+    additionalSecretOutputs: [],
+};
 
 // createResourceValidationArgs will create a ResourceValidationArgs using the `type` from
 // the specified `resourceClass` and `props` returned from the specified `argsFactory`.
@@ -36,6 +49,13 @@ export function createResourceValidationArgs<TResource extends Resource, TArgs>(
         props: args,
         urn: "unknown",
         name: "unknown",
+        opts: empytOptions,
+        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
+        asType: <R extends Resource, A>(
+            cls: { new(name: string, args: A, ...rest: any[]): R },
+        ): Unwrap<NonNullable<A>> | undefined =>
+            isTypeOf(type, cls) ? <unknown>args as Unwrap<NonNullable<A>> : undefined,
+        getConfig: <T>() => <T>{},
     };
 }
 
@@ -59,10 +79,17 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
         props: props,
         urn: "unknown",
         name: "unknown",
+        opts: empytOptions,
+        dependencies: [],
+        propertyDependencies: {},
+        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
+        asType: <R extends Resource>(cls: { new(...rest: any[]): R }): q.ResolvedResource<R> | undefined =>
+            isTypeOf(type, cls) ? props as q.ResolvedResource<R> : undefined,
     };
 
     return {
         resources: [testResource],
+        getConfig: <T>() => <T>{},
     } as policy.StackValidationArgs;
 }
 
@@ -167,4 +194,15 @@ export async function assertHasStackViolation(
     stackPolicy: policy.StackValidationPolicy, args: policy.StackValidationArgs, wantViolation: PolicyViolation) {
     const allViolations = await runStackPolicy(stackPolicy, args);
     assertHasViolation(allViolations, wantViolation);
+}
+
+// Helper to check if `type` is the type of `resourceClass`.
+function isTypeOf<TResource extends Resource>(
+    type: string,
+    resourceClass: { new(...rest: any[]): TResource },
+): boolean {
+    const isInstance = (<any>resourceClass).isInstance;
+    return isInstance &&
+        typeof isInstance === "function" &&
+        isInstance({ __pulumiType: type }) === true;
 }

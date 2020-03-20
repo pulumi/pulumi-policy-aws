@@ -14,7 +14,7 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
@@ -37,7 +37,7 @@ export function elasticsearchEncryptedAtRest(enforcementLevel?: EnforcementLevel
         name: "elasticsearch-encrypted-at-rest",
         description: "Checks if the Elasticsearch Service domains have encryption at rest enabled.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.elasticsearch.Domain, (domain, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.elasticsearch.Domain, (domain, _, reportViolation) => {
             if (domain.encryptAtRest === undefined || domain.encryptAtRest.enabled === false) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must be encrypted at rest.`);
             }
@@ -51,7 +51,7 @@ export function elasticsearchInVpcOnly(enforcementLevel?: EnforcementLevel): Res
         name: "elasticsearch-in-vpc-only",
         description: "Checks that the Elasticsearch domain is only available within a VPC, and not accessible via a public endpoint.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.elasticsearch.Domain, (domain, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.elasticsearch.Domain, (domain, _, reportViolation) => {
             if (domain.vpcOptions === undefined) {
                 reportViolation(`Elasticsearch domain ${domain.domainName} must run within a VPC.`);
             }

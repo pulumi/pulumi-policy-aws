@@ -14,7 +14,7 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateTypedResource } from "@pulumi/policy";
+import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
@@ -41,7 +41,7 @@ export function apiGatewayStageCached(enforcementLevel?: EnforcementLevel): Reso
         name: "apigateway-stage-cached",
         description: "Checks that API Gateway Stages have a cache cluster enabled.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.apigateway.Stage, (stage, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.apigateway.Stage, (stage, _, reportViolation) => {
             if (!stage.cacheClusterEnabled) {
                 reportViolation(`API Gateway Stage '${stage.stageName}' must have a cache cluster enabled.`);
             }
@@ -55,7 +55,7 @@ export function apiGatewayMethodCachedAndEncrypted(enforcementLevel?: Enforcemen
         name: "apigateway-method-cached-and-encrypted",
         description: "Checks API Gateway Methods that responses are configured to be cached and that those cached responses are encrypted.",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.apigateway.MethodSettings, (methodSettings, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.apigateway.MethodSettings, (methodSettings, _, reportViolation) => {
             if (!methodSettings.settings.cachingEnabled) {
                 reportViolation(`API Gateway Method '${methodSettings.methodPath}' must have caching enabled.`);
             }
@@ -93,7 +93,7 @@ export function apiGatewayEndpointType(
         name: "apigateway-endpoint-type",
         description: "Checks API Gateway endpoint configuration is one of the allowed types. (By default, only 'EDGE' is allowed.)",
         enforcementLevel: enforcementLevel || defaultEnforcementLevel,
-        validateResource: validateTypedResource(aws.apigateway.RestApi, (restApi, _, reportViolation) => {
+        validateResource: validateResourceOfType(aws.apigateway.RestApi, (restApi, _, reportViolation) => {
             let endpointType = "(endpointConfiguration.types unspecified)";
             if (restApi.endpointConfiguration) {
                 endpointType = restApi.endpointConfiguration.types;
