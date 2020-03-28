@@ -76,6 +76,12 @@ func runPolicyPackIntegrationTest(
 	e.RunCommand("yarn", "install")
 	abortIfFailed(t)
 
+	e.RunCommand("yarn", "link", "@pulumi/pulumi")
+	abortIfFailed(t)
+
+	e.RunCommand("yarn", "link", "@pulumi/policy")
+	abortIfFailed(t)
+
 	// Initial configuration.
 	for k, v := range initialConfig {
 		e.RunCommand("pulumi", "config", "set", k, v)

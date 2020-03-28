@@ -6,6 +6,8 @@ VERSION := $(shell ../scripts/get-version.sh)
 
 build::
 	yarn install
+	yarn link @pulumi/pulumi
+	yarn link @pulumi/policy
 	rm -rf bin/
 	yarn build
 	sed -e 's/\$${VERSION}/$(VERSION)/g' < package.json > bin/package.json
