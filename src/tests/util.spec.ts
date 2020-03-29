@@ -21,6 +21,8 @@ import { EnforcementLevel } from "@pulumi/policy";
 import { PolicyArgs } from "../policyArgs";
 import { getValueOrDefault, RequiredBy } from "../util";
 
+// TODO: Remove this entire file.
+
 interface FooArgs extends PolicyArgs {
     foo?: string;
 }
