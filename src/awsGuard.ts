@@ -16,16 +16,17 @@ import {
     EnforcementLevel,
     Policies,
     PolicyPack,
+    PolicyPackConfig,
     ResourceValidationPolicy,
     StackValidationPolicy,
 } from "@pulumi/policy";
 
-import { defaultEnforcementLevel, isEnforcementLevel } from "./enforcementLevel";
+import { defaultEnforcementLevel } from "./enforcementLevel";
 
 const defaultPolicyPackName = "pulumi-awsguard";
 
-// Internal map that holds all the registered policy factories.
-const factoryMap: Record<string, PolicyFactory<any>> = {};
+// Internap map of registered policies;
+const registeredPolicies: Record<string, ResourceValidationPolicy | StackValidationPolicy> = {};
 
 /**
  * A policy pack of rules to enforce AWS best practices for security, reliability, cost, and more!
@@ -92,7 +93,15 @@ export class AwsGuard extends PolicyPack {
     constructor(name: string, args?: AwsGuardArgs);
     constructor(nameOrArgs?: string | AwsGuardArgs, args?: AwsGuardArgs) {
         const [n, a] = getNameAndArgs(nameOrArgs, args);
-        super(n, { policies: getPolicies(factoryMap, a) });
+
+        const policies: Policies = [];
+        for (const key of Object.keys(registeredPolicies)) {
+            policies.push(registeredPolicies[key]);
+        }
+
+        const initialConfig = getInitialConfig(registeredPolicies, a);
+
+        super(n, { policies, enforcementLevel: defaultEnforcementLevel }, initialConfig);
     }
 }
 
@@ -105,23 +114,27 @@ export interface AwsGuardArgs {
 }
 
 /** @internal */
-export type PolicyFactory<TArgs> = (args?: TArgs) => ResourceValidationPolicy | StackValidationPolicy;
+export function registerPolicy<K extends keyof AwsGuardArgs>(
+    property: Exclude<K, "all">,
+    policy: ResourceValidationPolicy | StackValidationPolicy): void {
+
+    if (property === "all") {
+        throw new Error("'all' is reserved.");
+    }
+    if (property in registeredPolicies) {
+        throw new Error(`${property} already exists.`);
+    }
+    if (!policy) {
+        throw new Error(`policy is falsy.`);
+    }
+    registeredPolicies[property] = policy;
+}
 
 /** @internal */
 export function registerPolicyOld<K extends keyof AwsGuardArgs>(
     property: Exclude<K, "all">,
-    factory: PolicyFactory<AwsGuardArgs[K]>): void {
-
-    if (typeof factory !== "function") {
-        throw new Error("'factory' must be a function.");
-    }
-    if (property === "all") {
-        throw new Error("'all' is reserved.");
-    }
-    if (property in factoryMap) {
-        throw new Error(`${property} already exists.`);
-    }
-    factoryMap[property] = factory;
+    factory: (args?: AwsGuardArgs[K]) => ResourceValidationPolicy | StackValidationPolicy) {
+    // TODO: Delete this function.
 }
 
 /**
@@ -143,43 +156,37 @@ export function getNameAndArgs(
 }
 
 /**
- * Generates the array of policies based on the specified args.
+ * Converts args with camelCase properties, to a new object that uses the
+ * policy name as the property names rather than the camelCase names.
  * @internal
  */
-export function getPolicies(factories: Record<string, PolicyFactory<any>>, args?: AwsGuardArgs): Policies {
-    // If `args` is falsy or empty, enable all policies with the default enforcement level.
-    if (!args || Object.keys(args).length === 0) {
-        args = { all: defaultEnforcementLevel };
-    }
-    // If `all` isn't set explicitly, clone `args` and set it to the default enforcement level.
-    if (!args.all) {
-        args = Object.assign({}, args);
-        args.all = defaultEnforcementLevel;
+export function getInitialConfig(
+    policyMap: Record<string, ResourceValidationPolicy | StackValidationPolicy>,
+    args?: AwsGuardArgs,
+): PolicyPackConfig | undefined {
+    if (!args) {
+        return undefined;
     }
 
-    const policies: Policies = [];
-
-    const keys = Object.keys(factories).sort();
-    for (const key of keys) {
-        const factory = factories[key];
-
-        let factoryArgs: any = undefined;
-        if (args.hasOwnProperty(key)) {
-            factoryArgs = (<Record<string, any>>args)[key];
-        }
-        if (!factoryArgs) {
-            factoryArgs = args.all;
-        }
-
-        // If the policy is disabled, skip it.
-        if (isEnforcementLevel(factoryArgs) && factoryArgs === "disabled") {
+    const result: PolicyPackConfig = {};
+    for (const key of Object.keys(args) as Array<keyof AwsGuardArgs>) {
+        const val = args[key];
+        if (!val) {
             continue;
         }
 
-        const policy = factory(factoryArgs);
-        policies.push(policy);
-    }
+        // If "all", just add it to the resulting object.
+        if (key === "all") {
+            result["all"] = val;
+            continue;
+        }
 
-    // Filter out any disabled policies.
-    return policies.filter(p => p.enforcementLevel !== "disabled");
+        // Otherwise, lookup the actual policy name, and use that as the key in
+        // the resulting object.
+        const policy = policyMap[key];
+        if (policy) {
+            result[policy.name] = val;
+        }
+    }
+    return result;
 }
