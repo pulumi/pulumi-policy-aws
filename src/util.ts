@@ -17,6 +17,8 @@ import { EnforcementLevel } from "@pulumi/policy";
 import { isEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 
+// TODO: Remove this entire file after converting all the policies.
+
 /** @internal */
 export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
