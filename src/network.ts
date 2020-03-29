@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicy } from "./awsGuard";
+import { registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 
 // Mixin additional properties onto AwsGuardArgs.
@@ -27,7 +27,7 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("albHttpToHttpsRedirection", albHttpToHttpsRedirection);
+registerPolicyOld("albHttpToHttpsRedirection", albHttpToHttpsRedirection);
 
 /** @internal */
 export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {

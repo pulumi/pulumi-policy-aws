@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicy } from "./awsGuard";
+import { registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 
 // Mixin additional properties onto AwsGuardArgs.
@@ -29,9 +29,9 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("efsEncrypted", efsEncrypted);
-registerPolicy("elbDeletionProtectionEnabled", elbDeletionProtectionEnabled);
-registerPolicy("s3BucketLoggingEnabled", s3BucketLoggingEnabled);
+registerPolicyOld("efsEncrypted", efsEncrypted);
+registerPolicyOld("elbDeletionProtectionEnabled", elbDeletionProtectionEnabled);
+registerPolicyOld("s3BucketLoggingEnabled", s3BucketLoggingEnabled);
 
 /** @internal */
 export function efsEncrypted(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {

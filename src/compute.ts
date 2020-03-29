@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicy } from "./awsGuard";
+import { registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
@@ -33,11 +33,11 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("ec2InstanceDetailedMonitoringEnabled", ec2InstanceDetailedMonitoringEnabled);
-registerPolicy("ec2InstanceNoPublicIP", ec2InstanceNoPublicIP);
-registerPolicy("ec2VolumeInUse", ec2VolumeInUse);
-registerPolicy("elbAccessLoggingEnabled", elbAccessLoggingEnabled);
-registerPolicy("encryptedVolumes", encryptedVolumes);
+registerPolicyOld("ec2InstanceDetailedMonitoringEnabled", ec2InstanceDetailedMonitoringEnabled);
+registerPolicyOld("ec2InstanceNoPublicIP", ec2InstanceNoPublicIP);
+registerPolicyOld("ec2VolumeInUse", ec2VolumeInUse);
+registerPolicyOld("elbAccessLoggingEnabled", elbAccessLoggingEnabled);
+registerPolicyOld("encryptedVolumes", encryptedVolumes);
 
 
 /** @internal */
