@@ -50,11 +50,8 @@ export function createResourceValidationArgs<TResource extends Resource, TArgs>(
         urn: "unknown",
         name: "unknown",
         opts: empytOptions,
-        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
-        asType: <R extends Resource, A>(
-            cls: { new(name: string, args: A, ...rest: any[]): R },
-        ): Unwrap<NonNullable<A>> | undefined =>
-            isTypeOf(type, cls) ? <unknown>args as Unwrap<NonNullable<A>> : undefined,
+        isType: (cls) => isTypeOf(type, resourceClass),
+        asType: (cls) => isTypeOf(type, cls) ? <any>args : undefined,
         getConfig: <T>() => <T>{},
     };
 }
@@ -82,9 +79,8 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
         opts: empytOptions,
         dependencies: [],
         propertyDependencies: {},
-        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
-        asType: <R extends Resource>(cls: { new(...rest: any[]): R }): q.ResolvedResource<R> | undefined =>
-            isTypeOf(type, cls) ? props as q.ResolvedResource<R> : undefined,
+        isType: (cls) => isTypeOf(type, cls),
+        asType: (cls) => isTypeOf(type, cls) ? props : undefined,
     };
 
     return {
