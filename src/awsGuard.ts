@@ -108,7 +108,7 @@ export interface AwsGuardArgs {
 export type PolicyFactory<TArgs> = (args?: TArgs) => ResourceValidationPolicy | StackValidationPolicy;
 
 /** @internal */
-export function registerPolicy<K extends keyof AwsGuardArgs>(
+export function registerPolicyOld<K extends keyof AwsGuardArgs>(
     property: Exclude<K, "all">,
     factory: PolicyFactory<AwsGuardArgs[K]>): void {
 

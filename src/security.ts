@@ -24,7 +24,7 @@ import {
     validateStackResourcesOfType,
 } from "@pulumi/policy";
 
-import { registerPolicy } from "./awsGuard";
+import { registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
@@ -40,10 +40,10 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("acmCertificateExpiration", acmCertificateExpiration);
-registerPolicy("cmkBackingKeyRotationEnabled", cmkBackingKeyRotationEnabled);
-registerPolicy("iamAccessKeysRotated", iamAccessKeysRotated);
-registerPolicy("iamMfaEnabledForConsoleAccess", iamMfaEnabledForConsoleAccess);
+registerPolicyOld("acmCertificateExpiration", acmCertificateExpiration);
+registerPolicyOld("cmkBackingKeyRotationEnabled", cmkBackingKeyRotationEnabled);
+registerPolicyOld("iamAccessKeysRotated", iamAccessKeysRotated);
+registerPolicyOld("iamMfaEnabledForConsoleAccess", iamMfaEnabledForConsoleAccess);
 
 // Milliseconds in a day.
 const msInDay = 24 * 60 * 60 * 1000;

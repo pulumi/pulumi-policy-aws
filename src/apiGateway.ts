@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicy } from "./awsGuard";
+import { registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
@@ -31,9 +31,9 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("apiGatewayStageCached", apiGatewayStageCached);
-registerPolicy("apiGatewayMethodCachedAndEncrypted", apiGatewayMethodCachedAndEncrypted);
-registerPolicy("apiGatewayEndpointType", apiGatewayEndpointType);
+registerPolicyOld("apiGatewayStageCached", apiGatewayStageCached);
+registerPolicyOld("apiGatewayMethodCachedAndEncrypted", apiGatewayMethodCachedAndEncrypted);
+registerPolicyOld("apiGatewayEndpointType", apiGatewayEndpointType);
 
 /** @internal */
 export function apiGatewayStageCached(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {

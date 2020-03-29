@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicy } from "./awsGuard";
+import { registerPolicyOld } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 import { getValueOrDefault } from "./util";
@@ -36,14 +36,14 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicy("redshiftClusterConfiguration", redshiftClusterConfiguration);
-registerPolicy("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
-registerPolicy("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
-registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
-registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
-registerPolicy("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
-registerPolicy("rdsInstancePublicAccess", rdsInstancePublicAccess);
-registerPolicy("rdsStorageEncrypted", rdsStorageEncrypted);
+registerPolicyOld("redshiftClusterConfiguration", redshiftClusterConfiguration);
+registerPolicyOld("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
+registerPolicyOld("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
+registerPolicyOld("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
+registerPolicyOld("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
+registerPolicyOld("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
+registerPolicyOld("rdsInstancePublicAccess", rdsInstancePublicAccess);
+registerPolicyOld("rdsStorageEncrypted", rdsStorageEncrypted);
 
 export interface RedshiftClusterConfigurationArgs extends PolicyArgs {
     /** If true, database encryption is enabled. Defaults to true. */
