@@ -139,13 +139,11 @@ describe("#redshiftClusterConfiguration", () => {
 
 describe("#redshiftClusterMaintenanceSettings", () => {
     describe("allVersionUpgrade required, preferred maintenance window and automate retention of 1", async () => {
-        const policy = database.redshiftClusterMaintenanceSettings({
-            enforcementLevel: "mandatory",
-            allowVersionUpgrade: true,
-            preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
-            automatedSnapshotRetentionPeriod: 1,
-        });
-
+        const policy = database.redshiftClusterMaintenanceSettings;
+        // enforcementLevel: "mandatory",
+        // allowVersionUpgrade: true,
+        // preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
+        // automatedSnapshotRetentionPeriod: 1,
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
@@ -202,10 +200,7 @@ describe("#redshiftClusterMaintenanceSettings", () => {
     });
 
     describe("preferred maintenance window and retention period not specified", async () => {
-        const policy = database.redshiftClusterMaintenanceSettings({
-            enforcementLevel: "mandatory",
-            allowVersionUpgrade: true,
-        });
+        const policy = database.redshiftClusterMaintenanceSettings;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
@@ -225,7 +220,8 @@ describe("#redshiftClusterMaintenanceSettings", () => {
 });
 
 describe("#redshiftClusterPublicAccess", () => {
-    const policy = database.redshiftClusterPublicAccess("mandatory");
+    const policy = database.redshiftClusterPublicAccess;
+
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.redshift.Cluster, {
             clusterIdentifier: "test",
@@ -255,7 +251,8 @@ describe("#redshiftClusterPublicAccess", () => {
 });
 
 describe("#dynamodbTableEncryptionEnabled", () => {
-    const policy = database.dynamodbTableEncryptionEnabled("mandatory");
+    const policy = database.dynamodbTableEncryptionEnabled;
+
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.dynamodb.Table, {
             hashKey: "test",
@@ -288,12 +285,7 @@ describe("#dynamodbTableEncryptionEnabled", () => {
 
 describe("#rdsInstanceBackupEnabled", () => {
     describe("retention period and window are specified, check read replicas", () => {
-        const policy = database.rdsInstanceBackupEnabled({
-            enforcementLevel: "mandatory",
-            backupRetentionPeriod: 7,
-            preferredBackupWindow: "window",
-            checkReadReplicas: true,
-        });
+        const policy = database.rdsInstanceBackupEnabled;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
@@ -341,12 +333,7 @@ describe("#rdsInstanceBackupEnabled", () => {
     });
 
     describe("do not check read replicas", () => {
-        const policy = database.rdsInstanceBackupEnabled({
-            enforcementLevel: "mandatory",
-            backupRetentionPeriod: 7,
-            preferredBackupWindow: "window",
-            checkReadReplicas: false,
-        });
+        const policy = database.rdsInstanceBackupEnabled;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
@@ -364,7 +351,7 @@ describe("#rdsInstanceBackupEnabled", () => {
     });
 
     describe("do not specify a required backup period or window", () => {
-        const policy = database.rdsInstanceBackupEnabled("mandatory");
+        const policy = database.rdsInstanceBackupEnabled;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
@@ -394,17 +381,17 @@ describe("#rdsInstanceBackupEnabled", () => {
         });
     });
 
-    describe("a poorly configure policy", () => {
-        it("Should throw an error", () => {
-            assert.throws(
-                () => { database.rdsInstanceBackupEnabled({ backupRetentionPeriod: 0 }); },
-                "Specified retention period must be greater than 0");
-        });
-    });
+    // describe("a poorly configure policy", () => {
+    //     it("Should throw an error", () => {
+    //         assert.throws(
+    //             () => { database.rdsInstanceBackupEnabled({ backupRetentionPeriod: 0 }); },
+    //             "Specified retention period must be greater than 0");
+    //     });
+    // });
 });
 
 describe("#rdsInstanceMultiAZEnabled", () => {
-    const policy = database.rdsInstanceMultiAZEnabled("mandatory");
+    const policy = database.rdsInstanceMultiAZEnabled;
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.rds.Instance, {
             instanceClass: "db.m5.large",
@@ -434,7 +421,7 @@ describe("#rdsInstanceMultiAZEnabled", () => {
 });
 
 describe("#rdsInstancePublicAccess", () => {
-    const policy = database.rdsInstancePublicAccess("mandatory");
+    const policy = database.rdsInstancePublicAccess;
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.rds.Instance, {
             instanceClass: "db.m5.large",
@@ -465,10 +452,7 @@ describe("#rdsInstancePublicAccess", () => {
 
 describe("#rdsStorageEncrypted", () => {
     describe("kms key is specified", () => {
-        const policy = database.rdsStorageEncrypted({
-            enforcementLevel: "mandatory",
-            kmsKeyId: "a-kms-key",
-        });
+        const policy = database.rdsStorageEncrypted;
 
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
@@ -520,7 +504,7 @@ describe("#rdsStorageEncrypted", () => {
     });
 
     describe("kms key is not specified", () => {
-        const policy = database.rdsStorageEncrypted("mandatory");
+        const policy = database.rdsStorageEncrypted;
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
