@@ -17,7 +17,6 @@ import * as aws from "@pulumi/aws";
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
-import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 
 // Mixin additional properties onto AwsGuardArgs.
@@ -105,73 +104,74 @@ export interface RedshiftClusterMaintenanceSettingsArgs extends PolicyArgs {
 
 /** @internal */
 export const redshiftClusterMaintenanceSettings: ResourceValidationPolicy = {
-        name: "redshift-cluster-maintenance-settings",
-        description: "Checks whether Amazon Redshift clusters have the specified maintenance settings.",
-        configSchema: {
-            properties: {
-                allowVersionUpgrade: {
-                    type: "boolean",
-                    default: true,
-                },
-                preferredMaintenanceWindow: {
-                    type: "string",
-                    default: "",
-                },
-                automatedSnapshotRetentionPeriod: {
-                    type: "number",
-                    // TODO: default value?
-                    default: 666,
-                },
+    name: "redshift-cluster-maintenance-settings",
+    description: "Checks whether Amazon Redshift clusters have the specified maintenance settings.",
+    configSchema: {
+        properties: {
+            allowVersionUpgrade: {
+                type: "boolean",
+                default: true,
+            },
+            preferredMaintenanceWindow: {
+                type: "string",
+                default: "",
+            },
+            automatedSnapshotRetentionPeriod: {
+                type: "number",
+                // TODO: default value?
+                default: 666,
             },
         },
-        validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
-            // Check the allowVersionUpgrade is configured properly TODO: below.
-            if (redshiftClusterMaintenanceSettings.configSchema?.properties.allowVersionUpgrade && cluster.allowVersionUpgrade !== undefined && cluster.allowVersionUpgrade === false) {
-                reportViolation("Redshift cluster must allow version upgrades.");
-            } else if (!redshiftClusterMaintenanceSettings.configSchema?.properties.allowVersionUpgrade && (cluster.allowVersionUpgrade === undefined || cluster.allowVersionUpgrade)) {
-                reportViolation("Redshift cluster must not allow version upgrades.");
-            }
+    },
+    validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, args, reportViolation) => {
+        const { allowVersionUpgrade, preferredMaintenanceWindow, automatedSnapshotRetentionPeriod } = args.getConfig<Required<RedshiftClusterMaintenanceSettingsArgs>>();
+        // Check the allowVersionUpgrade is configured properly TODO: below.
+        if (allowVersionUpgrade && cluster.allowVersionUpgrade !== undefined && cluster.allowVersionUpgrade === false) {
+            reportViolation("Redshift cluster must allow version upgrades.");
+        } else if (!allowVersionUpgrade && (cluster.allowVersionUpgrade === undefined || cluster.allowVersionUpgrade)) {
+            reportViolation("Redshift cluster must not allow version upgrades.");
+        }
 
-            // Check the preferredMaintenanceWindow is configured properly.
-            if (redshiftClusterMaintenanceSettings.configSchema?.properties.preferredMaintenanceWindow && cluster.preferredMaintenanceWindow !== redshiftClusterMaintenanceSettings.configSchema?.properties.preferredMaintenanceWindow) {
-                reportViolation(`Redshift cluster must specify the preferred maintenance window: ${redshiftClusterMaintenanceSettings.configSchema?.properties.preferredMaintenanceWindow}.`);
-            }
+        // Check the preferredMaintenanceWindow is configured properly.
+        if (preferredMaintenanceWindow && cluster.preferredMaintenanceWindow !== preferredMaintenanceWindow) {
+            reportViolation(`Redshift cluster must specify the preferred maintenance window: ${preferredMaintenanceWindow}.`);
+        }
 
-            // Check the automatedSnapshotRetentionPeriod is configured properly. If undefined, the default is 1.
-            if (redshiftClusterMaintenanceSettings.configSchema?.properties.automatedSnapshotRetentionPeriod) {
-                if (cluster.automatedSnapshotRetentionPeriod === undefined && redshiftClusterMaintenanceSettings.configSchema?.properties.automatedSnapshotRetentionPeriod !== 1) {
-                    reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${redshiftClusterMaintenanceSettings.configSchema?.properties.automatedSnapshotRetentionPeriod}.`);
-                } else if (cluster.automatedSnapshotRetentionPeriod !== undefined && cluster.automatedSnapshotRetentionPeriod !== redshiftClusterMaintenanceSettings.configSchema?.properties.automatedSnapshotRetentionPeriod) {
-                    reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${redshiftClusterMaintenanceSettings.configSchema?.properties.automatedSnapshotRetentionPeriod}.`);
-                }
+        // Check the automatedSnapshotRetentionPeriod is configured properly. If undefined, the default is 1.
+        if (automatedSnapshotRetentionPeriod) {
+            if (cluster.automatedSnapshotRetentionPeriod === undefined && automatedSnapshotRetentionPeriod !== 1) {
+                reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${automatedSnapshotRetentionPeriod}.`);
+            } else if (cluster.automatedSnapshotRetentionPeriod !== undefined && cluster.automatedSnapshotRetentionPeriod !== automatedSnapshotRetentionPeriod) {
+                reportViolation(`Redshift cluster must specify an automated snapshot retention period of ${automatedSnapshotRetentionPeriod}.`);
             }
-        }),
-    };
+        }
+    }),
+};
 registerPolicy("redshiftClusterMaintenanceSettings", redshiftClusterMaintenanceSettings);
 
 /** @internal */
 export const redshiftClusterPublicAccess: ResourceValidationPolicy = {
-        name: "redshift-cluster-public-access",
-        description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
-        validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
-            if (cluster.publiclyAccessible === undefined || cluster.publiclyAccessible) {
-                reportViolation("Redshift cluster must not be publicly accessible.");
-            }
-        }),
-    };
+    name: "redshift-cluster-public-access",
+    description: "Checks whether Amazon Redshift clusters are not publicly accessible.",
+    validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, _, reportViolation) => {
+        if (cluster.publiclyAccessible === undefined || cluster.publiclyAccessible) {
+            reportViolation("Redshift cluster must not be publicly accessible.");
+        }
+    }),
+};
 registerPolicy("redshiftClusterPublicAccess", redshiftClusterPublicAccess);
 
 
 /** @internal */
 export const dynamodbTableEncryptionEnabled: ResourceValidationPolicy = {
-        name: "dynamodb-table-encryption-enabled",
-        description: "Checks whether the Amazon DynamoDB tables are encrypted.",
-        validateResource: validateResourceOfType(aws.dynamodb.Table, (table, _, reportViolation) => {
-            if (table.serverSideEncryption && !table.serverSideEncryption.enabled) {
-                reportViolation("DynamoDB must have server side encryption enabled.");
-            }
-        }),
-    };
+    name: "dynamodb-table-encryption-enabled",
+    description: "Checks whether the Amazon DynamoDB tables are encrypted.",
+    validateResource: validateResourceOfType(aws.dynamodb.Table, (table, _, reportViolation) => {
+        if (table.serverSideEncryption && !table.serverSideEncryption.enabled) {
+            reportViolation("DynamoDB must have server side encryption enabled.");
+        }
+    }),
+};
 registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
 
 export interface RdsInstanceBackupEnabledArgs extends PolicyArgs {
@@ -190,72 +190,76 @@ export const rdsInstanceBackupEnabled: ResourceValidationPolicy = {
     // if (backupRetentionPeriod !== undefined && backupRetentionPeriod <= 0) {
     //     throw new Error("Specified retention period must be greater than 0.");
     // }
-        name: "rds-instance-backup-enabled",
-        description: "Checks whether RDS DB instances have backups enabled. " +
-            "Optionally, the rule checks the backup retention period and the backup window.",
-        configSchema: {
-            properties: {
-                backupRetentionPeriod: {
-                    type: "number",
-                    default: "666",
-                },
-                preferredBackupWindow: {
-                    type: "string",
-                    default: "",
-                },
-                checkReadReplicas: {
-                    type: "boolean",
-                    default: true,
-                },
+    name: "rds-instance-backup-enabled",
+    description: "Checks whether RDS DB instances have backups enabled. " +
+        "Optionally, the rule checks the backup retention period and the backup window.",
+    configSchema: {
+        properties: {
+            backupRetentionPeriod: {
+                type: "number",
+                default: "666",
+            },
+            preferredBackupWindow: {
+                type: "string",
+                default: "",
+            },
+            checkReadReplicas: {
+                type: "boolean",
+                default: true,
             },
         },
-        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
-            // Run checks if the instance is not a read replica or if check read replicas is true.
-            if (!instance.replicateSourceDb || rdsInstanceBackupEnabled.configSchema?.properties.checkReadReplicas) {
-                if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
-                    reportViolation("RDS Instances must have backups enabled.");
-                }
+    },
+    validateResource: validateResourceOfType(aws.rds.Instance, (instance, args, reportViolation) => {
+        const { backupRetentionPeriod, preferredBackupWindow, checkReadReplicas } = args.getConfig<Required<RdsInstanceBackupEnabledArgs>>();
+        // Run checks if the instance is not a read replica or if check read replicas is true.
+        if (!instance.replicateSourceDb || checkReadReplicas) {
+            if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
+                reportViolation("RDS Instances must have backups enabled.");
+            }
 
-                // Check the backup retention period. The backupRetentionPeriod of an instance defaults to 7 days.
-                if (rdsInstanceBackupEnabled.configSchema?.properties.backupRetentionPeriod) {
-                    if ((!instance.backupRetentionPeriod && rdsInstanceBackupEnabled.configSchema?.properties.backupRetentionPeriod !== 7) ||
-                        (instance.backupRetentionPeriod && rdsInstanceBackupEnabled.configSchema?.properties.backupRetentionPeriod !== instance.backupRetentionPeriod)) {
-                        reportViolation(`RDS Instances must have a backup retention period of: ${rdsInstanceBackupEnabled.configSchema?.properties.backupRetentionPeriod}.`);
-                    }
-                }
-                // Check the preferred backup window.
-                if (rdsInstanceBackupEnabled.configSchema?.properties.preferredBackupWindow) {
-                    if (!instance.backupWindow || rdsInstanceBackupEnabled.configSchema?.properties.preferredBackupWindow !== instance.backupWindow) {
-                        reportViolation(`RDS Instances must have a backup preferred back up window of: ${rdsInstanceBackupEnabled.configSchema?.properties.preferredBackupWindow}.`);
-                    }
+            // Check the backup retention period. The backupRetentionPeriod of an instance defaults to 7 days.
+            if (backupRetentionPeriod) {
+                if ((!instance.backupRetentionPeriod && backupRetentionPeriod !== 7) ||
+                    (instance.backupRetentionPeriod && backupRetentionPeriod !== instance.backupRetentionPeriod)) {
+                    reportViolation(`RDS Instances must have a backup retention period of: ${backupRetentionPeriod}.`);
                 }
             }
-        }),
-    };
+            // Check the preferred backup window.
+            if (preferredBackupWindow) {
+                if (!instance.backupWindow || preferredBackupWindow !== instance.backupWindow) {
+                    reportViolation(`RDS Instances must have a backup preferred back up window of: ${
+                        preferredBackupWindow}.`);
+                }
+            }
+        }
+    }),
+};
 registerPolicy("rdsInstanceBackupEnabled", rdsInstanceBackupEnabled);
+
 
 /** @internal */
 export const rdsInstanceMultiAZEnabled: ResourceValidationPolicy = {
-        name: "rds-instance-multi-az-enabled",
-        description: "Check whether high availability is enabled for Amazon Relational Database Service instances.",
-        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
-            if (instance.multiAz === undefined || instance.multiAz === false) {
-                reportViolation("RDS Instances must be configured with multiple AZs for highly available.");
-            }
-        }),
-    };
+    name: "rds-instance-multi-az-enabled",
+    description: "Check whether high availability is enabled for Amazon Relational Database Service instances.",
+    validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
+        if (instance.multiAz === undefined || instance.multiAz === false) {
+            reportViolation("RDS Instances must be configured with multiple AZs for highly available.");
+        }
+    }),
+};
 registerPolicy("rdsInstanceMultiAZEnabled", rdsInstanceMultiAZEnabled);
+
 
 /** @internal */
 export const rdsInstancePublicAccess: ResourceValidationPolicy = {
-        name: "rds-instance-public-access",
-        description: "Check whether the Amazon Relational Database Service instances are not publicly accessible.",
-        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
-            if (instance.publiclyAccessible) {
-                reportViolation("RDS Instance must not be publicly accessible.");
-            }
-        }),
-    };
+    name: "rds-instance-public-access",
+    description: "Check whether the Amazon Relational Database Service instances are not publicly accessible.",
+    validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
+        if (instance.publiclyAccessible) {
+            reportViolation("RDS Instance must not be publicly accessible.");
+        }
+    }),
+};
 registerPolicy("rdsInstancePublicAccess", rdsInstancePublicAccess);
 
 
@@ -266,27 +270,28 @@ export interface RdsStorageEncryptedArgs extends PolicyArgs {
 
 /** @internal */
 export const rdsStorageEncrypted: ResourceValidationPolicy = {
-        name: "rds-storage-encrypted",
-        description: "Checks whether storage encryption is enabled for your RDS DB instances.",
-        configSchema: {
-            properties: {
-                kmsKeyId: {
-                    type: "string",
-                    default: "",
-                },
+    name: "rds-storage-encrypted",
+    description: "Checks whether storage encryption is enabled for your RDS DB instances.",
+    configSchema: {
+        properties: {
+            kmsKeyId: {
+                type: "string",
+                default: "",
             },
         },
-        validateResource: validateResourceOfType(aws.rds.Instance, (instance, _, reportViolation) => {
-            // Read replicas ignore this field and instead use the kmsId, so we will only check this
-            // if its not a read replica.
-            if (!instance.replicateSourceDb) {
-                if (instance.storageEncrypted === undefined || instance.storageEncrypted === false) {
-                    reportViolation("RDS Instance must have storage encryption enabled.");
-                }
+    },
+    validateResource: validateResourceOfType(aws.rds.Instance, (instance, args, reportViolation) => {
+        const { kmsKeyId } = args.getConfig<Required<RdsStorageEncryptedArgs>>();
+        // Read replicas ignore this field and instead use the kmsId, so we will only check this
+        // if its not a read replica.
+        if (!instance.replicateSourceDb) {
+            if (instance.storageEncrypted === undefined || instance.storageEncrypted === false) {
+                reportViolation("RDS Instance must have storage encryption enabled.");
             }
-            if (rdsStorageEncrypted.configSchema?.properties.kmsKeyId && (instance.kmsKeyId === undefined || instance.kmsKeyId !== rdsStorageEncrypted.configSchema?.properties.kmsKeyId)) {
-                reportViolation(`RDS Instance must be encrypted with kms key id: ${rdsStorageEncrypted.configSchema?.properties.kmsKeyId}.`);
-            }
-        }),
-    };
+        }
+        if (kmsKeyId && (instance.kmsKeyId === undefined || instance.kmsKeyId !== kmsKeyId)) {
+            reportViolation(`RDS Instance must be encrypted with kms key id: ${kmsKeyId}.`);
+        }
+    }),
+};
 registerPolicy("rdsStorageEncrypted", rdsStorageEncrypted);

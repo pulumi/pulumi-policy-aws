@@ -59,7 +59,8 @@ export const acmCertificateExpiration: StackValidationPolicy = {
                 },
             },
         },
-        validateStack: validateStackResourcesOfType(aws.acm.Certificate, async (acmCertificates, _, reportViolation) => {
+        validateStack: validateStackResourcesOfType(aws.acm.Certificate, async (acmCertificates, args, reportViolation) => {
+            const { maxDaysUntilExpiration } =  args.getConfig<AcmCertificateExpirationArgs>();
             const acm = new AWS.ACM();
             // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
             for (const certInStack of acmCertificates) {
@@ -68,9 +69,8 @@ export const acmCertificateExpiration: StackValidationPolicy = {
                 if (certDescription && certDescription.NotAfter) {
                     let daysUntilExpiry = (certDescription.NotAfter.getTime() - Date.now()) / msInDay;
                     daysUntilExpiry = Math.floor(daysUntilExpiry);
-                    // TODO: replace long expression with variable below and report violation (handle null case)
-                    if (daysUntilExpiry < acmCertificateExpiration.configSchema?.properties.maxDaysUntilExpiration!) {
-                        reportViolation(`certificate expires in ${daysUntilExpiry} (max allowed ${acmCertificateExpiration.configSchema?.properties.maxDaysUntilExpiration} days)`);
+                    if (daysUntilExpiry < maxDaysUntilExpiration!) {
+                        reportViolation(`certificate expires in ${daysUntilExpiry} (max allowed ${maxDaysUntilExpiration} days)`);
                     }
                 }
             }
