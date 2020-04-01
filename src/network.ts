@@ -16,7 +16,7 @@ import * as aws from "@pulumi/aws";
 
 import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
 
-import { registerPolicyOld } from "./awsGuard";
+import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 
 // Mixin additional properties onto AwsGuardArgs.
@@ -27,14 +27,12 @@ declare module "./awsGuard" {
 }
 
 // Register policy factories.
-registerPolicyOld("albHttpToHttpsRedirection", albHttpToHttpsRedirection);
+
 
 /** @internal */
-export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): ResourceValidationPolicy {
-    return {
+export const albHttpToHttpsRedirection: ResourceValidationPolicy = {
         name: "alb-http-to-https-redirection",
         description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
-        enforcementLevel: enforcementLevel || defaultEnforcementLevel,
         validateResource: validateResourceOfType(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
             if (listener.protocol !== "HTTP") {
                 return;
@@ -48,7 +46,6 @@ export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): 
                 reportViolation(`HTTP listener has more than one default action.`);
                 return;
             }
-
             const defaultAction = listener.defaultActions[0];
             const compliant = true
                 && defaultAction.type === "redirect"
@@ -62,4 +59,4 @@ export function albHttpToHttpsRedirection(enforcementLevel?: EnforcementLevel): 
             }
         }),
     };
-}
+registerPolicy("albHttpToHttpsRedirection", albHttpToHttpsRedirection);

@@ -25,7 +25,7 @@ import { defaultEnforcementLevel } from "./enforcementLevel";
 
 const defaultPolicyPackName = "pulumi-awsguard";
 
-// Internap map of registered policies;
+// Internal map of registered policies;
 const registeredPolicies: Record<string, ResourceValidationPolicy | StackValidationPolicy> = {};
 
 /**
@@ -128,13 +128,6 @@ export function registerPolicy<K extends keyof AwsGuardArgs>(
         throw new Error(`policy is falsy.`);
     }
     registeredPolicies[property] = policy;
-}
-
-/** @internal */
-export function registerPolicyOld<K extends keyof AwsGuardArgs>(
-    property: Exclude<K, "all">,
-    factory: (args?: AwsGuardArgs[K]) => ResourceValidationPolicy | StackValidationPolicy) {
-    // TODO: Delete this function.
 }
 
 /**

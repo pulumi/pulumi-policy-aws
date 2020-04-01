@@ -21,7 +21,7 @@ import * as network from "../network";
 import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
 describe("#albHttpToHttpsRedirection", () => {
-    const policy = network.albHttpToHttpsRedirection("mandatory");
+    const policy = network.albHttpToHttpsRedirection;
 
     const loadBalancerArn = "arn:aws:elasticloadbalancing:us-west-2:333333333333:loadbalancer/app/alb-4163fcb/93e140268049384d";
 
