@@ -140,14 +140,15 @@ describe("#redshiftClusterConfiguration", () => {
 describe("#redshiftClusterMaintenanceSettings", () => {
     describe("allVersionUpgrade required, preferred maintenance window and automate retention of 1", async () => {
         const policy = database.redshiftClusterMaintenanceSettings;
-        // enforcementLevel: "mandatory",
-        // allowVersionUpgrade: true,
-        // preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
-        // automatedSnapshotRetentionPeriod: 1,
+
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.redshift.Cluster, {
                 clusterIdentifier: "test",
                 nodeType: "dc1.large",
+                allowVersionUpgrade: true,
+                preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
+                automatedSnapshotRetentionPeriod: 1,
+            }, {
                 allowVersionUpgrade: true,
                 preferredMaintenanceWindow: "Mon:09:30-Mon:10:00",
                 automatedSnapshotRetentionPeriod: 1,
@@ -209,6 +210,8 @@ describe("#redshiftClusterMaintenanceSettings", () => {
                 allowVersionUpgrade: true,
                 preferredMaintenanceWindow: "some random time window",
                 automatedSnapshotRetentionPeriod: 1,
+            }, {
+                allowVersionUpgrade: true,
             });
         }
 
