@@ -91,7 +91,7 @@ export const redshiftClusterConfiguration: ResourceValidationPolicy = {
 };
 registerPolicy("redshiftClusterConfiguration", redshiftClusterConfiguration);
 
-export interface RedshiftClusterMaintenanceSettingsArgs extends PolicyArgs {
+export interface RedshiftClusterMaintenanceSettingsArgs {
     /** Allow version upgrade is enabled. Defaults to true. */
     allowVersionUpgrade?: boolean;
 
@@ -114,17 +114,16 @@ export const redshiftClusterMaintenanceSettings: ResourceValidationPolicy = {
             },
             preferredMaintenanceWindow: {
                 type: "string",
-                default: "Mon:09:30-Mon:10:00",
             },
             automatedSnapshotRetentionPeriod: {
                 type: "number",
-                default: 1,
             },
         },
     },
     validateResource: validateResourceOfType(aws.redshift.Cluster, (cluster, args, reportViolation) => {
-        const { allowVersionUpgrade, preferredMaintenanceWindow, automatedSnapshotRetentionPeriod } = args.getConfig<Required<RedshiftClusterMaintenanceSettingsArgs>>();
-        // Check the allowVersionUpgrade is configured properly TODO: below.
+        const { allowVersionUpgrade, preferredMaintenanceWindow, automatedSnapshotRetentionPeriod } = args.getConfig<RedshiftClusterMaintenanceSettingsArgs>();
+
+        // Check the allowVersionUpgrade is configured properly.
         if (allowVersionUpgrade && cluster.allowVersionUpgrade !== undefined && cluster.allowVersionUpgrade === false) {
             reportViolation("Redshift cluster must allow version upgrades.");
         } else if (!allowVersionUpgrade && (cluster.allowVersionUpgrade === undefined || cluster.allowVersionUpgrade)) {
@@ -132,7 +131,7 @@ export const redshiftClusterMaintenanceSettings: ResourceValidationPolicy = {
         }
 
         // Check the preferredMaintenanceWindow is configured properly.
-        if (cluster.preferredMaintenanceWindow !== preferredMaintenanceWindow || cluster.preferredMaintenanceWindow === undefined) {
+        if (preferredMaintenanceWindow && cluster.preferredMaintenanceWindow !== preferredMaintenanceWindow) {
             reportViolation(`Redshift cluster must specify the preferred maintenance window: ${preferredMaintenanceWindow}.`);
         }
 
