@@ -296,6 +296,11 @@ describe("#rdsInstanceBackupEnabled", () => {
                 backupRetentionPeriod: 7,
                 backupWindow: "window",
                 replicateSourceDb: "some-there-db",
+            },
+            {
+                backupRetentionPeriod: 7,
+                preferredBackupWindow: "window",
+                checkReadReplicas: true,
             });
         }
 
@@ -383,14 +388,6 @@ describe("#rdsInstanceBackupEnabled", () => {
             await assertHasResourceViolation(policy, args, { message: msg });
         });
     });
-
-    // describe("a poorly configure policy", () => {
-    //     it("Should throw an error", () => {
-    //         assert.throws(
-    //             () => { database.rdsInstanceBackupEnabled({ backupRetentionPeriod: 0 }); },
-    //             "Specified retention period must be greater than 0");
-    //     });
-    // });
 });
 
 describe("#rdsInstanceMultiAZEnabled", () => {
@@ -463,6 +460,9 @@ describe("#rdsStorageEncrypted", () => {
                 backupRetentionPeriod: 10,
                 backupWindow: "random-window",
                 storageEncrypted: true,
+                kmsKeyId: "a-kms-key",
+            },
+            {
                 kmsKeyId: "a-kms-key",
             });
         }

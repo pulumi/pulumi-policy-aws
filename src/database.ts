@@ -172,7 +172,7 @@ export const dynamodbTableEncryptionEnabled: ResourceValidationPolicy = {
 };
 registerPolicy("dynamodbTableEncryptionEnabled", dynamodbTableEncryptionEnabled);
 
-export interface RdsInstanceBackupEnabledArgs extends PolicyArgs {
+export interface RdsInstanceBackupEnabledArgs {
     /** Retention period for backups. Must be greater than 0. */
     backupRetentionPeriod?: number;
 
@@ -185,9 +185,6 @@ export interface RdsInstanceBackupEnabledArgs extends PolicyArgs {
 
 /** @internal */
 export const rdsInstanceBackupEnabled: ResourceValidationPolicy = {
-    // if (backupRetentionPeriod !== undefined && backupRetentionPeriod <= 0) {
-    //     throw new Error("Specified retention period must be greater than 0.");
-    // }
     name: "rds-instance-backup-enabled",
     description: "Checks whether RDS DB instances have backups enabled. " +
         "Optionally, the rule checks the backup retention period and the backup window.",
@@ -195,11 +192,9 @@ export const rdsInstanceBackupEnabled: ResourceValidationPolicy = {
         properties: {
             backupRetentionPeriod: {
                 type: "number",
-                default: "666",
             },
             preferredBackupWindow: {
                 type: "string",
-                default: "",
             },
             checkReadReplicas: {
                 type: "boolean",
@@ -208,26 +203,28 @@ export const rdsInstanceBackupEnabled: ResourceValidationPolicy = {
         },
     },
     validateResource: validateResourceOfType(aws.rds.Instance, (instance, args, reportViolation) => {
-        const { backupRetentionPeriod, preferredBackupWindow, checkReadReplicas } = args.getConfig<Required<RdsInstanceBackupEnabledArgs>>();
+        const { backupRetentionPeriod, preferredBackupWindow, checkReadReplicas } = args.getConfig<RdsInstanceBackupEnabledArgs>();
+        // Check for invalid backupRetentionPeriod
+        if (backupRetentionPeriod !== undefined && backupRetentionPeriod <= 0) {
+            reportViolation("Specified retention period must be greater than 0.");
+        }
         // Run checks if the instance is not a read replica or if check read replicas is true.
         if (!instance.replicateSourceDb || checkReadReplicas) {
             if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
                 reportViolation("RDS Instances must have backups enabled.");
             }
-
-            // Check the backup retention period. The backupRetentionPeriod of an instance defaults to 7 days.
-            if (backupRetentionPeriod) {
-                if ((!instance.backupRetentionPeriod && backupRetentionPeriod !== 7) ||
-                    (instance.backupRetentionPeriod && backupRetentionPeriod !== instance.backupRetentionPeriod)) {
-                    reportViolation(`RDS Instances must have a backup retention period of: ${backupRetentionPeriod}.`);
-                }
+        }
+        // Check the backup retention period. The backupRetentionPeriod of an instance defaults to 7 days.
+        if (backupRetentionPeriod) {
+            if ((!instance.backupRetentionPeriod && backupRetentionPeriod !== 7) ||
+                (instance.backupRetentionPeriod && backupRetentionPeriod !== instance.backupRetentionPeriod)) {
+                reportViolation(`RDS Instances must have a backup retention period of: ${backupRetentionPeriod}.`);
             }
-            // Check the preferred backup window.
-            if (preferredBackupWindow) {
-                if (!instance.backupWindow || preferredBackupWindow !== instance.backupWindow) {
-                    reportViolation(`RDS Instances must have a backup preferred back up window of: ${
-                        preferredBackupWindow}.`);
-                }
+        }
+        // Check the preferred backup window.
+        if (preferredBackupWindow) {
+            if (!instance.backupWindow || preferredBackupWindow !== instance.backupWindow) {
+                reportViolation(`RDS Instances must have a backup preferred back up window of: ${preferredBackupWindow}.`);
             }
         }
     }),
@@ -274,7 +271,6 @@ export const rdsStorageEncrypted: ResourceValidationPolicy = {
         properties: {
             kmsKeyId: {
                 type: "string",
-                default: "",
             },
         },
     },

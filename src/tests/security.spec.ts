@@ -33,7 +33,6 @@ import * as AWSMock from "aws-sdk-mock";
 import { ListAccessKeysRequest, ListMFADevicesRequest } from "aws-sdk/clients/iam";
 
 describe("#iamAccessKeysRotated", () => {
-    const maxKeyAge = 30;
     const policy = security.iamAccessKeysRotated;
 
     const testAccessKeyId = "AKITESTKEYID";
@@ -132,6 +131,8 @@ describe("#iamAccessKeysRotated", () => {
             id: testAccessKeyId,
             status: "Active",
             user: "test-user@pulumi.com",
+        }, {
+            maxKeyAge: 30,
         });
         await assertHasStackViolation(policy, args, {
             message: "access key must be rotated within 30 days (key is 180 days old)",
