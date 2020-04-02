@@ -107,10 +107,8 @@ export const iamAccessKeysRotated: StackValidationPolicy = {
                 },
             },
         },
-        // if (iamAccessKeysRotated.configSchema?.properties.maxKeyAge! < 1 || iamAccessKeysRotated.configSchema?.properties.maxKeyAge! > 2 * 365) {
-        //     throw new Error("Invalid maxKeyAge."); TODO: validate maxKeyAge is sensible
-        // }
-        validateStack: validateStackResourcesOfType(aws.iam.AccessKey, async (accessKeys, _, reportViolation) => {
+        validateStack: validateStackResourcesOfType(aws.iam.AccessKey, async (accessKeys, args, reportViolation) => {
+            const { maxKeyAge } =  args.getConfig<IamAccessKeysRotatedArgs>();
             const iam = new AWS.IAM();
             for (const instance of accessKeys) {
                 // Skip any access keys that haven't yet been provisioned or whose status is inactive.
@@ -126,9 +124,8 @@ export const iamAccessKeysRotated: StackValidationPolicy = {
                         if (accessKey.AccessKeyId === instance.id && accessKey.CreateDate) {
                             let daysSinceCreated = (Date.now() - accessKey.CreateDate!.getTime()) / msInDay;
                             daysSinceCreated = Math.floor(daysSinceCreated);
-                            // TODO replace long expression with variable below
-                            if (daysSinceCreated > iamAccessKeysRotated.configSchema?.properties.maxKeyAge!) {
-                                reportViolation(`access key must be rotated within ${iamAccessKeysRotated.configSchema?.properties.maxKeyAge} days (key is ${daysSinceCreated} days old)`);
+                            if (daysSinceCreated > maxKeyAge!) {
+                                reportViolation(`access key must be rotated within ${maxKeyAge} days (key is ${daysSinceCreated} days old)`);
                             }
                         }
                     }

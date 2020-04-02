@@ -114,12 +114,11 @@ export const redshiftClusterMaintenanceSettings: ResourceValidationPolicy = {
             },
             preferredMaintenanceWindow: {
                 type: "string",
-                default: "",
+                default: "Mon:09:30-Mon:10:00",
             },
             automatedSnapshotRetentionPeriod: {
                 type: "number",
-                // TODO: default value?
-                default: 666,
+                default: 1,
             },
         },
     },
@@ -133,7 +132,7 @@ export const redshiftClusterMaintenanceSettings: ResourceValidationPolicy = {
         }
 
         // Check the preferredMaintenanceWindow is configured properly.
-        if (preferredMaintenanceWindow && cluster.preferredMaintenanceWindow !== preferredMaintenanceWindow) {
+        if (cluster.preferredMaintenanceWindow !== preferredMaintenanceWindow || cluster.preferredMaintenanceWindow === undefined) {
             reportViolation(`Redshift cluster must specify the preferred maintenance window: ${preferredMaintenanceWindow}.`);
         }
 
