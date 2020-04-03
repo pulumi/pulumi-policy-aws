@@ -32,9 +32,9 @@ import { PolicyArgs } from "./policyArgs";
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
-        acmCertificateExpiration?: EnforcementLevel | AcmCertificateExpirationArgs & PolicyArgs;
+        acmCertificateExpiration?: EnforcementLevel | (AcmCertificateExpirationArgs & PolicyArgs);
         cmkBackingKeyRotationEnabled?: EnforcementLevel;
-        iamAccessKeysRotated?: EnforcementLevel | IamAccessKeysRotatedArgs & PolicyArgs;
+        iamAccessKeysRotated?: EnforcementLevel | (IamAccessKeysRotatedArgs & PolicyArgs);
         iamMfaEnabledForConsoleAccess?: EnforcementLevel;
     }
 }
@@ -42,7 +42,7 @@ declare module "./awsGuard" {
 // Milliseconds in a day.
 const msInDay = 24 * 60 * 60 * 1000;
 
-export interface AcmCertificateExpirationArgs extends PolicyArgs {
+export interface AcmCertificateExpirationArgs {
     /** Max days before certificate expires. Defaults to 14. */
     maxDaysUntilExpiration?: number;
 }
@@ -90,7 +90,7 @@ export const cmkBackingKeyRotationEnabled: ResourceValidationPolicy = {
     };
 registerPolicy("cmkBackingKeyRotationEnabled", cmkBackingKeyRotationEnabled);
 
-export interface IamAccessKeysRotatedArgs extends PolicyArgs {
+export interface IamAccessKeysRotatedArgs {
     /** Max key age in days. Defaults to 90. */
     maxKeyAge?: number;
 }
@@ -103,12 +103,14 @@ export const iamAccessKeysRotated: StackValidationPolicy = {
             properties: {
                 maxKeyAge: {
                     type: "number",
+                    minimum: 1,
+                    maximum: 2 * 365,
                     default: 90,
                 },
             },
         },
         validateStack: validateStackResourcesOfType(aws.iam.AccessKey, async (accessKeys, args, reportViolation) => {
-            const { maxKeyAge } =  args.getConfig<IamAccessKeysRotatedArgs>();
+            const { maxKeyAge } =  args.getConfig<Required<IamAccessKeysRotatedArgs>>();
             const iam = new AWS.IAM();
             for (const instance of accessKeys) {
                 // Skip any access keys that haven't yet been provisioned or whose status is inactive.
@@ -124,7 +126,7 @@ export const iamAccessKeysRotated: StackValidationPolicy = {
                         if (accessKey.AccessKeyId === instance.id && accessKey.CreateDate) {
                             let daysSinceCreated = (Date.now() - accessKey.CreateDate!.getTime()) / msInDay;
                             daysSinceCreated = Math.floor(daysSinceCreated);
-                            if (daysSinceCreated > maxKeyAge!) {
+                            if (daysSinceCreated > maxKeyAge) {
                                 reportViolation(`access key must be rotated within ${maxKeyAge} days (key is ${daysSinceCreated} days old)`);
                             }
                         }

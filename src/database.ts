@@ -192,6 +192,7 @@ export const rdsInstanceBackupEnabled: ResourceValidationPolicy = {
         properties: {
             backupRetentionPeriod: {
                 type: "number",
+                minimum: 1,
             },
             preferredBackupWindow: {
                 type: "string",
@@ -204,10 +205,6 @@ export const rdsInstanceBackupEnabled: ResourceValidationPolicy = {
     },
     validateResource: validateResourceOfType(aws.rds.Instance, (instance, args, reportViolation) => {
         const { backupRetentionPeriod, preferredBackupWindow, checkReadReplicas } = args.getConfig<RdsInstanceBackupEnabledArgs>();
-        // Check for invalid backupRetentionPeriod
-        if (backupRetentionPeriod !== undefined && backupRetentionPeriod <= 0) {
-            reportViolation("Specified retention period must be greater than 0.");
-        }
         // Run checks if the instance is not a read replica or if check read replicas is true.
         if (!instance.replicateSourceDb || checkReadReplicas) {
             if (instance.backupRetentionPeriod !== undefined && instance.backupRetentionPeriod === 0) {
@@ -258,7 +255,7 @@ export const rdsInstancePublicAccess: ResourceValidationPolicy = {
 registerPolicy("rdsInstancePublicAccess", rdsInstancePublicAccess);
 
 
-export interface RdsStorageEncryptedArgs extends PolicyArgs {
+export interface RdsStorageEncryptedArgs {
     /** KMS key ID or ARN used to encrypt the storage. */
     kmsKeyId?: string;
 }
@@ -275,7 +272,7 @@ export const rdsStorageEncrypted: ResourceValidationPolicy = {
         },
     },
     validateResource: validateResourceOfType(aws.rds.Instance, (instance, args, reportViolation) => {
-        const { kmsKeyId } = args.getConfig<Required<RdsStorageEncryptedArgs>>();
+        const { kmsKeyId } = args.getConfig<RdsStorageEncryptedArgs>();
         // Read replicas ignore this field and instead use the kmsId, so we will only check this
         // if its not a read replica.
         if (!instance.replicateSourceDb) {

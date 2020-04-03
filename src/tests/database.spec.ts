@@ -102,7 +102,7 @@ describe("#redshiftClusterConfiguration", () => {
             }, {
                 clusterDbEncrypted: false,
                 loggingEnabled: false,
-                nodeTypes: false,
+                nodeTypes: [],
             });
         }
 
@@ -297,11 +297,11 @@ describe("#rdsInstanceBackupEnabled", () => {
                 backupWindow: "window",
                 replicateSourceDb: "some-there-db",
             },
-            {
-                backupRetentionPeriod: 7,
-                preferredBackupWindow: "window",
-                checkReadReplicas: true,
-            });
+                {
+                    backupRetentionPeriod: 7,
+                    preferredBackupWindow: "window",
+                    checkReadReplicas: true,
+                });
         }
 
         it("Should pass if backup retention explicity matches", async () => {
@@ -346,10 +346,13 @@ describe("#rdsInstanceBackupEnabled", () => {
         function getHappyPathArgs(): ResourceValidationArgs {
             return createResourceValidationArgs(aws.rds.Instance, {
                 instanceClass: "db.m5.large",
-                backupRetentionPeriod: 0,
                 backupWindow: "another-window",
                 replicateSourceDb: "some-there-db",
-            });
+            },
+                {
+                    backupRetentionPeriod: 7,
+                    checkReadReplicas: true,
+                });
         }
 
         it("Should pass if read replica is not backed up", async () => {
@@ -462,9 +465,9 @@ describe("#rdsStorageEncrypted", () => {
                 storageEncrypted: true,
                 kmsKeyId: "a-kms-key",
             },
-            {
-                kmsKeyId: "a-kms-key",
-            });
+                {
+                    kmsKeyId: "a-kms-key",
+                });
         }
 
         it("Should pass if instance is encrypted and key is specified", async () => {
