@@ -95,7 +95,6 @@ func (settings awsGuardSettings) CreatePolicyPack(e *ptesting.Environment) (stri
 		"description": "Customized AWS Guard policy pack for integration tests.",
 		"main": "index.js",
 		"dependencies": {
-			"@pulumi/aws": "latest",
 			"@pulumi/awsguard": "latest"
 		}
 	  }`
