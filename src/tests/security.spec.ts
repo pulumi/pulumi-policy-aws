@@ -33,11 +33,7 @@ import * as AWSMock from "aws-sdk-mock";
 import { ListAccessKeysRequest, ListMFADevicesRequest } from "aws-sdk/clients/iam";
 
 describe("#iamAccessKeysRotated", () => {
-    const maxKeyAge = 30;
-    const policy = security.iamAccessKeysRotated({
-        enforcementLevel: "mandatory",
-        maxKeyAge,
-    });
+    const policy = security.iamAccessKeysRotated;
 
     const testAccessKeyId = "AKITESTKEYID";
     const testUserEmail = "test-user@example.com";
@@ -135,6 +131,8 @@ describe("#iamAccessKeysRotated", () => {
             id: testAccessKeyId,
             status: "Active",
             user: "test-user@pulumi.com",
+        }, {
+            maxKeyAge: 30,
         });
         await assertHasStackViolation(policy, args, {
             message: "access key must be rotated within 30 days (key is 180 days old)",
@@ -143,7 +141,7 @@ describe("#iamAccessKeysRotated", () => {
 });
 
 describe("#iamMfaEnabledForConsoleAccess", () => {
-    const policy = security.iamMfaEnabledForConsoleAccess("mandatory");
+    const policy = security.iamMfaEnabledForConsoleAccess;
     const testUserEmail = "test-user@example.com";
 
     it("Does not report a violation if an MFA device is attached", async () => {
@@ -190,7 +188,7 @@ describe("#iamMfaEnabledForConsoleAccess", () => {
 });
 
 describe("#cmkBackingKeyRotationEnabled", () => {
-    const policy = security.cmkBackingKeyRotationEnabled("mandatory");
+    const policy = security.cmkBackingKeyRotationEnabled;
 
     it("Fails if key does not have rotation enabled", async() => {
         const args = createResourceValidationArgs(aws.kms.Key, { enableKeyRotation: false });

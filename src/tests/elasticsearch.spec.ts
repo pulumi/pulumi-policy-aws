@@ -20,7 +20,7 @@ import * as elasticsearch from "../elasticsearch";
 import { assertHasResourceViolation, assertNoResourceViolations, createResourceValidationArgs } from "./util";
 
 describe("#elasticsearchEncryptedAtRest", () => {
-    const policy = elasticsearch.elasticsearchEncryptedAtRest("mandatory");
+    const policy = elasticsearch.elasticsearchEncryptedAtRest;
     const domainName = "test-name";
 
     it("Should fail if domain's encryptAtRest is undefined", async () => {
@@ -56,7 +56,7 @@ describe("#elasticsearchEncryptedAtRest", () => {
 });
 
 describe("#elasticsearchInVpcOnly", () => {
-    const policy = elasticsearch.elasticsearchInVpcOnly("mandatory");
+    const policy = elasticsearch.elasticsearchInVpcOnly;
 
     it("Should fail if no VPC options are available", async () => {
         const args = createResourceValidationArgs(aws.elasticsearch.Domain, {});

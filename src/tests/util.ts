@@ -38,6 +38,7 @@ const empytOptions = {
 export function createResourceValidationArgs<TResource extends Resource, TArgs>(
     resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
     args: Unwrap<NonNullable<TArgs>>,
+    config?: Record<string, any>,
 ): policy.ResourceValidationArgs {
     const type = (<any>resourceClass).__pulumiType;
     if (typeof type !== "string") {
@@ -50,12 +51,9 @@ export function createResourceValidationArgs<TResource extends Resource, TArgs>(
         urn: "unknown",
         name: "unknown",
         opts: empytOptions,
-        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
-        asType: <R extends Resource, A>(
-            cls: { new(name: string, args: A, ...rest: any[]): R },
-        ): Unwrap<NonNullable<A>> | undefined =>
-            isTypeOf(type, cls) ? <unknown>args as Unwrap<NonNullable<A>> : undefined,
-        getConfig: <T>() => <T>{},
+        isType: (cls) => isTypeOf(type, resourceClass),
+        asType: (cls) => isTypeOf(type, cls) ? <any>args : undefined,
+        getConfig: <T>() => <T>(config || {}),
     };
 }
 
@@ -68,7 +66,9 @@ export interface PolicyViolation {
 // single resource with the provided type and properties.
 export function createStackValidationArgs<TResource extends Resource, TArgs>(
     resourceClass: { new(name: string, args: TArgs, ...rest: any[]): TResource },
-    props: any): policy.StackValidationArgs {
+    props: any,
+    config?: Record<string, any>,
+): policy.StackValidationArgs {
     const type = (<any>resourceClass).__pulumiType;
     if (typeof type !== "string") {
         assert.fail("Could not determine Pulumi type from resourceClass.");
@@ -82,14 +82,13 @@ export function createStackValidationArgs<TResource extends Resource, TArgs>(
         opts: empytOptions,
         dependencies: [],
         propertyDependencies: {},
-        isType: <R extends Resource>(cls: { new(...rest: any[]): R }): boolean => isTypeOf(type, cls),
-        asType: <R extends Resource>(cls: { new(...rest: any[]): R }): q.ResolvedResource<R> | undefined =>
-            isTypeOf(type, cls) ? props as q.ResolvedResource<R> : undefined,
+        isType: (cls) => isTypeOf(type, cls),
+        asType: (cls) => isTypeOf(type, cls) ? props : undefined,
     };
 
     return {
         resources: [testResource],
-        getConfig: <T>() => <T>{},
+        getConfig: <T>() => <T>(config || {}),
     } as policy.StackValidationArgs;
 }
 
