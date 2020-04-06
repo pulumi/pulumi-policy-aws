@@ -296,12 +296,11 @@ describe("#rdsInstanceBackupEnabled", () => {
                 backupRetentionPeriod: 7,
                 backupWindow: "window",
                 replicateSourceDb: "some-there-db",
-            },
-                {
-                    backupRetentionPeriod: 7,
-                    preferredBackupWindow: "window",
-                    checkReadReplicas: true,
-                });
+            }, {
+                backupRetentionPeriod: 7,
+                preferredBackupWindow: "window",
+                checkReadReplicas: true,
+            });
         }
 
         it("Should pass if backup retention explicity matches", async () => {
@@ -348,11 +347,10 @@ describe("#rdsInstanceBackupEnabled", () => {
                 instanceClass: "db.m5.large",
                 backupWindow: "another-window",
                 replicateSourceDb: "some-there-db",
-            },
-                {
-                    backupRetentionPeriod: 7,
-                    checkReadReplicas: true,
-                });
+            }, {
+                backupRetentionPeriod: 7,
+                checkReadReplicas: true,
+            });
         }
 
         it("Should pass if read replica is not backed up", async () => {
@@ -464,10 +462,9 @@ describe("#rdsStorageEncrypted", () => {
                 backupWindow: "random-window",
                 storageEncrypted: true,
                 kmsKeyId: "a-kms-key",
-            },
-                {
-                    kmsKeyId: "a-kms-key",
-                });
+            }, {
+                kmsKeyId: "a-kms-key",
+            });
         }
 
         it("Should pass if instance is encrypted and key is specified", async () => {
