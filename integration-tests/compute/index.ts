@@ -20,14 +20,14 @@ const testScenario = config.getNumber("scenario");
 
 console.log(`Running test scenario #${testScenario}`);
 
-const ami = aws.getAmi({
+const ami = pulumi.output(aws.getAmi({
     filters: [{
         name: "name",
         values: ["amzn-ami-hvm-*"],
     }],
     owners: ["137112412989"], // This owner ID is Amazon
     mostRecent: true,
-});
+}));
 
 let ec2InstanceArgs: aws.ec2.InstanceArgs = {
     ami: ami.id,
