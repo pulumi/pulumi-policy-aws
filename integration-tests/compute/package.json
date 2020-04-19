@@ -2,8 +2,11 @@
     "name": "awsguard-test-compute",
     "main": "index.ts",
     "dependencies": {
-        "@pulumi/pulumi": "^1.0.0",
-        "@pulumi/aws": "^1.0.0",
-        "@pulumi/awsx": "^0.18.10"
+        "@pulumi/pulumi": "^2.0.0",
+        "@pulumi/aws": "^2.0.0",
+        "@pulumi/awsx": "^0.19.3"
+    },
+    "resolutions": {
+        "@pulumi/aws": "^2.0.0"
     }
 }

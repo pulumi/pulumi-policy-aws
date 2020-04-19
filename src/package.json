@@ -8,11 +8,11 @@
         "policy"
     ],
     "homepage": "https://www.pulumi.com",
-    "repository": "https://github.com/pulumi/pulumi-awsguard",
+    "repository": "https://github.com/pulumi/pulumi-policy-aws",
     "dependencies": {
-        "@pulumi/aws": "^1.0.0",
-        "@pulumi/policy": "^1.0.0",
-        "@pulumi/pulumi": "^1.0.0",
+        "@pulumi/aws": "^2.0.0",
+        "@pulumi/policy": "^1.1.0",
+        "@pulumi/pulumi": "^2.0.0",
         "aws-sdk": "^2.545.0"
     },
     "devDependencies": {
