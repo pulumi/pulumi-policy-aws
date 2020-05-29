@@ -17,7 +17,7 @@ package integrationtests
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -51,7 +51,7 @@ func runPolicyPackIntegrationTest(
 	if err != nil {
 		t.Fatalf("Error getting working directory")
 	}
-	testProgramDir := path.Join(cwd, pulumiProgramDir)
+	testProgramDir := filepath.Join(cwd, pulumiProgramDir)
 
 	stackName := fmt.Sprintf("%s-%d", pulumiProgramDir, time.Now().Unix()%100000)
 

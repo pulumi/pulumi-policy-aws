@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 
 	"github.com/pkg/errors"
@@ -42,7 +42,7 @@ type awsGuardSettings struct {
 }
 
 // validate confirms the settings present are reasonable. Since we are writing these settings
-// into JS code that gets executed, a malicious user could do some pretty nasty things without
+// into TS code that gets executed, a malicious user could do some pretty nasty things without
 // safeguards in place.
 func (settings awsGuardSettings) validate() error {
 	// default enforcement level
@@ -76,37 +76,62 @@ func (settings awsGuardSettings) CreatePolicyPack(e *ptesting.Environment) (stri
 
 	initialCWD := e.CWD
 
-	moduleFolder := path.Join(e.RootPath, "custom-awsguard")
+	moduleFolder := filepath.Join(e.RootPath, "custom-awsguard")
 	if err := os.Mkdir(moduleFolder, os.ModeDir|os.ModePerm); err != nil {
 		return "", errors.Wrap(err, "creating folder for customized AWS Guard module")
 	}
 
 	// PulumiPolicy.yaml, for the policy pack.
-	pulumiPolicyYamlFilePath := path.Join(moduleFolder, "PulumiPolicy.yaml")
+	pulumiPolicyYamlFilePath := filepath.Join(moduleFolder, "PulumiPolicy.yaml")
 	if err := ioutil.WriteFile(pulumiPolicyYamlFilePath, []byte("runtime: nodejs\n"), os.ModePerm); err != nil {
 		return "", errors.Wrap(err, "writing PulumiPolicy.yaml")
 	}
 
 	// package.json, defining the module itself.
-	packageJSONFilePath := path.Join(moduleFolder, "package.json")
+	packageJSONFilePath := filepath.Join(moduleFolder, "package.json")
 	packageJSONFileContents := `{
 		"name": "custom-awsguard",
 		"version": "1.0.0",
 		"description": "Customized AWS Guard policy pack for integration tests.",
-		"main": "index.js",
 		"dependencies": {
 			"@pulumi/awsguard": "latest"
 		}
-	  }`
+	}`
 	if err := ioutil.WriteFile(packageJSONFilePath, []byte(packageJSONFileContents), os.ModePerm); err != nil {
 		return "", errors.Wrap(err, "writing package.json")
 	}
 
-	// index.js, which contains encodes the settings via code.
-	indexTsFilePath := path.Join(moduleFolder, "index.js")
-	indexTsFileContents := settings.renderIndexJSFile()
+	tsconfigJSONFilePath := filepath.Join(moduleFolder, "tsconfig.json")
+	tsconfigJSONFileContents := `{
+		"compilerOptions": {
+			"outDir": "bin",
+			"target": "es6",
+			"module": "commonjs",
+			"moduleResolution": "node",
+			"declaration": true,
+			"sourceMap": false,
+			"stripInternal": true,
+			"experimentalDecorators": true,
+			"pretty": true,
+			"noFallthroughCasesInSwitch": true,
+			"noImplicitAny": true,
+			"noImplicitReturns": true,
+			"forceConsistentCasingInFileNames": true,
+			"strictNullChecks": true,
+		},
+		"files": [
+			"index.ts"
+		]
+	}`
+	if err := ioutil.WriteFile(tsconfigJSONFilePath, []byte(tsconfigJSONFileContents), os.ModePerm); err != nil {
+		return "", errors.Wrap(err, "writing tsconfig.json")
+	}
+
+	// index.ts, which contains encodes the settings via code.
+	indexTsFilePath := filepath.Join(moduleFolder, "index.ts")
+	indexTsFileContents := settings.renderIndexTSFile()
 	if err := ioutil.WriteFile(indexTsFilePath, []byte(indexTsFileContents), os.ModePerm); err != nil {
-		return "", errors.Wrap(err, "writing index.js")
+		return "", errors.Wrap(err, "writing index.ts")
 	}
 
 	// Run `yarn` in the custom policy packs folder, to download the AWS Guard module as
@@ -114,16 +139,18 @@ func (settings awsGuardSettings) CreatePolicyPack(e *ptesting.Environment) (stri
 	e.CWD = moduleFolder
 	e.RunCommand("yarn", "install")
 	e.RunCommand("yarn", "link", "@pulumi/awsguard")
+	// Ensure it compiles.
+	e.RunCommand("yarn", "run", "tsc")
 	e.CWD = initialCWD
 
 	return moduleFolder, nil
 }
 
-// renderIndexJSFile returns the contents of the customized index.js file.
-func (settings awsGuardSettings) renderIndexJSFile() string {
+// renderIndexTSFile returns the contents of the customized index.ts file.
+func (settings awsGuardSettings) renderIndexTSFile() string {
 	contents := bytes.NewBufferString(`// Generated code. Do not edit.
-const awsguard = require("@pulumi/awsguard");
-new awsguard.AwsGuard({
+import { AwsGuard } from "@pulumi/awsguard";
+new AwsGuard({
 `)
 
 	// Write the default enforcement level.
