@@ -135,7 +135,7 @@ describe("#iamAccessKeysRotated", () => {
             maxKeyAge: 30,
         });
         await assertHasStackViolation(policy, args, {
-            message: "access key must be rotated within 30 days (key is 180 days old)",
+            message: "access key must be rotated within 30 days",
         });
     });
 });
