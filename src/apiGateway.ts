@@ -55,7 +55,6 @@ export const apiGatewayMethodCachedAndEncrypted: ResourceValidationPolicy = {
 };
 registerPolicy("apiGatewayMethodCachedAndEncrypted", apiGatewayMethodCachedAndEncrypted);
 
-/** @internal */
 export interface ApiGatewayEndpointTypeArgs {
     /**
      * Whether or not API Endpoint type EDGE is allowed. Will default to true
