@@ -19,12 +19,12 @@ In this guide, we'll show you how to create a Policy Pack that configures and us
 ### Prerequisites
 
 - [Install Pulumi](https://www.pulumi.com/docs/get-started/install/)
-- [Install Node.js version 8 or later](https://nodejs.org/en/download/)
+- [Install Node.js](https://nodejs.org/en/download/)
 
 ### Verify your version of the Pulumi CLI
 
 ```sh
-pulumi version # should be v1.6.1 or later
+pulumi version # should be v2.0.0 or later
 ```
 
 ### Authoring a Policy Pack that uses AWSGuard policies
@@ -37,27 +37,9 @@ To use AWSGuard policies, you must create a Policy Pack that references the `@pu
     mkdir awsguard && cd awsguard
     ```
 
-2. Run the `pulumi policy new` command. Since Policy as Code is in preview, you will need to set `PULUMI_EXPERIMENTAL=true` as an environment variable.
-
-    **macOS or Linux:** You can run `export PULUMI_EXPERIMENTAL=true` or simply prepend it to your commands as shown.
+2. Run the `pulumi policy new` command.
 
     ```sh
-    PULUMI_EXPERIMENTAL=true pulumi policy new awsguard-typescript
-    ```
-
-    On Windows, you must first set the environment variable before running the command.
-
-    **Windows cmd.exe**
-
-    ```sh
-    set PULUMI_EXPERIMENTAL=true
-    pulumi policy new awsguard-typescript
-    ```
-
-    **Windows PowerShell**
-
-    ```sh
-    $env:PULUMI_EXPERIMENTAL = 'true'
     pulumi policy new awsguard-typescript
     ```
 
@@ -128,23 +110,7 @@ Policy Packs can be tested on a user's local workstation to facilitate rapid dev
 
     In the Pulumi project's directory run:
 
-    **macOS or Linux**:
-
     ```sh
-    PULUMI_DEBUG_COMMANDS=true pulumi preview --policy-pack <path-to-policy-pack-directory>
-    ```
-
-    **Windows cmd.exe**
-
-    ```sh
-    set PULUMI_EXPERIMENTAL=true
-    pulumi preview --policy-pack <path-to-policy-pack-directory>
-    ```
-
-    **Windows PowerShell**
-
-    ```sh
-    $env:PULUMI_EXPERIMENTAL = 'true'
     pulumi preview --policy-pack <path-to-policy-pack-directory>
     ```
 
@@ -157,13 +123,10 @@ Policy Packs can be tested on a user's local workstation to facilitate rapid dev
     +   pulumi:pulumi:Stack  test-dev       create
     +   └─ aws:s3:Bucket     my-bucket      create     1 warning
 
-    Diagnostics:
-    aws:s3:Bucket (my-bucket):
-        advisory: [s3-bucket-logging-enabled] Checks whether logging is enabled for your S3 buckets.
+    Policy Violations:
+        [advisory]  pulumi-awsguard v0.0.1  s3-bucket-logging-enabled (my-bucket: aws:s3/bucket:Bucket)
+        Checks whether logging is enabled for your S3 buckets.
         Bucket logging must be defined.
-
-    Resources:
-        + 2 to create
     ```
 
 1. If you had wanted the preview to fail for any policy violations, the Policy Pack can be modified to configure all policies to be mandatory.
@@ -182,11 +145,12 @@ Policy Packs can be tested on a user's local workstation to facilitate rapid dev
     +   └─ aws:s3:Bucket     my-bucket      create     1 error
 
     Diagnostics:
-    pulumi:pulumi:Stack (test-dev):
+      pulumi:pulumi:Stack (test-dev):
         error: preview failed
 
-    aws:s3:Bucket (my-bucket):
-        mandatory: [s3-bucket-logging-enabled] Checks whether logging is enabled for your S3 buckets.
+    Policy Violations:
+        [mandatory]  pulumi-awsguard v0.0.1  s3-bucket-logging-enabled (my-bucket: aws:s3/bucket:Bucket)
+        Checks whether logging is enabled for your S3 buckets.
         Bucket logging must be defined.
     ```
 
