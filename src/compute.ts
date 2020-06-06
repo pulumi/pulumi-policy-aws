@@ -1,4 +1,4 @@
-// Copyright 2016-2019, Pulumi Corporation.
+// Copyright 2016-2020, Pulumi Corporation.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -132,13 +132,13 @@ export const encryptedVolumes: ResourceValidationPolicy = {
         const { kmsId } = args.getConfig<EncryptedVolumesArgs>();
 
         if (!instance.rootBlockDevice) {
-            reportViolation(`The EC2 instance root block device must be encrypted.`);
+            reportViolation("The EC2 instance root block device must be encrypted.");
         }
 
         if (instance.rootBlockDevice) {
             const rootBlockDevice = instance.rootBlockDevice;
             if (!rootBlockDevice.encrypted) {
-                reportViolation(`The EC2 instance root block device must be encrypted.`);
+                reportViolation("The EC2 instance root block device must be encrypted.");
             }
             if (kmsId && rootBlockDevice.kmsKeyId !== kmsId) {
                 reportViolation(`The EC2 instance root block device must be encrypted with required key: ${kmsId}.`);

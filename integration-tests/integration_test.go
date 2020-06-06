@@ -222,7 +222,7 @@ func TestComputeEC2(t *testing.T) {
 					"EC2 instance must have an EBS volume attached",
 				},
 			},
-			// Test scenario 7 - an attached EBS that is not marked for deletion on termination of the EC2
+			// Test scenario 7 - an attached EBS volume that is not marked for deletion on termination of the EC2
 			// and is not encrypted.
 			{
 				WantErrors: []string{
