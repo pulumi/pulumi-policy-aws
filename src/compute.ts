@@ -131,6 +131,20 @@ export const encryptedVolumes: ResourceValidationPolicy = {
     validateResource: validateResourceOfType(aws.ec2.Instance, (instance, args, reportViolation) => {
         const { kmsId } = args.getConfig<EncryptedVolumesArgs>();
 
+        if (!instance.rootBlockDevice) {
+            reportViolation(`The EC2 instance root block device must be encrypted.`);
+        }
+
+        if (instance.rootBlockDevice) {
+            const rootBlockDevice = instance.rootBlockDevice;
+            if (!rootBlockDevice.encrypted) {
+                reportViolation(`The EC2 instance root block device must be encrypted.`);
+            }
+            if (kmsId && rootBlockDevice.kmsKeyId !== kmsId) {
+                reportViolation(`The EC2 instance root block device must be encrypted with required key: ${kmsId}.`);
+            }
+        }
+
         if (instance.ebsBlockDevices && instance.ebsBlockDevices.length > 0) {
             for (const ebs of instance.ebsBlockDevices) {
                 if (!ebs.encrypted) {

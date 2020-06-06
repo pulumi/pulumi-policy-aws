@@ -33,6 +33,9 @@ let ec2InstanceArgs: aws.ec2.InstanceArgs = {
     ami: ami.id,
     monitoring: true,
     instanceType: "t2.micro",
+    rootBlockDevice: {
+        encrypted: true
+    },
     ebsBlockDevices: [{
         deviceName: "/dev/test",
         encrypted: true,
@@ -138,6 +141,33 @@ switch (testScenario) {
                 encrypted: false,
                 deleteOnTermination: false,
             }],
+        };
+        break;
+    case 8: 
+        // an EBS root volume with encryption set to false.
+        ec2InstanceArgs = {
+            ami: ami.id,
+            monitoring: true,
+            instanceType: "t2.micro",
+            rootBlockDevice: {
+                encrypted: false
+            },
+            ebsBlockDevices: [{
+                deviceName: "/dev/test",
+                encrypted: true
+            }]
+        };
+        break;
+    case 9: 
+        // No explict root volume settings defined defaulting encryption to false.
+        ec2InstanceArgs = {
+            ami: ami.id,
+            monitoring: true,
+            instanceType: "t2.micro",
+            ebsBlockDevices: [{
+                deviceName: "/dev/test",
+                encrypted: true
+            }]
         };
         break;
     default:
