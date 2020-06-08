@@ -13,6 +13,6 @@
 - Add rdsInstanceMultiAZEnabled policy.	
 - Upgrade to @pulumi/policy v1.1.0 and @pulumi/pulumi v2.0.0.	
 
-## 0.1.0 (2019-11-26)	
+## 0.1.0 (2019-11-26)
 
 - Initial preview release.
