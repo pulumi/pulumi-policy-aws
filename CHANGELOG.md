@@ -1,3 +1,7 @@
+## HEAD (Unreleased)
+
+- Add root volume encryption validation to `encrypted-volumes` policy.
+
 ## 0.2.1 (2020-05-29)
 
 - Fix TypeScript compiler error when using the library (thanks @rsclarke-vgw!)
