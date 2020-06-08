@@ -4,8 +4,8 @@
 
 ## 0.2.1 (2020-05-29)
 
-- Fix TypeScript compiler error when using the library (thanks @rsclarke-vgw!)	
-  [#60](https://github.com/pulumi/pulumi-policy-aws/pull/60)	
+- Fix TypeScript compiler error when using the library (thanks @rsclarke-vgw!)
+  [#60](https://github.com/pulumi/pulumi-policy-aws/pull/60)
 
 ## 0.2.0 (2020-04-17)	
 
