@@ -24,73 +24,69 @@ import { assertHasResourceViolation, assertNoResourceViolations, createResourceV
 
 
 describe("#ec2BlockDeviceEncryption", () => {
-  const policy = compute.encryptedVolumes;
+    const policy = compute.encryptedVolumes;
 
-  function getHappyPathArgs(): ResourceValidationArgs {
-    return createResourceValidationArgs(aws.ec2.Instance, {
-      ami: "ami-12345678",
-      instanceType: "t2.micro",
-      rootBlockDevice: {
-        encrypted: true,
-        kmsKeyId: "test-key-id",
-      },
-      ebsBlockDevices: [{
-        deviceName: "/dev/test",
-        encrypted: true,
-        kmsKeyId: "test-key-id",
-      }],
-    }, { kmsId: "test-key-id" },
-    );
-  }
+    function getHappyPathArgs(): ResourceValidationArgs {
+        return createResourceValidationArgs(aws.ec2.Instance, {
+            ami: "ami-12345678",
+            instanceType: "t2.micro",
+            rootBlockDevice: {
+                encrypted: true,
+                kmsKeyId: "test-key-id",
+            },
+            ebsBlockDevices: [{
+                deviceName: "/dev/test",
+                encrypted: true,
+                kmsKeyId: "test-key-id",
+            }],
+          }, { kmsId: "test-key-id" },
+        );
+    }
 
-  it("Should pass if the instance is configured properly.", async () => {
-    const args = getHappyPathArgs();
-    await assertNoResourceViolations(policy, args);
-  });
+    it("Should pass if the instance is configured properly.", async () => {
+        const args = getHappyPathArgs();
+        await assertNoResourceViolations(policy, args);
+    });
 
-  it("Should fail if root block device is undefined", async () => {
-    const args = getHappyPathArgs();
-    args.props.rootBlockDevice = undefined;
+    it("Should fail if root block device is undefined", async () => {
+        const args = getHappyPathArgs();
+        args.props.rootBlockDevice = undefined;
 
-    const msg = "The EC2 instance root block device must be encrypted.";
-    await assertHasResourceViolation(policy, args, { message: msg });
+        const msg = "The EC2 instance root block device must be encrypted.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
 
-  });
+    it("Should fail if root block device is unencrypted", async () => {
+        const args = getHappyPathArgs();
+        args.props.rootBlockDevice = {
+          encrypted: false,
+        };
 
-  it("Should fail if root block device is unencrypted", async () => {
-    const args = getHappyPathArgs();
-    args.props.rootBlockDevice = {
-      encrypted: false,
-    };
+        const msg = "The EC2 instance root block device must be encrypted.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
 
-    const msg = "The EC2 instance root block device must be encrypted.";
-    await assertHasResourceViolation(policy, args, { message: msg });
+    it("Should fail if the root block device is encrypted with an improper key", async () => {
+        const args = getHappyPathArgs();
+        args.props.rootBlockDevice.kmsKeyId = "incorrect-key";
 
-  });
+        const msg = "The EC2 instance root block device must be encrypted with required key: test-key-id.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
 
-  it("Should fail if the root block device is encrypted with an improper key", async () => {
-    const args = getHappyPathArgs();
-    args.props.rootBlockDevice.kmsKeyId = "incorrect-key";
+    it("Should fail if any additional ebs block devices are unencrypted", async () => {
+        const args = getHappyPathArgs();
+        args.props.ebsBlockDevices[0].encrypted = false;
 
-    const msg = "The EC2 instance root block device must be encrypted with required key: test-key-id.";
-    await assertHasResourceViolation(policy, args, { message: msg });
+        const msg = "EBS volume (undefined) must be encrypted.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
 
-  });
+    it("Should fail if any additional ebs block devices are encrypted with an improper key", async () => {
+        const args = getHappyPathArgs();
+        args.props.ebsBlockDevices[0].kmsKeyId = "incorrect-key";
 
-  it("Should fail if any additional ebs block devices are unencrypted", async () => {
-    const args = getHappyPathArgs();
-    args.props.ebsBlockDevices[0].encrypted = false;
-
-    const msg = "EBS volume (undefined) must be encrypted.";
-    await assertHasResourceViolation(policy, args, { message: msg });
-
-  });
-
-  it("Should fail if any additional ebs block devices are encrypted with an improper key", async () => {
-    const args = getHappyPathArgs();
-    args.props.ebsBlockDevices[0].kmsKeyId = "incorrect-key";
-
-    const msg = "EBS volume (undefined) must be encrypted with required key: test-key-id.";
-    await assertHasResourceViolation(policy, args, { message: msg });
-  });
+        const msg = "EBS volume (undefined) must be encrypted with required key: test-key-id.";
+        await assertHasResourceViolation(policy, args, { message: msg });
+    });
 });
