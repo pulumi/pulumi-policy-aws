@@ -1,10 +1,11 @@
-## HEAD (Unreleased)
+## 0.2.2 (2020-06-08)
 
-- Add root volume encryption validation to `encrypted-volumes` policy.
+- Add root volume encryption validation to `encrypted-volumes` policy. (Thanks @andrewpurdin!)
+  [#68](https://github.com/pulumi/pulumi-policy-aws/pull/68)
 
 ## 0.2.1 (2020-05-29)
 
-- Fix TypeScript compiler error when using the library (thanks @rsclarke-vgw!)
+- Fix TypeScript compiler error when using the library. (Thanks @rsclarke-vgw!)
   [#60](https://github.com/pulumi/pulumi-policy-aws/pull/60)
 
 ## 0.2.0 (2020-04-17)
