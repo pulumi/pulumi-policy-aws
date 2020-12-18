@@ -1,3 +1,8 @@
+## HEAD (Unreleased)
+_(none)_
+
+---
+
 ## 0.2.2 (2020-06-08)
 
 - Add root volume encryption validation to `encrypted-volumes` policy. (Thanks @andrewpurdin!)
