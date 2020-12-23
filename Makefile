@@ -5,11 +5,11 @@ include build/common.mk
 .PHONY: ensure
 ensure::
 	# Golang dependencies for the integration tests.
-	go get -t -d ./integration-tests
+	cd ./integration-tests && go mod download && go mod tidy
 
 .PHONY: test_all
 test_all::
-	go test ./integration-tests/ -v -timeout 30m
+	cd ./integration-tests && go test . -v -timeout 30m
 
 .PHONY: publish
 publish:
