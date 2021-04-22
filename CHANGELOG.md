@@ -1,5 +1,6 @@
 ## HEAD (Unreleased)
-_(none)_
+
+- Upgrade to Pulumi v3.0
 
 ---
 
