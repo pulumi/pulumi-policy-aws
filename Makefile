@@ -5,7 +5,7 @@ include build/common.mk
 .PHONY: ensure
 ensure::
 	# Golang dependencies for the integration tests.
-	cd ./integration-tests && go mod download && go mod tidy
+	cd ./integration-tests && go mod download
 
 .PHONY: test_all
 test_all::

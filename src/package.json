@@ -10,9 +10,9 @@
     "homepage": "https://www.pulumi.com",
     "repository": "https://github.com/pulumi/pulumi-policy-aws",
     "dependencies": {
-        "@pulumi/aws": "^2.0.0",
-        "@pulumi/policy": "^1.2.0",
-        "@pulumi/pulumi": "^2.0.0",
+        "@pulumi/aws": "^4.0.0",
+        "@pulumi/policy": "^1.3.0",
+        "@pulumi/pulumi": "^3.0.0",
         "aws-sdk": "^2.545.0"
     },
     "devDependencies": {

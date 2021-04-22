@@ -24,7 +24,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	ptesting "github.com/pulumi/pulumi/sdk/v2/go/common/testing"
+	ptesting "github.com/pulumi/pulumi/sdk/v3/go/common/testing"
 )
 
 // Regex used to verify that policy names are reasonable.

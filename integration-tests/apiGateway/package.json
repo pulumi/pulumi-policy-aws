@@ -2,7 +2,7 @@
     "name": "awsguard-test-api-gateway",
     "main": "index.ts",
     "dependencies": {
-        "@pulumi/pulumi": "^2.0.0",
-        "@pulumi/aws": "^2.0.0"
+        "@pulumi/pulumi": "^3.0.0",
+        "@pulumi/aws": "^4.0.0"
     }
 }

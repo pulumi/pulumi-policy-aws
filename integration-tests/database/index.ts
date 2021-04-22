@@ -51,7 +51,10 @@ switch (testScenario) {
         // Happy Path for dynamodb.
         dynamodbArgs = {
             hashKey: "test",
-            attributes: [],
+            attributes: [{
+                name: "test",
+                type: "S",
+            }],
             serverSideEncryption: {
                 enabled: true,
             },
@@ -61,7 +64,10 @@ switch (testScenario) {
         // Dynamodb server side encryption disabled.
         dynamodbArgs = {
             hashKey: "test",
-            attributes: [],
+            attributes: [{
+                name: "test",
+                type: "S",
+            }],
             serverSideEncryption: {
                 enabled: false,
             },

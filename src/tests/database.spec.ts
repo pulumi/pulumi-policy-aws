@@ -259,7 +259,10 @@ describe("#dynamodbTableEncryptionEnabled", () => {
     function getHappyPathArgs(): ResourceValidationArgs {
         return createResourceValidationArgs(aws.dynamodb.Table, {
             hashKey: "test",
-            attributes: [],
+            attributes: [{
+                name: "test",
+                type: "S",
+            }],
             serverSideEncryption: {
                 enabled: true,
             },
