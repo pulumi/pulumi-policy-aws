@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as AWS from "aws-sdk";
-
+import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
 import {
@@ -27,7 +27,9 @@ import {
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
+import { Config } from "@pulumi/pulumi";
 
+const myregion = aws.config.region;
 
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
@@ -61,7 +63,7 @@ export const acmCertificateExpiration: StackValidationPolicy = {
         },
         validateStack: validateStackResourcesOfType(aws.acm.Certificate, async (acmCertificates, args, reportViolation) => {
             const { maxDaysUntilExpiration } =  args.getConfig<AcmCertificateExpirationArgs>();
-            const acm = new AWS.ACM();
+            const acm = new AWS.ACM({region: myregion});
             // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
             for (const certInStack of acmCertificates) {
                 const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id }).promise();
