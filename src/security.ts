@@ -30,7 +30,7 @@ import { PolicyArgs } from "./policyArgs";
 import { Config } from "@pulumi/pulumi";
 
 //const myregion = aws.config.region;
-const myregion = "us-east-2";
+const myregion = "us-east-1";
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
     interface AwsGuardArgs {
