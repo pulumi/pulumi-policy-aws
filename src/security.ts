@@ -66,7 +66,7 @@ export const acmCertificateExpiration: StackValidationPolicy = {
             const acm = new AWS.ACM({region: myregion});
             // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
             for (const certInStack of acmCertificates) {
-                certInStack.region = "us-east-2";
+                certInStack.region = "us-jumble-2";
                 const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id}).promise();
                 const certDescription = describeCertResp.Certificate;
                 if (certDescription && certDescription.NotAfter) {
