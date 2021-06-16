@@ -27,7 +27,6 @@ import {
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
-//import { Config } from "@pulumi/pulumi";
 
 const awsConfigRegion = aws.config.region;
 
