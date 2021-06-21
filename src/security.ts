@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as AWS from "aws-sdk";
+
 import * as aws from "@pulumi/aws";
 
 import {
