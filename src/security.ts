@@ -28,6 +28,8 @@ import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
 import { PolicyArgs } from "./policyArgs";
 
+// Retrieving the aws region
+const awsConfigRegion = aws.config.region;
 
 // Mixin additional properties onto AwsGuardArgs.
 declare module "./awsGuard" {
@@ -61,10 +63,11 @@ export const acmCertificateExpiration: StackValidationPolicy = {
         },
         validateStack: validateStackResourcesOfType(aws.acm.Certificate, async (acmCertificates, args, reportViolation) => {
             const { maxDaysUntilExpiration } =  args.getConfig<AcmCertificateExpirationArgs>();
-            const acm = new AWS.ACM();
+            // Need to pass in aws region for acm.
+            const acm = new AWS.ACM({region: awsConfigRegion});
             // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
             for (const certInStack of acmCertificates) {
-                const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id }).promise();
+                const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id}).promise();
                 const certDescription = describeCertResp.Certificate;
                 if (certDescription && certDescription.NotAfter) {
                     let daysUntilExpiry = (certDescription.NotAfter.getTime() - Date.now()) / msInDay;

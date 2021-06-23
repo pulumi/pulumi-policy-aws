@@ -1,8 +1,15 @@
 ## HEAD (Unreleased)
 
-- Upgrade to Pulumi v3.0
-
 ---
+
+## 0.2.4 (2021-06-16)
+
+- Pass in the aws region for acm certificate. (Thanks @arwilczek90!)
+  [#77](https://github.com/pulumi/pulumi-policy-aws/issues/77)
+
+## 0.2.3 (2021-04-22)
+
+- Upgrade to Pulumi v3.0
 
 ## 0.2.2 (2020-06-08)
 
