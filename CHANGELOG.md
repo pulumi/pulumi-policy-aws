@@ -2,7 +2,7 @@
 
 ---
 
-## 0.2.4 (2021-06-16)
+## 0.2.4 (2021-07-05)
 
 - Pass in the aws region for acm certificate. (Thanks @arwilczek90!)
   [#77](https://github.com/pulumi/pulumi-policy-aws/issues/77)
