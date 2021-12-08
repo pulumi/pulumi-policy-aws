@@ -87,7 +87,7 @@ jobs:
       - name: Run Integration Tests
         run: make test_all
       - name: Publish
-        run: make publish_packages
+        run: make publish
       - name: Trigger Docs Build
         run: |
           ./ci-scripts/ci/build-package-docs.sh "policy-aws"
