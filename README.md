@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/pulumi/pulumi-policy-aws.svg?branch=master)](https://travis-ci.com/pulumi/pulumi-policy-aws)
+![Build Status](https://github.com/pulumi/pulumi-policy-aws/actions/workflows/master.yml/badge.svg)
 
 # Pulumi CrossGuard policies for AWS (Preview)
 
