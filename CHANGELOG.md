@@ -2,6 +2,11 @@
 
 ---
 
+## 0.2.5 (2022-01-06)
+
+- Don't attempt to retrieve ACM certificate from AWS if certificate hasn't been created.
+  [#80](https://github.com/pulumi/pulumi-policy-aws/pull/80)
+
 ## 0.2.4 (2021-07-05)
 
 - Pass in the aws region for acm certificate. (Thanks @arwilczek90!)
