@@ -51,26 +51,34 @@ switch (testScenario) {
         // Happy Path for dynamodb.
         dynamodbArgs = {
             hashKey: "test",
-            attributes: [{
-                name: "test",
-                type: "S",
-            }],
+            attributes: [
+                {
+                    name: "test",
+                    type: "S",
+                },
+            ],
             serverSideEncryption: {
                 enabled: true,
             },
+            readCapacity: 1,
+            writeCapacity: 1,
         };
         break;
     case 4:
         // Dynamodb server side encryption disabled.
         dynamodbArgs = {
             hashKey: "test",
-            attributes: [{
-                name: "test",
-                type: "S",
-            }],
+            attributes: [
+                {
+                    name: "test",
+                    type: "S",
+                },
+            ],
             serverSideEncryption: {
                 enabled: false,
             },
+            readCapacity: 1,
+            writeCapacity: 1,
         };
         break;
     case 5:
@@ -93,7 +101,7 @@ switch (testScenario) {
         throw new Error(`Unexpected test scenario ${testScenario}`);
 }
 
-const name = `awsguard-${pulumi.getStack()}`
+const name = `awsguard-${pulumi.getStack()}`;
 if (redshiftClusterArgs) {
     console.log("Creating redshift cluster: ", name);
     new aws.redshift.Cluster("test-cluster", redshiftClusterArgs);
