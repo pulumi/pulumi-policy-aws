@@ -24,87 +24,93 @@ let rdsInstanceArgs: aws.rds.InstanceArgs | undefined;
 
 console.log(`Running test scenario #${testScenario}`);
 switch (testScenario) {
-    case 1:
-        // Happy Path for redshift cluster.
-        redshiftClusterArgs = {
-            clusterIdentifier: "test",
-            nodeType: "dc1.large",
-            allowVersionUpgrade: true,
-            logging: {
-                enable: true,
-                bucketName: "random bucket",
-            },
-            encrypted: true,
-            publiclyAccessible: false,
-        };
-        break;
-    case 2:
-        // Logging undefined, not encrypted, does not allow version upgrade
-        // and is publicly accessible for redshift cluster.
-        redshiftClusterArgs = {
-            clusterIdentifier: "test",
-            nodeType: "dc1.large",
-            allowVersionUpgrade: false,
-        };
-        break;
-    case 3:
-        // Happy Path for dynamodb.
-        dynamodbArgs = {
-            hashKey: "test",
-            attributes: [{
-                name: "test",
-                type: "S",
-            }],
-            serverSideEncryption: {
-                enabled: true,
-            },
-        };
-        break;
-    case 4:
-        // Dynamodb server side encryption disabled.
-        dynamodbArgs = {
-            hashKey: "test",
-            attributes: [{
-                name: "test",
-                type: "S",
-            }],
-            serverSideEncryption: {
-                enabled: false,
-            },
-        };
-        break;
-    case 5:
-        // RDS Instance happy path.
-        rdsInstanceArgs = {
-            instanceClass: "db.m5.large",
-            storageEncrypted: true,
-            multiAz: true,
-        };
-        break;
-    case 6:
-        // RDS Instance - no backup & no multiAz.
-        rdsInstanceArgs = {
-            instanceClass: "db.m5.large",
-            backupRetentionPeriod: 0,
-            publiclyAccessible: true,
-        };
-        break;
-    default:
-        throw new Error(`Unexpected test scenario ${testScenario}`);
+  case 1:
+    // Happy Path for redshift cluster.
+    redshiftClusterArgs = {
+      clusterIdentifier: "test",
+      nodeType: "dc1.large",
+      allowVersionUpgrade: true,
+      logging: {
+        enable: true,
+        bucketName: "random bucket",
+      },
+      encrypted: true,
+      publiclyAccessible: false,
+    };
+    break;
+  case 2:
+    // Logging undefined, not encrypted, does not allow version upgrade
+    // and is publicly accessible for redshift cluster.
+    redshiftClusterArgs = {
+      clusterIdentifier: "test",
+      nodeType: "dc1.large",
+      allowVersionUpgrade: false,
+    };
+    break;
+  case 3:
+    // Happy Path for dynamodb.
+    dynamodbArgs = {
+      hashKey: "test",
+      attributes: [
+        {
+          name: "test",
+          type: "S",
+        },
+      ],
+      serverSideEncryption: {
+        enabled: true,
+      },
+    };
+    break;
+  case 4:
+    // Dynamodb server side encryption disabled.
+    dynamodbArgs = {
+      hashKey: "test",
+      attributes: [
+        {
+          name: "test",
+          type: "S",
+        },
+      ],
+      serverSideEncryption: {
+        enabled: false,
+      },
+      readCapacity: 1,
+      writeCapacity: 1,
+    };
+    break;
+  case 5:
+    // RDS Instance happy path.
+    rdsInstanceArgs = {
+      instanceClass: "db.m5.large",
+      storageEncrypted: true,
+      multiAz: true,
+    };
+    break;
+  case 6:
+    // RDS Instance - no backup & no multiAz.
+    rdsInstanceArgs = {
+      instanceClass: "db.m5.large",
+      backupRetentionPeriod: 0,
+      publiclyAccessible: true,
+    };
+    break;
+  default:
+    throw new Error(`Unexpected test scenario ${testScenario}`);
 }
 
-const name = `awsguard-${pulumi.getStack()}`
+const name = `awsguard-${pulumi.getStack()}`;
 if (redshiftClusterArgs) {
-    console.log("Creating redshift cluster: ", name);
-    new aws.redshift.Cluster("test-cluster", redshiftClusterArgs);
+  console.log("Creating redshift cluster: ", name);
+  new aws.redshift.Cluster("test-cluster", redshiftClusterArgs);
 }
 
 if (dynamodbArgs) {
-    console.log("Creating dynamodb table: ", name);
-    new aws.dynamodb.Table("test-table", dynamodbArgs);
+  console.log("Creating dynamodb table: ", name);
+  new aws.dynamodb.Table("test-table", dynamodbArgs);
 }
 
 if (rdsInstanceArgs) {
-    console.log("Creating rds instance: ", name);
-    new aws.rds.Instance("test-rds-instance", rdsInstanceArgs);
+  console.log("Creating rds instance: ", name);
+  new aws.rds.Instance("test-rds-instance", rdsInstanceArgs);
 }
