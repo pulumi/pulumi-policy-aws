@@ -60,6 +60,8 @@ switch (testScenario) {
       serverSideEncryption: {
         enabled: true,
       },
+      readCapacity: 1,
+      writeCapacity: 1,
     };
     break;
   case 4:
