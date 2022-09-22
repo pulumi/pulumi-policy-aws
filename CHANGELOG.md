@@ -1,5 +1,8 @@
 ## HEAD (Unreleased)
 
+- Bump `@pulumi/aws` version to ^5.0.0 to fix 4.0.0 conflicts
+  [#85](https://github.com/pulumi/pulumi-policy-aws/pull/85)
+  
 ---
 
 ## 0.3.1 (2022-01-11)
