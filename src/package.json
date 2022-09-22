@@ -1,35 +1,35 @@
 {
-  "name": "@pulumi/awsguard",
-  "version": "${VERSION}",
-  "description": "Pulumi CrossGuard policies for AWS.",
-  "license": "Apache-2.0",
-  "keywords": [
-    "pulumi",
-    "policy"
-  ],
-  "homepage": "https://www.pulumi.com",
-  "repository": "https://github.com/pulumi/pulumi-policy-aws",
-  "dependencies": {
-    "@pulumi/aws": "^5.0.0",
-    "@pulumi/policy": "^1.3.0",
-    "@pulumi/pulumi": "^3.0.0",
-    "aws-sdk": "^2.545.0"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.2.3",
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^12.7.12",
-    "aws-sdk-mock": "^4.5.0",
-    "chai": "^4.2.0",
-    "mocha": "^6.2.1",
-    "nyc": "^14.1.1",
-    "ts-node": "^8.4.1",
-    "tslint": "^5.20.1",
-    "typescript": "^3.4.6"
-  },
-  "scripts": {
-    "build": "tsc",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "mocha --require ./node_modules/ts-node/register tests/**/*.spec.ts"
-  }
+    "name": "@pulumi/awsguard",
+    "version": "${VERSION}",
+    "description": "Pulumi CrossGuard policies for AWS.",
+    "license": "Apache-2.0",
+    "keywords": [
+        "pulumi",
+        "policy"
+    ],
+    "homepage": "https://www.pulumi.com",
+    "repository": "https://github.com/pulumi/pulumi-policy-aws",
+    "dependencies": {
+        "@pulumi/aws": "^5.0.0",
+        "@pulumi/policy": "^1.3.0",
+        "@pulumi/pulumi": "^3.0.0",
+        "aws-sdk": "^2.545.0"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.2.3",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^12.7.12",
+        "aws-sdk-mock": "^4.5.0",
+        "chai": "^4.2.0",
+        "mocha": "^6.2.1",
+        "nyc": "^14.1.1",
+        "ts-node": "^8.4.1",
+        "tslint": "^5.20.1",
+        "typescript": "^3.4.6"
+    },
+    "scripts": {
+        "build": "tsc",
+        "lint": "tslint -c tslint.json -p tsconfig.json",
+        "test": "mocha --require ./node_modules/ts-node/register tests/**/*.spec.ts"
+    }
 }
