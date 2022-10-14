@@ -258,7 +258,7 @@ export const amiByIds: ResourceValidationPolicy = {
                     const { AmiIds } = args.getConfig<AmiByIdArgs>();
                     if (AmiIds && !AmiIds.includes(instance.ami)) {
                         reportViolation(
-                            "EC2 Instances should use approved AMIs.",
+                            `EC2 Instance is using Ami:(${instance.ami}), should use approved AMIs.`,
                         );
                     }
                 } else {
@@ -272,7 +272,7 @@ export const amiByIds: ResourceValidationPolicy = {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
                 if (AmiIds && !AmiIds.includes(lc.imageId)) {
                     reportViolation(
-                        "EC2 LaunchConfigurations should use approved AMIs.",
+                        `EC2 LaunchConfiguration is using Ami:(${lc.imageId}), should use approved AMIs.`,
                     );
                 }
             },
@@ -283,7 +283,7 @@ export const amiByIds: ResourceValidationPolicy = {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
                 if (AmiIds && lt.imageId && !AmiIds.includes(lt.imageId)) {
                     reportViolation(
-                        "EC2 LaunchTemplates should use approved AMIs.",
+                        `EC2 LaunchTemplate is using Ami:(${lt.imageId}), should use approved AMIs.`,
                     );
                 }
             },

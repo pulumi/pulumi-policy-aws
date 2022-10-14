@@ -248,6 +248,7 @@ func TestComputeEC2(t *testing.T) {
 					"mandatory",
 					"encrypted-volumes",
 					"The EC2 instance root block device must be encrypted.",
-				}},
+				}
+			},
 		})
 }
