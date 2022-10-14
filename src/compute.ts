@@ -47,15 +47,15 @@ export const ec2InstanceDetailedMonitoringEnabled: ResourceValidationPolicy = {
         (instance, _, reportViolation) => {
             if (!instance.monitoring) {
                 reportViolation(
-                    "EC2 instances must have detailed monitoring enabled."
+                    "EC2 instances must have detailed monitoring enabled.",
                 );
             }
-        }
+        },
     ),
 };
 registerPolicy(
     "ec2InstanceDetailedMonitoringEnabled",
-    ec2InstanceDetailedMonitoringEnabled
+    ec2InstanceDetailedMonitoringEnabled,
 );
 
 /** @internal */
@@ -69,7 +69,7 @@ export const ec2InstanceNoPublicIP: ResourceValidationPolicy = {
             if (instance.associatePublicIpAddress) {
                 reportViolation("EC2 instance must not have a public IP.");
             }
-        }
+        },
     ),
 };
 registerPolicy("ec2InstanceNoPublicIP", ec2InstanceNoPublicIP);
@@ -103,7 +103,7 @@ export const ec2VolumeInUse: ResourceValidationPolicy = {
                 instance.ebsBlockDevices.length === 0
             ) {
                 reportViolation(
-                    "EC2 instance must have an EBS volume attached."
+                    "EC2 instance must have an EBS volume attached.",
                 );
             }
 
@@ -114,12 +114,12 @@ export const ec2VolumeInUse: ResourceValidationPolicy = {
                         vol.deleteOnTermination === false
                     ) {
                         reportViolation(
-                            `ECS instance's EBS volume (${vol.volumeId}) must be marked for termination on delete.`
+                            `ECS instance's EBS volume (${vol.volumeId}) must be marked for termination on delete.`,
                         );
                     }
                 }
             }
-        }
+        },
     ),
 };
 registerPolicy("ec2VolumeInUse", ec2VolumeInUse);
@@ -138,10 +138,10 @@ export const elbAccessLoggingEnabled: ResourceValidationPolicy = {
                     !loadBalancer.accessLogs.enabled
                 ) {
                     reportViolation(
-                        "Elastic Load Balancer must have access logs enabled."
+                        "Elastic Load Balancer must have access logs enabled.",
                     );
                 }
-            }
+            },
         ),
         validateResourceOfType(
             aws.elasticloadbalancingv2.LoadBalancer,
@@ -151,10 +151,10 @@ export const elbAccessLoggingEnabled: ResourceValidationPolicy = {
                     !loadBalancer.accessLogs.enabled
                 ) {
                     reportViolation(
-                        "Elastic Load Balancer must have access logs enabled."
+                        "Elastic Load Balancer must have access logs enabled.",
                     );
                 }
-            }
+            },
         ),
         validateResourceOfType(
             aws.applicationloadbalancing.LoadBalancer,
@@ -164,10 +164,10 @@ export const elbAccessLoggingEnabled: ResourceValidationPolicy = {
                     !loadBalancer.accessLogs.enabled
                 ) {
                     reportViolation(
-                        "Application Load Balancer must have access logs enabled."
+                        "Application Load Balancer must have access logs enabled.",
                     );
                 }
-            }
+            },
         ),
     ],
 };
@@ -196,7 +196,7 @@ export const encryptedVolumes: ResourceValidationPolicy = {
 
             if (!instance.rootBlockDevice) {
                 reportViolation(
-                    "The EC2 instance root block device must be encrypted."
+                    "The EC2 instance root block device must be encrypted.",
                 );
             }
 
@@ -204,12 +204,12 @@ export const encryptedVolumes: ResourceValidationPolicy = {
                 const rootBlockDevice = instance.rootBlockDevice;
                 if (!rootBlockDevice.encrypted) {
                     reportViolation(
-                        "The EC2 instance root block device must be encrypted."
+                        "The EC2 instance root block device must be encrypted.",
                     );
                 }
                 if (kmsId && rootBlockDevice.kmsKeyId !== kmsId) {
                     reportViolation(
-                        `The EC2 instance root block device must be encrypted with required key: ${kmsId}.`
+                        `The EC2 instance root block device must be encrypted with required key: ${kmsId}.`,
                     );
                 }
             }
@@ -221,17 +221,17 @@ export const encryptedVolumes: ResourceValidationPolicy = {
                 for (const ebs of instance.ebsBlockDevices) {
                     if (!ebs.encrypted) {
                         reportViolation(
-                            `EBS volume (${ebs.volumeId}) must be encrypted.`
+                            `EBS volume (${ebs.volumeId}) must be encrypted.`,
                         );
                     }
                     if (kmsId && ebs.kmsKeyId !== kmsId) {
                         reportViolation(
-                            `EBS volume (${ebs.volumeId}) must be encrypted with required key: ${kmsId}.`
+                            `EBS volume (${ebs.volumeId}) must be encrypted with required key: ${kmsId}.`,
                         );
                     }
                 }
             }
-        }
+        },
     ),
 };
 registerPolicy("encryptedVolumes", encryptedVolumes);
@@ -258,13 +258,13 @@ export const amiByIds: ResourceValidationPolicy = {
                     const { AmiIds } = args.getConfig<AmiByIdArgs>();
                     if (AmiIds && !AmiIds.includes(instance.ami)) {
                         reportViolation(
-                            "EC2 Instances should use approved AMIs."
+                            "EC2 Instances should use approved AMIs.",
                         );
                     }
                 } else {
                     reportViolation("EC2 Instances should use approved AMIs.");
                 }
-            }
+            },
         ),
         validateResourceOfType(
             aws.ec2.LaunchConfiguration,
@@ -272,10 +272,10 @@ export const amiByIds: ResourceValidationPolicy = {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
                 if (AmiIds && !AmiIds.includes(lc.imageId)) {
                     reportViolation(
-                        "EC2 LaunchConfigurations should use approved AMIs."
+                        "EC2 LaunchConfigurations should use approved AMIs.",
                     );
                 }
-            }
+            },
         ),
         validateResourceOfType(
             aws.ec2.LaunchTemplate,
@@ -283,10 +283,10 @@ export const amiByIds: ResourceValidationPolicy = {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
                 if (AmiIds && lt.imageId && !AmiIds.includes(lt.imageId)) {
                     reportViolation(
-                        "EC2 LaunchTemplates should use approved AMIs."
+                        "EC2 LaunchTemplates should use approved AMIs.",
                     );
                 }
-            }
+            },
         ),
     ],
 };
