@@ -254,8 +254,8 @@ export const amiByIds: ResourceValidationPolicy = {
         validateResourceOfType(
             aws.ec2.Instance,
             (instance, args, reportViolation) => {
-                if (instance.ami) {
-                    const { AmiIds } = args.getConfig<AmiByIdArgs>();
+                const { AmiIds } = args.getConfig<AmiByIdArgs>();
+                if ((instance.ami) && (AmiIds.length > 0)) {
                     if (AmiIds && !AmiIds.includes(instance.ami)) {
                         reportViolation(
                             `EC2 Instance is using Ami:(${instance.ami}), should use approved AMIs.`,
@@ -270,10 +270,12 @@ export const amiByIds: ResourceValidationPolicy = {
             aws.ec2.LaunchConfiguration,
             (lc, args, reportViolation) => {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
-                if (AmiIds && !AmiIds.includes(lc.imageId)) {
-                    reportViolation(
-                        `EC2 LaunchConfiguration is using Ami:(${lc.imageId}), should use approved AMIs.`,
-                    );
+                if (AmiIds.length > 0) {
+                    if (AmiIds && !AmiIds.includes(lc.imageId)) {
+                        reportViolation(
+                            `EC2 LaunchConfiguration is using Ami:(${lc.imageId}), should use approved AMIs.`,
+                        );
+                    }
                 }
             },
         ),
@@ -281,10 +283,12 @@ export const amiByIds: ResourceValidationPolicy = {
             aws.ec2.LaunchTemplate,
             (lt, args, reportViolation) => {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
-                if (AmiIds && lt.imageId && !AmiIds.includes(lt.imageId)) {
-                    reportViolation(
-                        `EC2 LaunchTemplate is using Ami:(${lt.imageId}), should use approved AMIs.`,
-                    );
+                if (AmiIds.length > 0) {
+                    if (AmiIds && lt.imageId && !AmiIds.includes(lt.imageId)) {
+                        reportViolation(
+                            `EC2 LaunchTemplate is using Ami:(${lt.imageId}), should use approved AMIs.`,
+                        );
+                    }
                 }
             },
         ),
