@@ -1,5 +1,8 @@
 ## HEAD (Unreleased)
 
+- Adding AmiById Policy
+  [#89](https://github.com/pulumi/pulumi-policy-aws/pull/89)
+  
 ---
 
 ## 0.4.0 (2022-09-22)
