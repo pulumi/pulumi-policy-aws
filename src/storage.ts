@@ -14,7 +14,13 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
+import {
+    EnforcementLevel,
+    ResourceValidationPolicy,
+    StackValidationPolicy,
+    validateResourceOfType,
+    validateStackResourcesOfType,
+} from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { defaultEnforcementLevel } from "./enforcementLevel";
@@ -31,46 +37,57 @@ declare module "./awsGuard" {
 
 /** @internal */
 export const efsEncrypted: ResourceValidationPolicy = {
-        name: "efs-encrypted",
-        description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
-        validateResource: validateResourceOfType(aws.efs.FileSystem, (fileSystem, _, reportViolation) => {
-            if (!fileSystem.kmsKeyId) {
-                reportViolation("Amazon Elastic File System must have a KMS Key defined.");
-            }
-        }),
-    };
+    name: "efs-encrypted",
+    description: "Checks whether Amazon Elastic File System (Amazon EFS) is configured to encrypt the file data using AWS Key Management Service (AWS KMS).",
+    validateResource: validateResourceOfType(aws.efs.FileSystem, (fileSystem, _, reportViolation) => {
+        if (!fileSystem.kmsKeyId) {
+            reportViolation("Amazon Elastic File System must have a KMS Key defined.");
+        }
+    }),
+};
 registerPolicy("efsEncrypted", efsEncrypted);
 
 
 /** @internal */
 export const elbDeletionProtectionEnabled: ResourceValidationPolicy = {
-        name: "elb-deletion-protection-enabled",
-        description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
-        validateResource: [
-            validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, _, reportViolation) => {
-                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
-                    reportViolation("Deletion Protection must be enabled.");
-                }
-            }),
-            validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, _, reportViolation) => {
-                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
-                    reportViolation("Deletion Protection must be enabled.");
-                }
-            }),
-        ],
-    };
-registerPolicy("elbDeletionProtectionEnabled", elbDeletionProtectionEnabled);
-
-
-/** @internal */
-export const s3BucketLoggingEnabled: ResourceValidationPolicy = {
-        name: "s3-bucket-logging-enabled",
-        description: "Checks whether logging is enabled for your S3 buckets.",
-        validateResource: validateResourceOfType(aws.s3.Bucket, (bucket, _, reportViolation) => {
-            // AWS will ensure the `targetBucket` exists and is WRITE-able.
-            if (!bucket.loggings || bucket.loggings.length === 0) {
-                reportViolation("Bucket logging must be defined.");
+    name: "elb-deletion-protection-enabled",
+    description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
+    validateResource: [
+        validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, _, reportViolation) => {
+            if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
+                reportViolation("Deletion Protection must be enabled.");
             }
         }),
-    };
+        validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, _, reportViolation) => {
+            if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
+                reportViolation("Deletion Protection must be enabled.");
+            }
+        }),
+    ],
+};
+registerPolicy("elbDeletionProtectionEnabled", elbDeletionProtectionEnabled);
+
+/** @internal */
+export const s3BucketLoggingEnabled: StackValidationPolicy = {
+    name: "s3-bucket-logging-enabled",
+    description: "Checks whether logging is enabled for your S3 buckets.",
+    validateStack: validateStackResourcesOfType(aws.s3.Bucket, async (buckets, args, reportViolation) => {
+        const allocatedBuckets = [];
+        for (const bucket of buckets) {
+            if ( bucket.loggings && bucket.loggings.length !== 0) {
+                for (const loggingConfig of bucket.loggings) {
+                    allocatedBuckets.push(loggingConfig.targetBucket);
+                }
+            }
+        }
+        for (const bucket of buckets) {
+            // AWS will ensure the `targetBucket` exists and is WRITE-able.
+            if (!allocatedBuckets.includes(bucket.id)) {
+                if (!bucket.loggings || bucket.loggings.length === 0) {
+                    reportViolation("Bucket logging must be defined.");
+                }
+            }
+        }
+    }),
+};
 registerPolicy("s3BucketLoggingEnabled", s3BucketLoggingEnabled);
