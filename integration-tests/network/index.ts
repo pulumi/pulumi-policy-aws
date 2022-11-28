@@ -39,7 +39,7 @@ const accessLogsBucket = new aws.s3.Bucket("accessLogs", {
     }],
 });
 
-const alb = new aws.alb.LoadBalancer(
+const alb = new aws.elasticloadbalancingv2.LoadBalancer(
     "alb",
     {
         // Required for AWS guard rules, but makes it impossible to delete.
@@ -59,14 +59,14 @@ const alb = new aws.alb.LoadBalancer(
 
 const defaultVpc = awsx.ec2.Vpc.getDefault();
 
-const testTargetGroup = new aws.lb.TargetGroup("targetGroup", {
+const testTargetGroup = new aws.elasticloadbalancingv2.TargetGroup("targetGroup", {
     port: httpPort,
     protocol: "HTTP",
     vpcId: defaultVpc.id,
 });
 
 
-const httpsListener = new aws.lb.Listener("httpsListener", {
+const httpsListener = new aws.elasticloadbalancingv2.Listener("httpsListener", {
     loadBalancerArn: alb.arn,
     port: httpsPort,
     protocol: "HTTPS",
@@ -114,7 +114,7 @@ switch (testScenario) {
         throw new Error(`Unexpected test scenario ${testScenario}`);
 }
 
-export const httpListener = new aws.lb.Listener("httpListener", {
+export const httpListener = new aws.elasticloadbalancingv2.Listener("httpListener", {
     loadBalancerArn: alb.arn,
     port: httpPort,
     protocol: "HTTP",
