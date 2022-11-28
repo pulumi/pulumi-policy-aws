@@ -39,7 +39,7 @@ const accessLogsBucket = new aws.s3.Bucket("accessLogs", {
     }],
 });
 
-const alb = new aws.lb.LoadBalancer(
+const alb = new aws.alb.LoadBalancer(
     "alb",
     {
         // Required for AWS guard rules, but makes it impossible to delete.
