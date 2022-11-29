@@ -36,11 +36,11 @@ export const albHttpToHttpsRedirection: ResourceValidationPolicy = {
             }
             // Not a compliance problem per-say, but certainly odd enough to report.
             if (!listener.defaultActions || listener.defaultActions.length === 0) {
-                reportViolation(`HTTP listener has no default actions configured.`);
+                reportViolation(`HTTP listener has no default actions configured. Consider removing the HTTP listener completely.`);
                 return;
             }
             if (listener.defaultActions.length > 1) {
-                reportViolation(`HTTP listener has more than one default action.`);
+                reportViolation(`HTTP listener has more than one default action. HTTP listener should only be used to redirect to HTTPS`);
                 return;
             }
             const defaultAction = listener.defaultActions[0];
@@ -61,11 +61,11 @@ export const albHttpToHttpsRedirection: ResourceValidationPolicy = {
             }
             // Not a compliance problem per-say, but certainly odd enough to report.
             if (!listener.defaultActions || listener.defaultActions.length === 0) {
-                reportViolation(`HTTP listener has no default actions configured.`);
+                reportViolation(`HTTP listener has no default actions configured. Consider removing the HTTP listener completely.`);
                 return;
             }
             if (listener.defaultActions.length > 1) {
-                reportViolation(`HTTP listener has more than one default action.`);
+                reportViolation(`HTTP listener has more than one default action. HTTP listener should only be used to redirect to HTTPS`);
                 return;
             }
             const defaultAction = listener.defaultActions[0];
