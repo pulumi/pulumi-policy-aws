@@ -1,5 +1,7 @@
 ## HEAD (Unreleased)
 
+- Adding AmiById Policy
+  [#89](https://github.com/pulumi/pulumi-policy-aws/pull/89)
 - Added in checks for `alb` and `lb` to the compute and network policies
 
 ---
