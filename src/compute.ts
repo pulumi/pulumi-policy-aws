@@ -31,8 +31,8 @@ declare module "./awsGuard" {
         ec2VolumeInUse?: EnforcementLevel | (Ec2VolumeInUseArgs & PolicyArgs);
         elbAccessLoggingEnabled?: EnforcementLevel;
         encryptedVolumes?:
-            | EnforcementLevel
-            | (EncryptedVolumesArgs & PolicyArgs);
+        | EnforcementLevel
+        | (EncryptedVolumesArgs & PolicyArgs);
         amiByIds?: EnforcementLevel | (AmiByIdArgs & PolicyArgs);
     }
 }
@@ -130,45 +130,31 @@ export const elbAccessLoggingEnabled: ResourceValidationPolicy = {
     description:
         "Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
     validateResource: [
-        validateResourceOfType(
-            aws.elasticloadbalancing.LoadBalancer,
-            (loadBalancer, args, reportViolation) => {
-                if (
-                    loadBalancer.accessLogs === undefined ||
-                    !loadBalancer.accessLogs.enabled
-                ) {
-                    reportViolation(
-                        "Elastic Load Balancer must have access logs enabled.",
-                    );
-                }
-            },
-        ),
-        validateResourceOfType(
-            aws.elasticloadbalancingv2.LoadBalancer,
-            (loadBalancer, args, reportViolation) => {
-                if (
-                    loadBalancer.accessLogs === undefined ||
-                    !loadBalancer.accessLogs.enabled
-                ) {
-                    reportViolation(
-                        "Elastic Load Balancer must have access logs enabled.",
-                    );
-                }
-            },
-        ),
-        validateResourceOfType(
-            aws.applicationloadbalancing.LoadBalancer,
-            (loadBalancer, args, reportViolation) => {
-                if (
-                    loadBalancer.accessLogs === undefined ||
-                    !loadBalancer.accessLogs.enabled
-                ) {
-                    reportViolation(
-                        "Application Load Balancer must have access logs enabled.",
-                    );
-                }
-            },
-        ),
+        validateResourceOfType(aws.elasticloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
+        validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
+        validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
+        validateResourceOfType(aws.lb.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
+        validateResourceOfType(aws.alb.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
     ],
 };
 registerPolicy("elbAccessLoggingEnabled", elbAccessLoggingEnabled);
@@ -255,14 +241,14 @@ export const amiByIds: ResourceValidationPolicy = {
             aws.ec2.Instance,
             (instance, args, reportViolation) => {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
-                if ((instance.ami) && (AmiIds.length > 0)) {
-                    if (AmiIds && !AmiIds.includes(instance.ami)) {
-                        reportViolation(
-                            `EC2 Instance is using Ami:(${instance.ami}), should use approved AMIs.`,
-                        );
+                if (AmiIds && AmiIds.length > 0) {
+                    if (instance.ami) {
+                        if (!AmiIds.includes(instance.ami)) {
+                            reportViolation(
+                                `EC2 Instance is using Ami:(${instance.ami}), should use approved AMIs.`,
+                            );
+                        }
                     }
-                } else {
-                    reportViolation("EC2 Instances should use approved AMIs.");
                 }
             },
         ),
@@ -270,7 +256,7 @@ export const amiByIds: ResourceValidationPolicy = {
             aws.ec2.LaunchConfiguration,
             (lc, args, reportViolation) => {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
-                if (AmiIds.length > 0) {
+                if (AmiIds && AmiIds.length > 0) {
                     if (AmiIds && !AmiIds.includes(lc.imageId)) {
                         reportViolation(
                             `EC2 LaunchConfiguration is using Ami:(${lc.imageId}), should use approved AMIs.`,
@@ -283,7 +269,7 @@ export const amiByIds: ResourceValidationPolicy = {
             aws.ec2.LaunchTemplate,
             (lt, args, reportViolation) => {
                 const { AmiIds } = args.getConfig<AmiByIdArgs>();
-                if (AmiIds.length > 0) {
+                if (AmiIds && AmiIds.length > 0) {
                     if (AmiIds && lt.imageId && !AmiIds.includes(lt.imageId)) {
                         reportViolation(
                             `EC2 LaunchTemplate is using Ami:(${lt.imageId}), should use approved AMIs.`,

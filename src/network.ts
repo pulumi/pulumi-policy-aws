@@ -27,19 +27,20 @@ declare module "./awsGuard" {
 
 /** @internal */
 export const albHttpToHttpsRedirection: ResourceValidationPolicy = {
-        name: "alb-http-to-https-redirection",
-        description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
-        validateResource: validateResourceOfType(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
+    name: "alb-http-to-https-redirection",
+    description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
+    validateResource: [
+        validateResourceOfType(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
             if (listener.protocol !== "HTTP") {
                 return;
             }
             // Not a compliance problem per-say, but certainly odd enough to report.
             if (!listener.defaultActions || listener.defaultActions.length === 0) {
-                reportViolation(`HTTP listener has no default actions configured.`);
+                reportViolation(`HTTP listener has no default actions configured. Consider removing the HTTP listener completely.`);
                 return;
             }
             if (listener.defaultActions.length > 1) {
-                reportViolation(`HTTP listener has more than one default action.`);
+                reportViolation(`HTTP listener has more than one default action. HTTP listener should only be used to redirect to HTTPS`);
                 return;
             }
             const defaultAction = listener.defaultActions[0];
@@ -54,5 +55,56 @@ export const albHttpToHttpsRedirection: ResourceValidationPolicy = {
                 return;
             }
         }),
-    };
+        validateResourceOfType(aws.alb.Listener, (listener, _, reportViolation) => {
+            if (listener.protocol !== "HTTP") {
+                return;
+            }
+            // Not a compliance problem per-say, but certainly odd enough to report.
+            if (!listener.defaultActions || listener.defaultActions.length === 0) {
+                reportViolation(`HTTP listener has no default actions configured. Consider removing the HTTP listener completely.`);
+                return;
+            }
+            if (listener.defaultActions.length > 1) {
+                reportViolation(`HTTP listener has more than one default action. HTTP listener should only be used to redirect to HTTPS`);
+                return;
+            }
+            const defaultAction = listener.defaultActions[0];
+            const compliant = true
+                && defaultAction.type === "redirect"
+                && defaultAction.redirect
+                && defaultAction.redirect.protocol === "HTTPS";
+
+            if (!compliant) {
+                const msg = `Default action for HTTP listener must be a redirect using HTTPS.`;
+                reportViolation(msg);
+                return;
+            }
+        }),
+        validateResourceOfType(aws.lb.Listener, (listener, _, reportViolation) => {
+            if (listener.protocol !== "HTTP") {
+                return;
+            }
+            // Not a compliance problem per-say, but certainly odd enough to report.
+            if (!listener.defaultActions || listener.defaultActions.length === 0) {
+                reportViolation(`HTTP listener has no default actions configured. Consider removing the HTTP listener completely.`);
+                return;
+            }
+            if (listener.defaultActions.length > 1) {
+                reportViolation(`HTTP listener has more than one default action. HTTP listener should only be used to redirect to HTTPS`);
+                return;
+            }
+            const defaultAction = listener.defaultActions[0];
+            const compliant = true
+                && defaultAction.type === "redirect"
+                && defaultAction.redirect
+                && defaultAction.redirect.protocol === "HTTPS";
+
+            if (!compliant) {
+                const msg = `Default action for HTTP listener must be a redirect using HTTPS.`;
+                reportViolation(msg);
+                return;
+            }
+        }),
+    ],
+};
 registerPolicy("albHttpToHttpsRedirection", albHttpToHttpsRedirection);
