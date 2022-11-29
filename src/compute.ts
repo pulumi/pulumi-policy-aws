@@ -106,7 +106,17 @@ export const elbAccessLoggingEnabled: ResourceValidationPolicy = {
         }),
         validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
             if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
-                reportViolation("Application Load Balancer must have access logs enabled.");
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
+        validateResourceOfType(aws.lb.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
+            }
+        }),
+        validateResourceOfType(aws.alb.LoadBalancer, (loadBalancer, args, reportViolation) => {
+            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
+                reportViolation("Elastic Load Balancer must have access logs enabled.");
             }
         }),
     ],

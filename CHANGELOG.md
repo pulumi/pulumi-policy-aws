@@ -1,5 +1,7 @@
 ## HEAD (Unreleased)
 
+- Added in checks for `alb` and `lb` to the compute and network policies
+
 ---
 
 ## 0.4.0 (2022-09-22)

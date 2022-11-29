@@ -20,7 +20,7 @@ const testScenario = config.getNumber("scenario");
 
 console.log(`Running test scenario #${testScenario}`);
 
-const ami = pulumi.output(aws.getAmi({
+const ami = pulumi.output(aws.ec2.getAmi({
     filters: [{
         name: "name",
         values: ["amzn-ami-hvm-*"],
@@ -48,7 +48,7 @@ const elbBucket = new aws.s3.Bucket("test-bucket", {
     }],
 });
 
-let elbArgs: aws.elasticloadbalancing.LoadBalancerArgs = {
+let elbArgs: aws.elb.LoadBalancerArgs = {
     accessLogs: {
         enabled: true,
         bucket: elbBucket.arn,
@@ -56,7 +56,7 @@ let elbArgs: aws.elasticloadbalancing.LoadBalancerArgs = {
     listeners: [],
 };
 
-let elbV2Args: aws.elasticloadbalancingv2.LoadBalancerArgs = {
+let elbV2Args: aws.lb.LoadBalancerArgs = {
     accessLogs: {
         enabled: true,
         bucket: elbBucket.arn,
@@ -64,7 +64,7 @@ let elbV2Args: aws.elasticloadbalancingv2.LoadBalancerArgs = {
     enableDeletionProtection: true,
 };
 
-let albArgs: aws.applicationloadbalancing.LoadBalancerArgs = {
+let albArgs: aws.alb.LoadBalancerArgs = {
     accessLogs: {
         enabled: true,
         bucket: elbBucket.arn,
@@ -175,6 +175,6 @@ switch (testScenario) {
 }
 
 export const ec2Instance = new aws.ec2.Instance("test-ec2-instance", ec2InstanceArgs);
-export const elb = new aws.elasticloadbalancing.LoadBalancer("test-elb", elbArgs);
-export const elbV2 = new aws.elasticloadbalancingv2.LoadBalancer("test-elb-v2", elbV2Args);
-export const alb = new aws.applicationloadbalancing.LoadBalancer("test-alb", albArgs);
+export const elb = new aws.elb.LoadBalancer("test-elb", elbArgs);
+export const elbV2 = new aws.lb.LoadBalancer("test-elb-v2", elbV2Args);
+export const alb = new aws.alb.LoadBalancer("test-alb", albArgs);
