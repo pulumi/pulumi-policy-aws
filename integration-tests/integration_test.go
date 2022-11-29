@@ -231,7 +231,7 @@ func TestComputeEC2(t *testing.T) {
 					"ECS instance's EBS volume ", "must be marked for termination on delete.",
 					"encrypted-volumes",
 					"EBS volume ", "must be encrypted.",
-				}, 
+				},
 			},
 			// Test scenario 8 - an EBS root volume with encryption set to false.
 			{
@@ -241,13 +241,14 @@ func TestComputeEC2(t *testing.T) {
 					"The EC2 instance root block device must be encrypted.",
 				},
 			},
-			// Test scenario 9 - no EBS root volume settings defined which means encryption defaults to 
+			// Test scenario 9 - no EBS root volume settings defined which means encryption defaults to
 			// false.
 			{
 				WantErrors: []string{
 					"mandatory",
 					"encrypted-volumes",
 					"The EC2 instance root block device must be encrypted.",
-				}},
+				},
+			},
 		})
 }
