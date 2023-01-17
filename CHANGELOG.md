@@ -1,6 +1,7 @@
 ## HEAD (Unreleased)
 
 - Added in checks for `alb` and `lb` to the compute and network policies
+- Converted `s3BucketLoggingEnabled` to stack validation policy to address #36
 
 ---
 
