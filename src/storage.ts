@@ -74,7 +74,7 @@ export const s3BucketLoggingEnabled: StackValidationPolicy = {
     validateStack: validateStackResourcesOfType(aws.s3.Bucket, async (buckets, args, reportViolation) => {
         const allocatedBuckets = [];
         for (const bucket of buckets) {
-            if ( bucket.loggings && bucket.loggings.length !== 0) {
+            if (bucket.loggings && bucket.loggings.length !== 0) {
                 for (const loggingConfig of bucket.loggings) {
                     allocatedBuckets.push(loggingConfig.targetBucket);
                 }
