@@ -26,7 +26,7 @@ describe("#albHttpToHttpsRedirection", () => {
     const loadBalancerArn = "arn:aws:elasticloadbalancing:us-west-2:333333333333:loadbalancer/app/alb-4163fcb/93e140268049384d";
 
     it("Reports no violations for HTTPS listeners", async () => {
-        const args = createResourceValidationArgs(aws.elasticloadbalancingv2.Listener, {
+        const args = createResourceValidationArgs(aws.alb.Listener, {
             loadBalancerArn,
             protocol: "HTTPS",
             defaultActions: [],
@@ -36,7 +36,7 @@ describe("#albHttpToHttpsRedirection", () => {
     });
 
     it("Reports no violations for HTTP-to-HTTPS listeners", async () => {
-        const args = createResourceValidationArgs(aws.elasticloadbalancingv2.Listener, {
+        const args = createResourceValidationArgs(aws.alb.Listener, {
             loadBalancerArn,
             protocol: "HTTP",
             defaultActions: [
@@ -55,7 +55,7 @@ describe("#albHttpToHttpsRedirection", () => {
 
     it("Reports a violation if there isn't exactly one default action", async () => {
         {
-            const args = createResourceValidationArgs(aws.elasticloadbalancingv2.Listener, {
+            const args = createResourceValidationArgs(aws.alb.Listener, {
                 loadBalancerArn,
                 protocol: "HTTP",
                 defaultActions: [ /* error: no default actions */ ],
@@ -67,7 +67,7 @@ describe("#albHttpToHttpsRedirection", () => {
         }
 
         {
-            const args = createResourceValidationArgs(aws.elasticloadbalancingv2.Listener, {
+            const args = createResourceValidationArgs(aws.alb.Listener, {
                 loadBalancerArn,
                 protocol: "HTTP",
                 defaultActions: [
@@ -97,7 +97,7 @@ describe("#albHttpToHttpsRedirection", () => {
 
     it("Reports a violation if not redirecting to HTTPS", async () => {
         {
-            const args = createResourceValidationArgs(aws.elasticloadbalancingv2.Listener, {
+            const args = createResourceValidationArgs(aws.alb.Listener, {
                 loadBalancerArn,
                 protocol: "HTTP",
                 defaultActions: [

@@ -30,7 +30,7 @@ export const albHttpToHttpsRedirection: ResourceValidationPolicy = {
     name: "alb-http-to-https-redirection",
     description: "Checks that the default action for all HTTP listeners is to redirect to HTTPS.",
     validateResource: [
-        validateResourceOfType(aws.elasticloadbalancingv2.Listener, (listener, _, reportViolation) => {
+        validateResourceOfType(aws.alb.Listener, (listener, _, reportViolation) => {
             if (listener.protocol !== "HTTP") {
                 return;
             }
