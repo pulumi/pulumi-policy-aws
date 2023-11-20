@@ -27,10 +27,8 @@ import {
 
 import { fail } from "assert";
 
-import * as AWS from "aws-sdk";
-import * as AWSMock from "aws-sdk-mock";
-
-import { ListAccessKeysRequest, ListMFADevicesRequest } from "aws-sdk/clients/iam";
+import { mockClient } from "aws-sdk-client-mock";
+import { IAM, ListAccessKeysCommand, ListMFADevicesCommand } from "@aws-sdk/client-iam";
 
 describe("#iamAccessKeysRotated", () => {
     const policy = security.iamAccessKeysRotated;
@@ -50,9 +48,9 @@ describe("#iamAccessKeysRotated", () => {
     });
 
     it("reports no violation for unexpired keys", async () => {
-        AWSMock.setSDKInstance(AWS);
-        AWSMock.mock("IAM", "listAccessKeys", (params: ListAccessKeysRequest, callback: Function) => {
-            const resp: AWS.IAM.ListAccessKeysResponse = {
+        const mockIam = mockClient(IAM);
+        mockIam.on(ListAccessKeysCommand)
+            .resolves({
                 IsTruncated: false,
                 AccessKeyMetadata: [
                     {
@@ -60,11 +58,8 @@ describe("#iamAccessKeysRotated", () => {
                         CreateDate: new Date(),
                     },
                 ],
-            };
-
-            callback(null, resp);
-        });
-
+            });
+            
         const args = createStackValidationArgs(aws.iam.AccessKey, {
             id: testAccessKeyId,
             status: "Active",
@@ -76,56 +71,33 @@ describe("#iamAccessKeysRotated", () => {
     it("Reports a violation for unrotated key", async () => {
         const longTimeAgo = daysFromNow(-180);
 
-        AWSMock.restore("IAM", "listAccessKeys");
-        AWSMock.setSDKInstance(AWS);
-
         // In mocking listAccessKeys, we are also confirming that function uses
         // pagination. We return two different responses in sequence.
-        let timeCalled = 0;
-        AWSMock.mock("IAM", "listAccessKeys", (params: ListAccessKeysRequest, callback: Function) => {
-            let resp: AWS.IAM.ListAccessKeysResponse;
-            switch (timeCalled) {
-                case 0:
-                    timeCalled++;
-
-                    // First response contains a single key that is still valid.
-                    resp = {
-                        IsTruncated: true,
-                        Marker: "timeCalled-1",
-                        AccessKeyMetadata: [
-                            {
-                                AccessKeyId: testAccessKeyId+"-not-expired",
-                                CreateDate: new Date(),
-                            },
-                        ],
-                    };
-                    break;
-
-                case 1:
-                    timeCalled++;
-                    if (params.Marker !== "timeCalled-1") {
-                        fail("parameters to listAccessKeys included wrong marker");
-                    }
-
-                    // Second response contains an expired key.
-                    resp = {
-                        IsTruncated: false,
-                        AccessKeyMetadata: [
-                            {
-                                AccessKeyId: testAccessKeyId,
-                                CreateDate: longTimeAgo,
-                            },
-                        ],
-                    };
-                    break;
-
-                default:
-                    fail("listAccessKeys called unexpected number of times");
-                    break;
-            }
-
-            callback(null, resp!);
-        });
+        const mockIam = mockClient(IAM);
+        mockIam.on(ListAccessKeysCommand)
+            .resolvesOnce({
+                IsTruncated: true,
+                Marker: "timeCalled-1",
+                AccessKeyMetadata: [
+                    {
+                        AccessKeyId: testAccessKeyId + "-not-expired",
+                        CreateDate: new Date(),
+                    },
+                ],
+            })
+            .resolvesOnce({
+                IsTruncated: false,
+                AccessKeyMetadata: [
+                    {
+                        AccessKeyId: testAccessKeyId,
+                        CreateDate: longTimeAgo,
+                    },
+                ],
+            })
+            .resolves({
+                IsTruncated: false,
+                AccessKeyMetadata: [],
+            });
 
         const args = createStackValidationArgs(aws.iam.AccessKey, {
             id: testAccessKeyId,
@@ -145,9 +117,9 @@ describe("#iamMfaEnabledForConsoleAccess", () => {
     const testUserEmail = "test-user@example.com";
 
     it("Does not report a violation if an MFA device is attached", async () => {
-        AWSMock.setSDKInstance(AWS);
-        AWSMock.mock("IAM", "listMFADevices", (params: ListMFADevicesRequest, callback: Function) => {
-            const resp: AWS.IAM.ListMFADevicesResponse = {
+        const mockIam = mockClient(IAM);
+        mockIam.on(ListMFADevicesCommand)
+            .resolves({
                 MFADevices: [
                     {
                         UserName: testUserEmail,
@@ -156,9 +128,7 @@ describe("#iamMfaEnabledForConsoleAccess", () => {
                     },
                 ],
                 IsTruncated: false,
-            };
-            callback(null, resp);
-        });
+            });
 
         const args = createResourceValidationArgs(aws.iam.UserLoginProfile, {
             pgpKey: "keybase:username",
@@ -168,14 +138,11 @@ describe("#iamMfaEnabledForConsoleAccess", () => {
     });
 
     it("Reports a violation if no MFA devices are attached", async () => {
-        AWSMock.setSDKInstance(AWS);
-        AWSMock.restore("IAM", "listMFADevices");
-        AWSMock.mock("IAM", "listMFADevices", (params: ListMFADevicesRequest, callback: Function) => {
-            const resp: AWS.IAM.ListMFADevicesResponse = {
+        const mockIam = mockClient(IAM);
+        mockIam.on(ListMFADevicesCommand)
+            .resolves({
                 MFADevices: [],
-            };
-            callback(null, resp);
-        });
+            });
 
         const args = createResourceValidationArgs(aws.iam.UserLoginProfile, {
             pgpKey: "keybase:username",

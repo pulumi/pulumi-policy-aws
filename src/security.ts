@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as AWS from "aws-sdk";
+
+
+import { ACM } from "@aws-sdk/client-acm";
+import { IAM, ListAccessKeysCommandOutput } from "@aws-sdk/client-iam";
 
 import * as aws from "@pulumi/aws";
 
@@ -66,7 +69,9 @@ export const acmCertificateExpiration: StackValidationPolicy = {
         const { maxDaysUntilExpiration } = args.getConfig<AcmCertificateExpirationArgs>();
 
         // Need to pass in aws region for acm.
-        const acm = new AWS.ACM({ region: awsConfigRegion });
+        const acm = new ACM({
+            region: awsConfigRegion,
+        });
 
         // Fetch the full ACM certificate using the AWS SDK to get its expiration date.
         for (const certInStack of acmCertificates) {
@@ -75,7 +80,7 @@ export const acmCertificateExpiration: StackValidationPolicy = {
             if (certInStack.id === "") {
                 continue;
             }
-            const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id }).promise();
+            const describeCertResp = await acm.describeCertificate({ CertificateArn: certInStack.id });
             const certDescription = describeCertResp.Certificate;
 
             if (certDescription && certDescription.NotAfter) {
@@ -125,7 +130,7 @@ export const iamAccessKeysRotated: StackValidationPolicy = {
     },
     validateStack: validateStackResourcesOfType(aws.iam.AccessKey, async (accessKeys, args, reportViolation) => {
         const { maxKeyAge } = args.getConfig<Required<IamAccessKeysRotatedArgs>>();
-        const iam = new AWS.IAM();
+        const iam = new IAM();
 
         for (const instance of accessKeys) {
             // Skip any access keys that haven't yet been provisioned or whose status is inactive.
@@ -134,15 +139,17 @@ export const iamAccessKeysRotated: StackValidationPolicy = {
             }
             // Use the AWS SDK to list the access keys for the user, which will contain the key's creation date.
             let paginationToken = undefined;
-            let accessKeysResp: AWS.IAM.ListAccessKeysResponse;
+            let accessKeysResp: ListAccessKeysCommandOutput;
             do {
-                accessKeysResp = await iam.listAccessKeys({ UserName: instance.user, Marker: paginationToken }).promise();
-                for (const accessKey of accessKeysResp.AccessKeyMetadata) {
-                    if (accessKey.AccessKeyId === instance.id && accessKey.CreateDate) {
-                        let daysSinceCreated = (Date.now() - accessKey.CreateDate!.getTime()) / msInDay;
-                        daysSinceCreated = Math.floor(daysSinceCreated);
-                        if (daysSinceCreated > maxKeyAge) {
-                            reportViolation(`access key must be rotated within ${maxKeyAge} days (key is ${daysSinceCreated} days old)`);
+                accessKeysResp = await iam.listAccessKeys({ UserName: instance.user, Marker: paginationToken });
+                if (accessKeysResp.AccessKeyMetadata) {
+                    for (const accessKey of accessKeysResp.AccessKeyMetadata) {
+                        if (accessKey.AccessKeyId === instance.id && accessKey.CreateDate) {
+                            let daysSinceCreated = (Date.now() - accessKey.CreateDate!.getTime()) / msInDay;
+                            daysSinceCreated = Math.floor(daysSinceCreated);
+                            if (daysSinceCreated > maxKeyAge) {
+                                reportViolation(`access key must be rotated within ${maxKeyAge} days (key is ${daysSinceCreated} days old)`);
+                            }
                         }
                     }
                 }
@@ -158,10 +165,10 @@ export const iamMfaEnabledForConsoleAccess: ResourceValidationPolicy = {
     name: "mfa-enabled-for-iam-console-access",
     description: "Checks whether multi-factor Authentication (MFA) is enabled for an IAM user that use a console password.",
     validateResource: validateResourceOfType(aws.iam.UserLoginProfile, async (instance, _, reportViolation) => {
-        const iam = new AWS.IAM();
-        const mfaDevicesResp = await iam.listMFADevices({ UserName: instance.user }).promise();
+        const iam = new IAM();
+        const mfaDevicesResp = await iam.listMFADevices({ UserName: instance.user });
         // We don't bother with paging through all MFA devices, since we only check that there is at least one.
-        if (mfaDevicesResp.MFADevices.length === 0) {
+        if (!mfaDevicesResp.MFADevices || mfaDevicesResp.MFADevices.length === 0) {
             reportViolation(`no MFA device enabled for IAM User '${instance.user}'`);
         }
     }),

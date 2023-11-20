@@ -103,7 +103,9 @@ async function runResourcePolicy(resPolicy: policy.ResourceValidationPolicy, arg
         ? resPolicy.validateResource
         : [resPolicy.validateResource];
     for (const validation of validations) {
-        await Promise.resolve(validation(args, report));
+        if (validation) {
+            await Promise.resolve(validation(args, report));
+        }
     }
     return violations;
 }
