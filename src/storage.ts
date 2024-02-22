@@ -47,12 +47,7 @@ export const elbDeletionProtectionEnabled: ResourceValidationPolicy = {
         name: "elb-deletion-protection-enabled",
         description: "Checks whether Elastic Load Balancing has deletion protection enabled.",
         validateResource: [
-            validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, _, reportViolation) => {
-                if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
-                    reportViolation("Deletion Protection must be enabled.");
-                }
-            }),
-            validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, _, reportViolation) => {
+            validateResourceOfType(aws.alb.LoadBalancer, (loadBalancer, _, reportViolation) => {
                 if (loadBalancer.enableDeletionProtection === undefined || loadBalancer.enableDeletionProtection === false) {
                     reportViolation("Deletion Protection must be enabled.");
                 }

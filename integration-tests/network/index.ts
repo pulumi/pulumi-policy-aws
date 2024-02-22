@@ -14,9 +14,6 @@
 
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
-import * as awsx from "@pulumi/awsx";
-
-import * as os from "os";
 
 const config = new pulumi.Config();
 const testScenario = config.getNumber("scenario");
@@ -39,7 +36,7 @@ const accessLogsBucket = new aws.s3.Bucket("accessLogs", {
     }],
 });
 
-const alb = new aws.elasticloadbalancingv2.LoadBalancer(
+const alb = new aws.alb.LoadBalancer(
     "alb",
     {
         // Required for AWS guard rules, but makes it impossible to delete.
@@ -57,16 +54,16 @@ const alb = new aws.elasticloadbalancingv2.LoadBalancer(
         },
     });
 
-const defaultVpc = awsx.ec2.Vpc.getDefault();
+const defaultVpc = aws.ec2.Vpc.getDefault();
 
-const testTargetGroup = new aws.elasticloadbalancingv2.TargetGroup("targetGroup", {
+const testTargetGroup = new aws.alb.TargetGroup("targetGroup", {
     port: httpPort,
     protocol: "HTTP",
     vpcId: defaultVpc.id,
 });
 
 
-const httpsListener = new aws.elasticloadbalancingv2.Listener("httpsListener", {
+const httpsListener = new aws.alb.Listener("httpsListener", {
     loadBalancerArn: alb.arn,
     port: httpsPort,
     protocol: "HTTPS",
@@ -82,7 +79,7 @@ const httpsListener = new aws.elasticloadbalancingv2.Listener("httpsListener", {
 
 
 // The test scenario determines which default actions are hooked up to the HTTP listener.
-let httpListenerDefaultActions: aws.types.input.elasticloadbalancingv2.ListenerDefaultAction[] = [];
+let httpListenerDefaultActions: aws.types.input.alb.ListenerDefaultAction[] = [];
 
 console.log(`Running test scenario #${testScenario}`);
 switch (testScenario) {
@@ -114,7 +111,7 @@ switch (testScenario) {
         throw new Error(`Unexpected test scenario ${testScenario}`);
 }
 
-export const httpListener = new aws.elasticloadbalancingv2.Listener("httpListener", {
+export const httpListener = new aws.alb.Listener("httpListener", {
     loadBalancerArn: alb.arn,
     port: httpPort,
     protocol: "HTTP",

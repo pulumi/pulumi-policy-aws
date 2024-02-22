@@ -94,17 +94,7 @@ export const elbAccessLoggingEnabled: ResourceValidationPolicy = {
     name: "elb-logging-enabled",
     description: "Checks whether the Application Load Balancers and the Classic Load Balancers have logging enabled.",
     validateResource: [
-        validateResourceOfType(aws.elasticloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
-            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
-                reportViolation("Elastic Load Balancer must have access logs enabled.");
-            }
-        }),
-        validateResourceOfType(aws.elasticloadbalancingv2.LoadBalancer, (loadBalancer, args, reportViolation) => {
-            if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
-                reportViolation("Elastic Load Balancer must have access logs enabled.");
-            }
-        }),
-        validateResourceOfType(aws.applicationloadbalancing.LoadBalancer, (loadBalancer, args, reportViolation) => {
+        validateResourceOfType(aws.elb.LoadBalancer, (loadBalancer, args, reportViolation) => {
             if (loadBalancer.accessLogs === undefined || !loadBalancer.accessLogs.enabled) {
                 reportViolation("Elastic Load Balancer must have access logs enabled.");
             }
