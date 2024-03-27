@@ -99,9 +99,7 @@ STEP_MESSAGE = @echo -e "\033[0;32m$(shell echo '$@' | tr a-z A-Z | tr '_' ' '):
 
 # Our install targets place items item into $PULUMI_ROOT, if it's
 # unset, default to /opt/pulumi.
-ifeq ($(PULUMI_ROOT),)
-	PULUMI_ROOT:=/opt/pulumi
-endif
+PULUMI_ROOT ?= $$HOME/.pulumi-dev
 
 PULUMI_BIN          := $(PULUMI_ROOT)/bin
 PULUMI_NODE_MODULES := $(PULUMI_ROOT)/node_modules
