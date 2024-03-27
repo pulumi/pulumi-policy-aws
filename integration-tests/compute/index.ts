@@ -23,9 +23,9 @@ console.log(`Running test scenario #${testScenario}`);
 const ami = pulumi.output(aws.ec2.getAmi({
     filters: [{
         name: "name",
-        values: ["amzn-ami-hvm-*"],
+        values: ["amzn2-ami-k*-hvm-*-x86_64-gp2"],
     }],
-    owners: ["137112412989"], // This owner ID is Amazon
+    owners: ["amazon"],
     mostRecent: true,
 }));
 
