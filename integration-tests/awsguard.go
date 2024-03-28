@@ -93,8 +93,9 @@ func (settings awsGuardSettings) CreatePolicyPack(e *ptesting.Environment) (stri
 		"name": "custom-awsguard",
 		"version": "1.0.0",
 		"description": "Customized AWS Guard policy pack for integration tests.",
-		"dependencies": {
-			"@pulumi/awsguard": "latest"
+		"devDependencies": {
+			"@types/node": "^18.11.9",
+			"typescript": "^5.3.3"
 		}
 	}`
 	if err := ioutil.WriteFile(packageJSONFilePath, []byte(packageJSONFileContents), os.ModePerm); err != nil {

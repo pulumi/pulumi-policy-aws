@@ -28,6 +28,7 @@ export function isEnforcementLevel(o: any): o is EnforcementLevel {
             case "advisory":
             case "disabled":
             case "mandatory":
+            case "remediate":
                 return true;
             default:
                 return exhaustiveFalse(enforcementLevel);
