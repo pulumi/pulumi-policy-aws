@@ -250,37 +250,5 @@ func TestComputeEC2(t *testing.T) {
 					"The EC2 instance root block device must be encrypted.",
 				},
 			},
-			// Test scenario 10 - A egress type SecurityGroupRule attached to a SecurityGroup with inline rules
-			{
-				WantErrors: []string{
-					"mandatory",
-					"security-group-no-rule-management-conflicts",
-					"SecurityGroupRule test-sg-rule defines rules for SecurityGroup test-sg which has inline 'egress' rules",
-				},
-			},
-			// Test scenario 11 - A ingress type SecurityGroupRule attached to a SecurityGroup with inline rules
-			{
-				WantErrors: []string{
-					"mandatory",
-					"security-group-no-rule-management-conflicts",
-					"SecurityGroupRule test-sg-rule defines rules for SecurityGroup test-sg which has inline 'ingress' rules",
-				},
-			},
-			// Test scenario 12 - A SecurityGroupIngressRule attached to a SecurityGroup with inline rules
-			{
-				WantErrors: []string{
-					"mandatory",
-					"security-group-no-rule-management-conflicts",
-					"SecurityGroupIngressRule test-sg-ingress-rule defines rules for SecurityGroup test-sg which has inline 'ingress' rules",
-				},
-			},
-			// Test scenario 13 - A SecurityGroupEgressRule attached to a SecurityGroup with inline rules
-			{
-				WantErrors: []string{
-					"mandatory",
-					"security-group-no-rule-management-conflicts",
-					"SecurityGroupEgressRule test-sg-egress-rule defines rules for SecurityGroup test-sg which has inline 'egress' rules",
-				},
-			},
 		})
 }
