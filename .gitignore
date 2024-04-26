@@ -6,3 +6,4 @@
 **/package-lock.json
 
 yarn-error.log
+**/Pulumi.*.yaml

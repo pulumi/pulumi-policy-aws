@@ -14,7 +14,14 @@
 
 import * as aws from "@pulumi/aws";
 
-import { EnforcementLevel, ResourceValidationPolicy, validateResourceOfType } from "@pulumi/policy";
+import {
+    EnforcementLevel,
+    ReportViolation,
+    ResourceValidationPolicy,
+    StackValidationArgs,
+    StackValidationPolicy,
+    validateResourceOfType,
+} from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
 import { PolicyArgs } from "./policyArgs";
@@ -27,6 +34,7 @@ declare module "./awsGuard" {
         ec2VolumeInUse?: EnforcementLevel | (Ec2VolumeInUseArgs & PolicyArgs);
         elbAccessLoggingEnabled?: EnforcementLevel;
         encryptedVolumes?: EnforcementLevel | (EncryptedVolumesArgs & PolicyArgs);
+        securityGroupNoRuleManagementConflicts?: EnforcementLevel;
     }
 }
 
@@ -168,3 +176,52 @@ export const encryptedVolumes: ResourceValidationPolicy = {
     }),
 };
 registerPolicy("encryptedVolumes", encryptedVolumes);
+
+/** @internal */
+export const securityGroupNoRuleManagementConflicts: StackValidationPolicy = {
+  name: "security-group-no-rule-management-conflicts",
+  description:
+    "Checks that ec2.SecurityGroup resources do not conflict with vpc.SecurityGroupEgressRule, vpc.SecurityGroupIngressRule, or ec2.SecurityGroupRule.\n"+
+    "See https://www.pulumi.com/registry/packages/aws/api-docs/ec2/securitygroup/ for more details",
+  validateStack: (args: StackValidationArgs, reportViolation: ReportViolation) => {
+    args.resources.forEach((resource) => {
+      let currentType: string;
+      let type: "ingress" | "egress";
+      switch (resource.type) {
+        case "aws:vpc/securityGroupEgressRule:SecurityGroupEgressRule":
+          currentType = "SecurityGroupEgressRule";
+          type = "egress";
+          break;
+        case "aws:vpc/securityGroupIngressRule:SecurityGroupIngressRule":
+          currentType = "SecurityGroupIngressRule";
+          type = "ingress";
+          break;
+        case "aws:ec2/securityGroupRule:SecurityGroupRule":
+          currentType = "SecurityGroupRule";
+          type = resource.props["type"];
+          break;
+        default:
+            return;
+      }
+
+      if (resource.propertyDependencies["securityGroupId"]) {
+        resource.propertyDependencies["securityGroupId"].forEach((dep) => {
+          if (dep.type !== "aws:ec2/securityGroup:SecurityGroup" || !dep.props) {
+            return;
+          }
+          if (type === "ingress" && dep.props["ingress"] && dep.props["ingress"].length > 0) {
+            reportViolation(
+              `${currentType} ${resource.name} defines rules for SecurityGroup ${dep.name} which has inline 'ingress' rules`, resource.urn,
+            );
+          }
+          if (type === "egress" && dep.props["egress"] && dep.props["egress"].length > 0) {
+            reportViolation(
+              `${currentType} ${resource.name} defines rules for SecurityGroup ${dep.name} which has inline 'egress' rules`, resource.urn,
+            );
+          }
+        });
+      }
+    });
+  },
+};
+registerPolicy("securityGroupNoRuleManagementConflicts", securityGroupNoRuleManagementConflicts);

@@ -20,6 +20,14 @@ const testScenario = config.getNumber("scenario");
 
 console.log(`Running test scenario #${testScenario}`);
 
+const vpc = new aws.ec2.Vpc('test-vpc', { });
+const subnet = new aws.ec2.Subnet('test-subnet-1', {
+    vpcId: vpc.id,
+});
+const subnet2 = new aws.ec2.Subnet('test-subnet-2', {
+    vpcId: vpc.id,
+});
+
 const ami = pulumi.output(aws.ec2.getAmi({
     filters: [{
         name: "name",
@@ -53,6 +61,7 @@ let elbArgs: aws.elb.LoadBalancerArgs = {
         enabled: true,
         bucket: elbBucket.arn,
     },
+    subnets: [subnet.id, subnet2.id],
     listeners: [],
 };
 
@@ -61,6 +70,7 @@ let elbV2Args: aws.lb.LoadBalancerArgs = {
         enabled: true,
         bucket: elbBucket.arn,
     },
+    subnets: [subnet.id, subnet2.id],
     enableDeletionProtection: true,
 };
 
@@ -69,8 +79,14 @@ let albArgs: aws.alb.LoadBalancerArgs = {
         enabled: true,
         bucket: elbBucket.arn,
     },
+    subnets: [subnet.id, subnet2.id],
     enableDeletionProtection: true,
 };
+
+let sgArgs: aws.ec2.SecurityGroupArgs = {};
+let sgRuleArgs: ((id: pulumi.Input<string>) => aws.ec2.SecurityGroupRuleArgs) | undefined;
+let sgEgressRuleArgs: ((id: pulumi.Input<string>) => aws.vpc.SecurityGroupEgressRuleArgs) | undefined;
+let sgIngressRuleArgs: ((id: pulumi.Input<string>) => aws.vpc.SecurityGroupIngressRuleArgs) | undefined;
 
 switch (testScenario) {
     case 1:
@@ -170,6 +186,92 @@ switch (testScenario) {
             }]
         };
         break;
+    case 10:
+        // No SecurityGroupRule of type 'egress' for a SecurityGroup with inline egress rules.
+        sgArgs = {
+          egress: [{
+            toPort: 80,
+            fromPort: 80,
+            cidrBlocks: ['0.0.0.0/0'],
+            protocol: 'tcp',
+          }],
+        };
+
+        sgRuleArgs = (id: pulumi.Input<string>): aws.ec2.SecurityGroupRuleArgs => {
+          return {
+            type: 'egress',
+            protocol: 'tcp',
+            cidrBlocks: ['0.0.0.0/0'],
+            fromPort: 81,
+            toPort: 81,
+            securityGroupId: id,
+          }
+        }
+        break;
+    case 11:
+        // No SecurityGroupRule of type 'ingress' for a SecurityGroup with inline ingress rules.
+        sgArgs = {
+          ingress: [{
+            toPort: 80,
+            fromPort: 80,
+            cidrBlocks: ['0.0.0.0/0'],
+            protocol: 'tcp',
+          }],
+        };
+
+        sgRuleArgs = (id: pulumi.Input<string>): aws.ec2.SecurityGroupRuleArgs => {
+          return {
+            type: 'ingress',
+            protocol: 'tcp',
+            cidrBlocks: ['0.0.0.0/0'],
+            fromPort: 81,
+            toPort: 81,
+            securityGroupId: id,
+          }
+        }
+        break;
+    case 12:
+        // No SecurityGroupIngressRule for a SecurityGroup with inline ingress rules.
+        sgArgs = {
+          ingress: [{
+            toPort: 80,
+            fromPort: 80,
+            cidrBlocks: ['0.0.0.0/0'],
+            protocol: 'tcp',
+          }],
+        };
+
+        sgIngressRuleArgs = (id: pulumi.Input<string>): aws.vpc.SecurityGroupIngressRuleArgs => {
+          return {
+            ipProtocol: 'tcp',
+            cidrIpv4: '0.0.0.0/0',
+            fromPort: 81,
+            toPort: 81,
+            securityGroupId: id,
+          }
+        }
+        break;
+    case 13:
+        // No SecurityGroupEgressRule for a SecurityGroup with inline egress rules.
+        sgArgs = {
+          egress: [{
+            toPort: 80,
+            fromPort: 80,
+            cidrBlocks: ['0.0.0.0/0'],
+            protocol: 'tcp',
+          }],
+        };
+
+        sgEgressRuleArgs = (id: pulumi.Input<string>): aws.vpc.SecurityGroupEgressRuleArgs => {
+          return {
+            ipProtocol: 'tcp',
+            cidrIpv4: '0.0.0.0/0',
+            fromPort: 81,
+            toPort: 81,
+            securityGroupId: id,
+          }
+        }
+        break;
     default:
         throw new Error(`Unexpected test scenario ${testScenario}`);
 }
@@ -178,3 +280,13 @@ export const ec2Instance = new aws.ec2.Instance("test-ec2-instance", ec2Instance
 export const elb = new aws.elb.LoadBalancer("test-elb", elbArgs);
 export const elbV2 = new aws.lb.LoadBalancer("test-elb-v2", elbV2Args);
 export const alb = new aws.alb.LoadBalancer("test-alb", albArgs);
+export const sg = new aws.ec2.SecurityGroup('test-sg', sgArgs);
+if (sgRuleArgs !== undefined) {
+  new aws.ec2.SecurityGroupRule('test-sg-rule', sgRuleArgs(sg.id));
+}
+if (sgEgressRuleArgs) {
+  new aws.vpc.SecurityGroupEgressRule('test-sg-egress-rule', sgEgressRuleArgs(sg.id));
+}
+if (sgIngressRuleArgs) {
+  new aws.vpc.SecurityGroupIngressRule('test-sg-ingress-rule', sgIngressRuleArgs(sg.id));
+}
