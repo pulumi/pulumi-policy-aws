@@ -1,8 +1,8 @@
-## HEAD (Unreleased)
+
+## 0.5.0
 
 - Added in checks for `alb` and `lb` to the compute and network policies
-
----
+- add new securityGroupNoRuleManagementConflicts rule [#108](https://github.com/pulumi/pulumi-policy-aws/pull/108)
 
 ## 0.4.0 (2022-09-22)
 
