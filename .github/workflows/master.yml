@@ -69,6 +69,7 @@ jobs:
         with:
           path: ci-scripts
           repository: pulumi/scripts
+      - run: echo "ci-scripts" >> .git/info/exclude # actions/checkout#197
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
