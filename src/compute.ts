@@ -211,12 +211,12 @@ export const securityGroupNoRuleManagementConflicts: StackValidationPolicy = {
           }
           if (type === "ingress" && dep.props["ingress"] && dep.props["ingress"].length > 0) {
             reportViolation(
-              `${currentType} ${resource.name} defines rules for SecurityGroup ${dep.name} which has inline 'ingress' rules`,
+              `${currentType} ${resource.name} defines rules for SecurityGroup ${dep.name} which has inline 'ingress' rules`, resource.urn,
             );
           }
           if (type === "egress" && dep.props["egress"] && dep.props["egress"].length > 0) {
             reportViolation(
-              `${currentType} ${resource.name} defines rules for SecurityGroup ${dep.name} which has inline 'egress' rules`,
+              `${currentType} ${resource.name} defines rules for SecurityGroup ${dep.name} which has inline 'egress' rules`, resource.urn,
             );
           }
         });
