@@ -14,9 +14,9 @@
 
 import {
     EnforcementLevel,
-    StackValidationPolicy,
-    StackValidationArgs,
     ReportViolation,
+    StackValidationArgs,
+    StackValidationPolicy,
 } from "@pulumi/policy";
 
 import { registerPolicy } from "./awsGuard";
@@ -42,33 +42,33 @@ export const iamRoleNoPolicyManagementConflicts: StackValidationPolicy = {
     description: "Checks that iam.Role resources do not conflict with iam.PolicyAttachment, iam.RolePolicyAttachment, iam.RolePolicy",
     validateStack: (args: StackValidationArgs, reportViolation: ReportViolation) => {
         args.resources.forEach(r => {
-            var roleProp: string;
-            var currentType: string;
-            switch(r.type) {
+            let roleProp: string;
+            let currentType: string;
+            switch (r.type) {
                 case "aws:iam/policyAttachment:PolicyAttachment": {
                     roleProp = "roles";
                     currentType = "PolicyAttachment";
-                    break
+                    break;
                 }
                 case "aws:iam/rolePolicyAttachment:RolePolicyAttachment": {
                     roleProp = "role";
                     currentType = "RolePolicyAttachment";
-                    break
+                    break;
                 }
                 case "aws:iam/rolePolicy:RolePolicy": {
                     roleProp = "role";
                     currentType = "RolePolicy";
-                    break
+                    break;
                 }
                 default: {
-                    return
+                    return;
                 }
             }
 
             if (r.propertyDependencies[roleProp]) {
                 r.propertyDependencies[roleProp].forEach(dep => {
                     if (dep.type !== "aws:iam/role:Role" || !dep.props) {
-                        return
+                        return;
                     }
                     if (dep.props["managedPolicyArns"] && dep.props["managedPolicyArns"].length > 0) {
                         reportViolation(`${currentType} should not be used with a role ${dep.urn} that defines managedPolicyArns`, r.urn);
@@ -78,8 +78,8 @@ export const iamRoleNoPolicyManagementConflicts: StackValidationPolicy = {
                     }
                 });
             }
-            return
-        })
+            return;
+        });
     },
 };
 
