@@ -179,9 +179,9 @@ func TestIAM(t *testing.T) {
 			"aws:region": "us-west-2",
 		},
 		[]policyTestScenario{
-			// Test scenario 1 - happy path.
-			{},
-			// Test scenario 2 - managedPolicyArns conflict.
+			// Test scenario 1 and 2 - happy path.
+			{}, {},
+			// Test scenario 3 - managedPolicyArns conflict.
 			{
 				WantErrors: []string{"RolePolicyAttachment should not be used with a role"},
 			},

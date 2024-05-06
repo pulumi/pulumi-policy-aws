@@ -23,10 +23,7 @@ export let result: pulumi.Output<string>;
 console.log(`Running test scenario #${testScenario}`);
 
 switch (testScenario) {
-    case 1:
-        // Happy Path.
-        break;
-    case 2:
+    case 1: // Role with managedPolicyArns by itself - OK
         const role1 = new aws.iam.Role("role1", {
             assumeRolePolicy: JSON.stringify({
                 Version: "2012-10-17",
@@ -44,7 +41,24 @@ switch (testScenario) {
             ],
         });
 
-        const policy = aws.iam.getPolicyDocument({
+        result = role1.arn;
+        break;
+    case 2: // Role with RolePolicyAttachment - OK
+        const role2 = new aws.iam.Role("role1", {
+            assumeRolePolicy: JSON.stringify({
+                Version: "2012-10-17",
+                Statement: [{
+                    Action: "sts:AssumeRole",
+                    Effect: "Allow",
+                    Sid: "",
+                    Principal: {
+                        Service: "lambda.amazonaws.com",
+                    },
+                }],
+            }),
+        });
+
+        const policyDoc2 = aws.iam.getPolicyDocument({
             statements: [{
                 effect: "Allow",
                 actions: ["ec2:Describe*"],
@@ -52,17 +66,56 @@ switch (testScenario) {
             }],
         });
 
-        const policy1 = new aws.iam.Policy("policy", {
+        const policy2 = new aws.iam.Policy("policy", {
             description: "A test policy",
-            policy: policy.then(policy => policy.json),
+            policy: policyDoc2.then(policy => policy.json),
         });
 
-        const roleAttach1 = new aws.iam.RolePolicyAttachment("rpa", {
-            role: role1.name,
-            policyArn: policy1.arn,
+        const roleAttach2 = new aws.iam.RolePolicyAttachment("rpa", {
+            role: role2.name,
+            policyArn: policy2.arn,
         });
 
-        result = roleAttach1.urn;
+        result = roleAttach2.urn;
+
+        break;
+    case 3: // Role with managedPolicyArns conflicts with RolePolicyAttachment
+        const role3 = new aws.iam.Role("role1", {
+            assumeRolePolicy: JSON.stringify({
+                Version: "2012-10-17",
+                Statement: [{
+                    Action: "sts:AssumeRole",
+                    Effect: "Allow",
+                    Sid: "",
+                    Principal: {
+                        Service: "lambda.amazonaws.com",
+                    },
+                }],
+            }),
+            managedPolicyArns: [
+                "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+            ],
+        });
+
+        const policyDoc3 = aws.iam.getPolicyDocument({
+            statements: [{
+                effect: "Allow",
+                actions: ["ec2:Describe*"],
+                resources: ["*"],
+            }],
+        });
+
+        const policy3 = new aws.iam.Policy("policy", {
+            description: "A test policy",
+            policy: policyDoc3.then(policy => policy.json),
+        });
+
+        const roleAttach3 = new aws.iam.RolePolicyAttachment("rpa", {
+            role: role3.name,
+            policyArn: policy3.arn,
+        });
+
+        result = roleAttach3.urn;
 
         break;
     default:
