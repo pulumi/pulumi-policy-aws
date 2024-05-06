@@ -18,6 +18,7 @@ import { AwsGuard, AwsGuardArgs } from "./awsGuard";
 import "./apiGateway";
 import "./compute";
 import "./database";
+import "./iam";
 import "./elasticsearch";
 import "./network";
 import "./security";

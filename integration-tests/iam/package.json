@@ -1,0 +1,12 @@
+{
+    "name": "awsguard-test-iam",
+    "main": "index.ts",
+    "dependencies": {
+        "@pulumi/pulumi": "^3.0.0",
+        "@pulumi/aws": "^6.0.0",
+        "@pulumi/awsx": "^2.9.0"
+    },
+    "resolutions": {
+        "@pulumi/aws": "^6.0.0"
+    }
+}
