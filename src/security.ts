@@ -38,7 +38,6 @@ declare module "./awsGuard" {
         cmkBackingKeyRotationEnabled?: EnforcementLevel;
         iamAccessKeysRotated?: EnforcementLevel | (IamAccessKeysRotatedArgs & PolicyArgs);
         iamMfaEnabledForConsoleAccess?: EnforcementLevel;
-        iamRoleNoPolicyManagementConflicts?: EnforcementLevel;
     }
 }
 
