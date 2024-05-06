@@ -21,6 +21,7 @@
         "database.ts",
         "elasticsearch.ts",
         "enforcementLevel.ts",
+        "iam.ts",
         "index.ts",
         "network.ts",
         "policyArgs.ts",
