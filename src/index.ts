@@ -19,6 +19,7 @@ import "./apiGateway";
 import "./compute";
 import "./database";
 import "./elasticsearch";
+import "./iam";
 import "./network";
 import "./security";
 import "./storage";

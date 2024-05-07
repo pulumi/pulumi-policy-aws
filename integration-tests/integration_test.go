@@ -171,6 +171,24 @@ func TestElasticSearch(t *testing.T) {
 		})
 }
 
+func TestIAM(t *testing.T) {
+	runPolicyPackIntegrationTest(
+		t, "iam",
+		awsGuardSettings{},
+		map[string]string{
+			"aws:region": "us-west-2",
+		},
+		[]policyTestScenario{
+			// Test scenario 1 and 2 - happy path.
+			{}, {},
+			// Test scenario 3 - managedPolicyArns conflict.
+			{
+				WantErrors: []string{"RolePolicyAttachment should not be used with a role"},
+			},
+		},
+	)
+}
+
 func TestComputeEC2(t *testing.T) {
 	runPolicyPackIntegrationTest(
 		t, "compute",

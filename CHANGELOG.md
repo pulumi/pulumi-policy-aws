@@ -1,8 +1,9 @@
+## Pending
 
-## 0.5.0
-
-- Added in checks for `alb` and `lb` to the compute and network policies
-- add new securityGroupNoRuleManagementConflicts rule [#108](https://github.com/pulumi/pulumi-policy-aws/pull/108)
+- Add checks for `alb` and `lb` to the compute and network policies [#903](https://github.com/pulumi/pulumi-policy-aws/pull/93)
+- Update to latest `@pulumi/policy` [#103](https://github.com/pulumi/pulumi-policy-aws/pull/103)
+- Add checks for iam.Role policy usage with aws.iam.RolePolicy [#107](https://github.com/pulumi/pulumi-policy-aws/pull/107)
+- Add checks for SecurityGroup resource best practices [#108](https://github.com/pulumi/pulumi-policy-aws/pull/108)
 
 ## 0.4.0 (2022-09-22)
 
